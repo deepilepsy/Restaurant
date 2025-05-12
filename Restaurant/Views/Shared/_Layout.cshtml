@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"] - Restaurant</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/Restaurant.styles.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="css/main.css" asp-append-version="true"/>
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light mb-3 navbar-transparent">
+        <div class="header-div" style="z-index: 2; width: 100%">
+            <div class="left-div"></div>
+            <div class="middle-div">
+                <div class="middle-l text-center">
+                    <h3 class="menu">MENU</h3>
+                </div>
+                <div class="middle-m">
+                    <a class="navbar-brand" asp-controller="Home" asp-action="Index"> <!-- Anasayfaya yonlendir -->
+                        <img src="images/logo.png" alt="Logo" height="40" style="display: inline-block">
+                    </a>
+                </div>
+                <div class="middle-r text-center">
+                    <h3 class="book">BOOK A TABLE</h3>
+                </div>
+            </div>
+            <div class="right-div">
+                <div class="tel-no" style="color: white; text-align: end; padding-right: 30px; font-size: large">
+                    <text>+123 456 7890</text>
+                </div>
+                <div class="instagram" style="color: white; text-align: end; padding-right: 65px; font-size: large">
+                    <a><img src="images/insta.png" style="width: 20px"></a>
+                    <text>bilmem.ne</text>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+</header>
+<div class="container">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+<footer class="footer text-muted navbar-transparent">
+    <div class="container" style="color: white">
+        &copy; 2025 - Restaurant - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    </div>
+</footer>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

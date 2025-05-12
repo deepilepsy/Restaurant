@@ -1,0 +1,68 @@
+* {
+    font-family: "Optima";
+}
+
+body {
+    background-image: url('/images/background.jpg');
+    background-size: cover;      /* Fill the screen */
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.header-div {
+    display: flex;
+    width: 100%;
+    margin: 0 auto; /* Horizontally center */
+}
+.left-div {
+    flex: 1;
+}
+
+.middle-div {
+    display: flex;
+    flex: 1.2;
+    text-align: center;
+}
+.middle-l {
+    flex: 1.4;
+    padding-left: 70px;
+}
+.middle-m {
+    flex: 1;
+}
+.middle-r {
+    flex: 2;
+}
+
+.right-div {
+    flex: 1;
+}
+
+.menu {
+    display: inline-block;
+    font-weight: lighter;
+    font-size: x-large;
+    color: white;
+    text-decoration: none;
+    padding-top: 0.5em;
+    padding-right: 0.85em;
+}
+
+.book {
+    display: inline-block;
+    font-weight: lighter;
+    font-size: x-large;
+    color: white;
+    text-decoration: none;
+    padding-top: 0.5em;
+}
+
+.navbar-transparent {
+    display: block;
+    background-color: rgba(78, 78, 78, 0.8);
+    z-index: 1;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    
+}
