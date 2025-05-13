@@ -4,23 +4,21 @@
 
 <head>
     <title>Restaurant</title>
-    <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-<div class="homepage">
-    <div class="intro-div-1">
-        <img src="images/hmpgfoods.jpg" class="food-image">
+<div class="homepage" style="display: flex; flex-direction: row; margin-top: 80px; height: auto">
+    <div class="introDiv1" style="flex: 1.5; height: 100%">
+        <img src="images/hmpgfoods.jpg" style="max-width: 40%; min-width: 40%; height: auto; position: absolute" class="foodimage">
     </div>
-    <div class="intro-div-2">
-        <div class="text-info introduction">
-            <h3 style="display: inline-block; color: #9697a8; font-size: large">Welcome to ATÜ yemekhane.</h3>
-            <h2 style="display: inline-block; color: white; margin-top: 25px; margin-bottom: 50px; font-size: xx-large">Quality Turkish Food Experience in Adana Sarıçam Area</h2>
-            <a><button class="book-a-table">BOOK A TABLE</button></a>
-        </div>
+    <div class="introDiv2" style="flex: 1; height: 500px">
+        <h3 style="display: inline-block; color: #9697a8; font-size: large">Welcome to ATÜ yemekhane.</h3>
+        <h2 style="display: inline-block; color: white; margin-top: 25px; margin-bottom: 50px; font-size: xx-large">Quality Turkish Food Experience in Adana Sarıçam Area</h2>
+        <a asp-controller="Home" asp-action="Booking" style="text-decoration: none; color: inherit"><button class="book-a-table">BOOK A TABLE</button></a>
     </div>
 </div>
-<div style="display: block; margin-top: 200px;" class="text-md-center">
+<div style="display: block; position: inherit" class="text-md-center">
     <h1 class="Bottom-text">Tradition, Untouched</h1>
 </div>
 </body>

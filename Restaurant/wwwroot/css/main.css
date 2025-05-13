@@ -3,7 +3,7 @@
 }
 
 body {
-    background-image: url('/images/background.jpg');
+    background-image: url("../images/background.jpg");
     background-size: cover;      /* Fill the screen */
     background-repeat: no-repeat;
     background-position: center;

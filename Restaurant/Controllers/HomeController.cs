@@ -13,6 +13,16 @@ public class HomeController : Controller
         _logger = logger;
     }
 
+    public IActionResult Menu()
+    {
+        return View();
+    }
+
+    public IActionResult Booking()
+    {
+        return View();
+    }
+
     public IActionResult Index()
     {
         return View();

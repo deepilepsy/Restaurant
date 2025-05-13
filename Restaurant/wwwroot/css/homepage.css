@@ -1,27 +1,3 @@
-.homepage {
-    margin-top: 20px;
-    width: 100%;
-}  
-
-.intro-div-1 {
-    display: inline-block;
-    width: 50%;
-    margin-top: 60px;
-}
-
-.intro-div-2 {
-    display: inline-block;
-    padding-right: 0;
-    margin-left: 20px;
-    width: 43%;
-    margin-top: 60px;
-}
-
-.food-image {
-    width: 48%;
-    position: absolute;
-    top: 130px;
-}
 
 .book-a-table {
     all: unset;
