@@ -1,3 +1,29 @@
+.introDiv1 {
+    transform: translateX(-300px);
+    opacity: 0;
+    animation: slideIn 1s ease-out forwards;
+}
+
+#foodimage {
+    transition: transform 0.3s ease;
+}
+#foodimage:hover {
+    transform: translateX(0) scale(1.05);
+}
+@keyframes slideIn {
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+
+.introDiv2 {
+    transform: translateX(300px);
+    opacity: 0;
+    animation: slideIn 1s ease-out forwards;
+    transition: all, 0.4s;
+}
 
 .book-a-table {
     all: unset;
@@ -71,7 +97,66 @@
 }
 
 .Bottom-text {
+    opacity: 0;
+    animation: opacityIn 1s ease-out forwards;
     display: block;
     font-size: 80px;
     color: #dfdddd;
+}
+
+@keyframes opacityIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.wrapper {
+    width: 100%;
+    margin: 2rem 0;
+    padding: 0;
+    color: white;
+    font-size: 2rem;
+}
+
+.stylish-text {
+    display: block;
+    width: 100%;
+    padding: 2rem;
+    overflow: clip;
+}
+
+
+.stylish-text p {
+    border: 1px solid white;
+    border-radius: 999px;
+    padding: 0.5rem 1.5rem
+}
+
+.animated-text {
+    transition: all 0.3s ease;
+}
+
+.animated-text:hover {
+    transform: scale(1.05);
+    border-color: orange;
+    color: antiquewhite;
+}
+
+.stylish-text-track {
+    width: max-content;
+    display: flex;
+    flex-direction: row;
+    gap: 4.8rem;
+    animation: stylish-move-text 15s linear infinite;
+}
+
+
+.fadeout-horizontal {
+    mask-image: linear-gradient(to right, transparent, black 5rem, black calc(100% - 5rem), transparent);
+}
+
+@keyframes stylish-move-text {
+    to {
+        transform: translateX(-34.15%);
+    }
 }
