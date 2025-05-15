@@ -31,6 +31,37 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult Login()
+    {
+        return View();
+    }
+    
+    [HttpPost]
+    public IActionResult Login(string username, string password)
+    {
+        if (username == "admin" && password == "admin")
+        {
+            HttpContext.Session.SetString("isLoggedIn", "true"); // Logged in.
+            return RedirectToAction("Index");
+        }
+        else
+        {
+            ViewBag.Error = "Username and Password do not match.";
+            return View();
+        }
+    }
+
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Clear();
+        return RedirectToAction("Index");
+    }
+
+    public IActionResult Admin()
+    {
+        return View();
+    }
+
     public IActionResult Privacy()
     {
         return View();

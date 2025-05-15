@@ -1,13 +1,18 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Session;
+using Microsoft.AspNetCore.Http;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddSession();
 
 var app = builder.Build();
 
 app.UseStaticFiles(); // Need this line to use background images.
-
+app.UseSession();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

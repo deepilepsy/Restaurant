@@ -1,0 +1,50 @@
+
+@{
+    Layout = null;
+}
+
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/login.css">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release-pro/v4.0.0/css/solid.css">
+</head>
+<body>
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+<div class="section">
+    <div class="container">
+        <div class="row full-height justify-content-center">
+            <div class="col-12 text-center align-self-center py-5">
+                <div class="section pb-5 pt-5 pt-sm-2 text-center">
+                    <label for="reg-log"></label>
+                    <div class="card-3d-wrap mx-auto">
+                        <div class="card-3d-wrapper">
+                            <div class="card-front">
+                                <div class="center-wrap">
+                                    <form asp-controller="Home" asp-action="Login" method="post" class="section text-center">
+                                        <h4 class="mb-4 pb-3">Log In</h4>
+                                        <div class="form-group">
+                                            <input type="text" name="username" class="form-style" placeholder="Username" id="username" autocomplete="off" required>
+                                            <i class="input-icon uil uil-user"></i>
+                                        </div>
+                                        <div class="form-group mt-2">
+                                            <input type="password" name="password" class="form-style" placeholder="Password" id="logpass" autocomplete="off" required>
+                                            <i class="input-icon uil uil-lock-alt"></i>
+                                        </div>
+                                        <button type="submit" class="btn mt-4">submit</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>

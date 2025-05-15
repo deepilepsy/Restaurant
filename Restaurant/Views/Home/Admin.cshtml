@@ -1,0 +1,35 @@
+
+@{
+    Layout = null;
+}
+<style>
+    body {
+        background-image: url("../images/background.jpg");
+        background-size: cover;      /* Fill the screen */
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    
+    #homebutton {
+        width: 2.5rem; 
+        padding-left: 1rem; 
+        padding-top: 1rem;
+        transition: all 0.4s;
+    }
+    #homebutton:hover {
+        transform: scale(1.25);
+    }
+</style>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Admin Page</title>
+</head>
+<body>
+<div>
+    <a asp-controller="Home" asp-action="Index"><img src="~/images/home.png" alt="home" id="homebutton"></img></a>
+</div>
+</body>
+</html>
