@@ -14,6 +14,33 @@ body {
     background-position: center;
 }
 
+#login{
+    text-decoration: none;
+    cursor: pointer;
+    color: darkgray;
+    margin-right: 1rem;
+    transition: all 0.2s ease-in-out;
+}
+#logout {
+    text-decoration: none;
+    cursor: pointer;
+    color: red;
+    margin-right: 1rem;
+    transition: all 0.2s ease-in-out;
+}
+#login:hover, #logout:hover {
+    color: white;
+}
+
+#privacy {
+    text-decoration: none;
+    color: darkgray;
+    transition: all 0.2s ease-in-out;
+}
+#privacy:hover {
+    color: white;
+}
+
 .header-div {
     display: flex;
     width: 100%;
@@ -92,7 +119,12 @@ body {
     vertical-align: middle;
     width: auto;
     border: 1px solid;
-    border-color: darkorange;
-    border-radius: 5px;
+    border-color: #d99a4e;
+    border-radius: 10px;
     margin-left: 2rem;
+    transition: all 0.4s ease-in-out;
+}
+
+#loggedIn:hover {
+    background-color: rgba(45, 44, 45, 0.7);
 }

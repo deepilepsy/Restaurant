@@ -46,7 +46,7 @@ public class HomeController : Controller
         }
         else
         {
-            ViewBag.Error = "Username and Password do not match.";
+            ViewBag.Error = "Username or Password do not match.";
             return View();
         }
     }

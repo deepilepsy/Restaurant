@@ -9,9 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - Restaurant</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/site.css?v=1.0.1" asp-append-version="true"/>
     <link rel="stylesheet" href="~/Restaurant.styles.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/css/main.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/main.css?v=1.0.1" asp-append-version="true"/>
     <style>
         .disabled-link {
             pointer-events: none;
@@ -28,8 +28,8 @@
                 @if (isLoggedIn == "true")
                 {
                     <div id="loggedIn">
-                        <a asp-controller="Home" asp-action="Admin"><img src="~/images/maintenance.png" alt="maintenance" id="maintenance" style="width: 2rem; margin-left: 2rem;"></a>
-                        <p style="font-family: 'Noto Sans Batak'; font-size: large; color: dodgerblue; display: inline-block; margin-left: 0.5rem; padding-right: 2rem; padding-top: 1rem">Logged in as <span style="color: #ffcd39">Admin</span></p>
+                        <a asp-controller="Home" asp-action="Admin" style="cursor: default"><img src="~/images/maintenance.png" alt="maintenance" id="maintenance" style="width: 2rem; margin-left: 2rem;"></a>
+                        <p style="font-family: 'Noto Sans Batak'; font-size: large; color: white; display: inline-block; margin-left: 0.5rem; padding-right: 2rem; padding-top: 1rem">Logged in as <span style="color: #ffcd39">Admin</span></p>
                     </div>
 }
             </div>
@@ -69,16 +69,16 @@
 <footer class="footer text-muted navbar-transparent" style="display: flex">
 
     <div style="flex: 1; width: 100%; max-height: 70px; color: white">
-        &nbsp;&nbsp;&nbsp;&copy; 2025 - Restaurant - <a asp-area="" asp-controller="Home" asp-action="Privacy" style="text-decoration: none; color: darkgray">Privacy</a>
+        &nbsp;&nbsp;&nbsp;&copy; 2025 - Restaurant - <a asp-area="" asp-controller="Home" asp-action="Privacy" id="privacy">Privacy</a>
     </div>
     <div style="flex: 1; text-align: end">
         @if (isLoggedIn != "true")
         {
-            <a asp-controller="Home" asp-action="Login" style="text-decoration: none; cursor: pointer; color: darkgray; margin-right: 1rem;">Login</a>
+            <a asp-controller="Home" asp-action="Login" id="login">Login</a>
         }
         @if (isLoggedIn == "true")
         {
-            <a asp-controller="Home" asp-action="Logout" style="text-decoration: none; cursor: pointer; color: red; margin-right: 1rem;">Logout</a>
+            <a asp-controller="Home" asp-action="Logout" id="logout">Logout</a>
         }
     </div>
 

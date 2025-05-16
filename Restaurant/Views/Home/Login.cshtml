@@ -6,8 +6,7 @@
 <head>
     <title>Login</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="~/css/login.css">
-    <link rel="stylesheet" href="https://unicons.iconscout.com/release-pro/v4.0.0/css/solid.css">
+    <link rel="stylesheet" href="~/css/login.css?v=1.0.1">
 </head>
 <body>
 @if (ViewBag.Error != null)
@@ -27,7 +26,7 @@
                             <div class="card-front">
                                 <div class="center-wrap">
                                     <form asp-controller="Home" asp-action="Login" method="post" class="section text-center">
-                                        <h4 class="mb-4 pb-3">Log In</h4>
+                                        <h4 class="mb-4 pb-3" style="color: white">Log In</h4>
                                         <div class="form-group">
                                             <input type="text" name="username" class="form-style" placeholder="Username" id="username" autocomplete="off" required>
                                             <svg
