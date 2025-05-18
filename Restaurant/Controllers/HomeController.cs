@@ -12,17 +12,23 @@ public class HomeController : Controller
     {
         _logger = logger;
     }
-    public IActionResult ReservationForm()
+    
+    [HttpGet]
+    public IActionResult ReservationForm(Tables table)
     {
-        return View();
+        
+        return View(table);
     }
     public IActionResult Menu()
     {
         return View();
     }
 
+    
+    [HttpGet]
     public IActionResult Booking()
     {
+        
         return View();
     }
 

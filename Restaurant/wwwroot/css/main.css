@@ -5,6 +5,8 @@
 #home {
     margin: 0;
     padding: 0;
+    height: 100%;
+
 }
 
 body {
@@ -13,6 +15,7 @@ body {
     background-repeat: no-repeat;
     background-position: center;
 }
+
 
 #login{
     text-decoration: none;

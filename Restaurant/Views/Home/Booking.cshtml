@@ -101,37 +101,57 @@
 </head>
 <body>
 <div class="container">
-    <div class="date-time-picker">
-        <label for="reservation-date">Date:</label>
-        <input type="date" id="reservation-date" name="reservation-date" />
+    
+    @* Zaman bilgisini ve masa numarası bilgisini rezervasyon formuna
+     çekebilmek için form haline getirdim. *@
 
-        <label for="reservation-time">Time:</label>
-        <input type="time" id="reservation-time" name="reservation-time" />
-    </div>
+    <form action="/Home/ReservationForm" method="get">      
+        
+        @* methodu post yerien get kullandım. çünkü databasede herhangi
+        bir değişiklik olmayacak bu kısımda sadece aldığımız inputları rezervasyon formuna gönderecez *@
 
-    <div class="select">Select a table</div>
-    <div id="table-wrapper"></div>
+  <div class="date-time-picker">
+            <label for="reservation-date">Date:</label>
+            <input type="date" id="reservationDate" name="reservationDate"/>
+
+            <label for="reservation-time">Time:</label>
+            <input type="time" id="reservationTime" name="reservationTime"/>
+        </div>
+
+        <div class="select">Select a table</div>
+        <div id="table-wrapper"></div>
+    </form>
+
 </div>
 
 <script>
-        const wrapper = document.getElementById('table-wrapper');
-        const occupiedTables = [3, 7, 12]; // görelim diye şimdilik ekledim 
+    const wrapper = document.getElementById('table-wrapper');
+    const occupiedTables = [3, 7, 12]; // görelim diye şimdilik ekledim 
 
-        for (let i = 1; i <= 20; i++) {
-            const tableButtons = document.createElement('button');
-            tableButtons.classList.add('tables');
-            tableButtons.innerText = i;
+    for (let i = 1; i <= 20; i++) {
+        const tableButtons = document.createElement('button');
+        tableButtons.classList.add('tables');
+        tableButtons.type = `submit`; // burada form yapısına döndürdüğüm için butonun tipini submit olarak ayarladım.
+        tableButtons.value = i; // buton aynı zamanda masa numaramızın değerini taşıyor.
+        tableButtons.id = `tableNo`;
+        tableButtons.name = 'tableNo'; 
+        tableButtons.innerText = i;
 
-            if (occupiedTables.includes(i)) {
-                tableButtons.classList.add('occupied');
-            } else {
-                tableButtons.addEventListener('click', () => {
-                    tableButtons.classList.toggle('selected');
-                });
+        if (occupiedTables.includes(i)) {
+            tableButtons.classList.add('occupied');
+            tableButtons.disabled = true; // "occupied" işaretlediğin butonları disabled diyerek tıklanmasını engelledim.
+            
+        } 
+        else {
+            tableButtons.addEventListener('click', () => {
+                tableButtons.classList.toggle('selected');
+            });
+            
+            
 
-            }
-            wrapper.appendChild(tableButtons);
         }
+        wrapper.appendChild(tableButtons);
+    }
     </script>
 </body>
 </html>
