@@ -6,7 +6,6 @@
     margin: 0;
     padding: 0;
     height: 100%;
-
 }
 
 body {
@@ -44,28 +43,43 @@ body {
     color: white;
 }
 
+header {
+    margin-bottom: 5rem;
+}
+
 .header-div {
     display: flex;
     width: 100%;
     margin: 0 auto; /* Horizontally center */
+    position: fixed;
+    top: 0;
+    padding: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0); /* Start fully transparent */
+    transition: background-color 0.3s ease;
+    z-index: 1000;
 }
+
+
 .left-div {
     flex: 1;
 }
 
 .middle-div {
-    display: flex;
-    flex: 1.2;
+    flex: 1.4;
     text-align: center;
 }
 .middle-l {
     flex: 1.4;
+    display: inline-block;
     padding-left: 70px;
 }
 .middle-m {
+    display: inline-block;
     flex: 1;
 }
 .middle-r {
+    display: inline-block;
     flex: 2;
 }
 
@@ -131,3 +145,21 @@ body {
 #loggedIn:hover {
     background-color: rgba(45, 44, 45, 0.7);
 }
+#links {
+    transform: scale(0.90);
+}
+
+#insta-icon, #face-icon, #x-icon {
+    transition: all 0.4s ease-in-out;
+    margin-left: 0.9rem;
+}
+#insta-icon:hover {
+    color: #ed31e0;
+}
+#face-icon:hover {
+    color: #5094fa;
+}
+#x-icon:hover {
+    color: #ff7171;
+}
+

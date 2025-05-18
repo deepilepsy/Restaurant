@@ -159,3 +159,34 @@
         transform: translateX(-34.15%);
     }
 }
+
+#story-container {
+    display: block;
+    margin: 5rem 0rem;
+}
+
+#story-inner {
+    background-image: url("../images/inner-back.jpeg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    width: 500px;
+    margin: 0 auto;
+    border-radius: 15px;
+    border: 2px solid #d99a4e;
+}
+
+#story-text {
+    padding: 1rem 5rem;
+}
+
+#story-head {
+    color: #d99a4e;
+    font-size: 2rem;
+    text-align: center;
+}
+
+#story-body {
+    font-size: 1.5rem;
+    color: white;
+}

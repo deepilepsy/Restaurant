@@ -12,6 +12,13 @@
     <link rel="stylesheet" href="~/css/site.css?v=1.0.1" asp-append-version="true"/>
     <link rel="stylesheet" href="~/Restaurant.styles.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/css/main.css?v=1.0.1" asp-append-version="true"/>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        integrity="sha512-..."
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    />
     <style>
         .disabled-link {
             pointer-events: none;
@@ -22,8 +29,8 @@
 </head>
 <body id="home">
 <header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light mb-3 navbar-transparent">
-        <div class="header-div" style="z-index: 2; width: 100%">
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm mb-3">
+        <div id="site-header" class="header-div" style="z-index: 2; width: 100%">
             <div class="left-div">
                 @if (isLoggedIn == "true")
                 {
@@ -39,7 +46,7 @@
                 </div>
                 <div class="middle-m">
                     <a class="navbar-brand" asp-controller="Home" asp-action="Index"> <!-- Anasayfaya yonlendir -->
-                        <img src="~/images/logo.png" alt="Logo" height="40px" style="display: inline-block">
+                        <img src="~/images/logo.png" alt="Logo" height="60px" style="display: inline-block">
                     </a>
                 </div>
                 <div class="middle-r text-center">
@@ -50,10 +57,15 @@
                 <div class="tel-no" style="color: white; text-align: end; padding-right: 30px; font-size: large">
                     <text>+123 456 7890</text>
                 </div>
-                <div id="instagram" style="color: white; text-align: end; padding-right: 45px; font-size: large">
+                <div id="links" style="color: white; text-align: end; padding-right: 15px; font-size: large">
+                    <a style="text-decoration: none; color: inherit" href="https://www.face.com/">
+                        <i id="face-icon" class="fab fa-facebook"></i>
+                    </a>
+                    <a style="text-decoration: none; color: inherit" href="https://www.x.com/">
+                        <i id="x-icon" class="fab fa-x-twitter"></i>
+                    </a>
                     <a style="text-decoration: none; color: inherit" href="https://www.instagram.com/">
-                        <img src="~/images/insta.png" style="width: 20px">
-                        <text class="action_button">bilmem.ne</text>
+                        <i id="insta-icon" class="fab fa-instagram"></i>
                     </a>
                 </div>
             </div>
@@ -66,7 +78,7 @@
     </main>
 </div>
 
-<footer class="footer text-muted navbar-transparent" style="display: flex">
+<footer class="footer text-muted navbar-transparent" style="display: flex; background-color: rgba(35, 35, 35, 0.9)">
 
     <div style="flex: 1; width: 100%; max-height: 70px; color: white">
         &nbsp;&nbsp;&nbsp;&copy; 2025 - Restaurant - <a asp-area="" asp-controller="Home" asp-action="Privacy" id="privacy">Privacy</a>
@@ -97,5 +109,13 @@
     if (window.location.pathname.toLowerCase() === "/home/booking") {
         document.getElementById("booklink").classList.add("disabled-link");
     }
+
+    if (window.location.pathname.toLowerCase() !== "/") {
+        const header = document.getElementById("site-header");
+        if (header) {
+            header.style.backgroundColor = "rgba(35, 35, 35, 0.9)";
+        }
+    }
 </script>
+<script src="site.js"></script>
 </html>
