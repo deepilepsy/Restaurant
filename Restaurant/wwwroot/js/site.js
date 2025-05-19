@@ -11,4 +11,27 @@ if (window.location.pathname.toLowerCase() === "/") {
         }
     })
 }
+
+const form = document.getElementById("search-form");
+const input = document.getElementById("receipt-search");
+const icon = document.getElementById("search-icon");
+
+// Toggle search bar when clicking the icon
+icon.addEventListener("click", function (e) {
+    e.preventDefault();
+    form.classList.toggle("active");
+    if (form.classList.contains("active")) {
+        input.focus();
+    }
+    icon.classList.toggle("orng");
+});
+
+// Collapse when clicking outside
+document.addEventListener("click", function (e) {
+    if (!form.contains(e.target)) {
+        form.classList.remove("active");
+        icon.classList.remove("orng");
+    }
+});
+
 // Write your JavaScript code.

@@ -29,67 +29,22 @@
     all: unset;
     width: 150px;
     height: 40px;
-    font-size: 20px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bolder;
     background: transparent;
-    border: none;
+    border: 2px white solid;
     position: relative;
-    color: #f0f0f0;
+    color: white;
     cursor: pointer;
     z-index: 1;
     padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
+    transition: all 0.2s ease-in-out;
 }
 
-.book-a-table::after,
-.book-a-table::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    z-index: -99999;
-    transition: all .4s;
-}
-
-.book-a-table::before {
-    transform: translate(0%, 0%);
-    width: 100%;
-    height: 100%;
-    background: #727171;
-    border-radius: 10px;
-}
-
-.book-a-table::after {
-    transform: translate(10px, 10px);
-    width: 35px;
-    height: 35px;
-    background: #ffffff15;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 50px;
-}
-
-.book-a-table:hover::before {
-    transform: translate(5%, 20%);
-    width: 110%;
-    height: 110%;
-}
-
-.book-a-table:hover::after {
-    border-radius: 10px;
-    transform: translate(0, 0);
-    width: 100%;
-    height: 100%;
-}
-
-.book-a-table:active::after {
-    transition: 0s;
-    transform: translate(0, 5%);
+.book-a-table:hover {
+    color: #d99a4e;
+    border-color: #d99a4e;
 }
 
 .introduction {

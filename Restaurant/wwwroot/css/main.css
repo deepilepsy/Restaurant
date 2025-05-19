@@ -15,6 +15,82 @@ body {
     background-position: center;
 }
 
+#sbmt-div {
+    display: inline-block;
+    height: 20px;
+    vertical-align: middle;
+    margin-bottom: 2px;
+    transition: width 0.3s ease;
+    opacity: 0;
+}
+
+#submit-btn {
+    display: flex;  
+    align-items: center;  
+    justify-content: center;    
+    border: 1px solid #d99a4e;
+    background: #d99a4e;
+    text-align: center;
+    height: 20px;                
+    width: 30px;                  
+    padding: 0;                   
+    cursor: pointer; 
+    transition: all 0.3s ease;
+}
+
+#submit-btn:hover {
+    background: none;
+    border: 1px solid #d99a4e;
+}
+
+#arrw-rght {
+    color: white;
+    font-size: 10px;
+    transition: all 0.3s ease;
+}
+#arrw-rght:hover {
+    color: #d99a4e;
+}
+
+#receipt-search {
+    width: 0;
+    height: 20px;
+    padding: 5px;
+    border: 1px #d99a4e solid;
+    outline: none;
+    transition: width 0.3s ease;
+    opacity: 0;
+    background: none;
+    color: white;
+    margin-right: 0;
+}
+
+#receipt-search::placeholder {
+    padding-left: 0.5rem;
+    font-size: 12px;
+    color: white;
+}
+
+#search-form.active #receipt-search, #search-form.active #sbmt-div {
+    width: 30%; 
+    opacity: 1;
+}
+
+#search-icon {
+    transition: all 0.3s ease-in-out;
+}
+
+#search-icon:hover {
+    cursor: pointer;
+    color: #d99a4e;
+}
+.orng {
+    color: #d99a4e;
+}
+
+.search-bar {
+    margin-top: 1rem;
+}
 
 #login{
     text-decoration: none;

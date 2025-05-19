@@ -32,13 +32,24 @@
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm mb-3">
         <div id="site-header" class="header-div" style="z-index: 2; width: 100%">
             <div class="left-div">
+                @if (isLoggedIn != "true")
+                {
+                    <div class="search-bar">
+                        <form id="search-form" asp-controller="Home" asp-action="Receipt">
+                            <i id="search-icon" class="fa-solid fa-magnifying-glass"></i>
+                            <input id="receipt-search" name="receipt-search" type="text" maxlength="9" placeholder="Receipt Number"></input>
+                            <div id="sbmt-div"><button type="submit" id="submit-btn"><i id="arrw-rght" class="fa-solid fa-arrow-right"></i></button></div>
+                        </form>
+                    </div>
+                }
+
                 @if (isLoggedIn == "true")
                 {
                     <div id="loggedIn">
                         <a asp-controller="Home" asp-action="Admin" style="cursor: default"><img src="~/images/maintenance.png" alt="maintenance" id="maintenance" style="width: 2rem; margin-left: 2rem;"></a>
                         <p style="font-family: 'Noto Sans Batak'; font-size: large; color: white; display: inline-block; margin-left: 0.5rem; padding-right: 2rem; padding-top: 1rem">Logged in as <span style="color: #ffcd39">Admin</span></p>
                     </div>
-}
+                }
             </div>
             <div class="middle-div">
                 <div class="middle-l text-center">
@@ -55,9 +66,9 @@
             </div>
             <div class="right-div">
                 <div class="tel-no" style="color: white; text-align: end; padding-right: 30px; font-size: large">
-                    <text>+123 456 7890</text>
+                    <text>+553 152 2187</text>
                 </div>
-                <div id="links" style="color: white; text-align: end; padding-right: 15px; font-size: large">
+                <div id="links" style="color: white; text-align: end; padding-right: 15px; font-size: large; margin-top: 0.5rem">
                     <a style="text-decoration: none; color: inherit" href="https://www.face.com/">
                         <i id="face-icon" class="fab fa-facebook"></i>
                     </a>
