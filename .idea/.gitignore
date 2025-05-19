@@ -3,9 +3,9 @@
 /workspace.xml
 # Rider ignored files
 /contentModel.xml
+/.idea.restaurant.iml
 /modules.xml
 /projectSettingsUpdater.xml
-/.idea.restaurant.iml
 # Editor-based HTTP Client requests
 /httpRequests/
 # Datasource local storage ignored files

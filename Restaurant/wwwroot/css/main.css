@@ -6,7 +6,6 @@
     margin: 0;
     padding: 0;
     height: 100%;
-
 }
 
 body {
@@ -16,6 +15,82 @@ body {
     background-position: center;
 }
 
+#sbmt-div {
+    display: inline-block;
+    height: 20px;
+    vertical-align: middle;
+    margin-bottom: 2px;
+    transition: width 0.3s ease;
+    opacity: 0;
+}
+
+#submit-btn {
+    display: flex;  
+    align-items: center;  
+    justify-content: center;    
+    border: 1px solid #d99a4e;
+    background: #d99a4e;
+    text-align: center;
+    height: 20px;                
+    width: 30px;                  
+    padding: 0;                   
+    cursor: pointer; 
+    transition: all 0.3s ease;
+}
+
+#submit-btn:hover {
+    background: none;
+    border: 1px solid #d99a4e;
+}
+
+#arrw-rght {
+    color: white;
+    font-size: 10px;
+    transition: all 0.3s ease;
+}
+#arrw-rght:hover {
+    color: #d99a4e;
+}
+
+#receipt-search {
+    width: 0;
+    height: 20px;
+    padding: 5px;
+    border: 1px #d99a4e solid;
+    outline: none;
+    transition: width 0.3s ease;
+    opacity: 0;
+    background: none;
+    color: white;
+    margin-right: 0;
+}
+
+#receipt-search::placeholder {
+    padding-left: 0.5rem;
+    font-size: 12px;
+    color: white;
+}
+
+#search-form.active #receipt-search, #search-form.active #sbmt-div {
+    width: 30%; 
+    opacity: 1;
+}
+
+#search-icon {
+    transition: all 0.3s ease-in-out;
+}
+
+#search-icon:hover {
+    cursor: pointer;
+    color: #d99a4e;
+}
+.orng {
+    color: #d99a4e;
+}
+
+.search-bar {
+    margin-top: 1rem;
+}
 
 #login{
     text-decoration: none;
@@ -44,28 +119,43 @@ body {
     color: white;
 }
 
+header {
+    margin-bottom: 5rem;
+}
+
 .header-div {
     display: flex;
     width: 100%;
     margin: 0 auto; /* Horizontally center */
+    position: fixed;
+    top: 0;
+    padding: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0); /* Start fully transparent */
+    transition: background-color 0.3s ease;
+    z-index: 1000;
 }
+
+
 .left-div {
     flex: 1;
 }
 
 .middle-div {
-    display: flex;
-    flex: 1.2;
+    flex: 1.4;
     text-align: center;
 }
 .middle-l {
     flex: 1.4;
+    display: inline-block;
     padding-left: 70px;
 }
 .middle-m {
+    display: inline-block;
     flex: 1;
 }
 .middle-r {
+    display: inline-block;
     flex: 2;
 }
 
@@ -131,3 +221,21 @@ body {
 #loggedIn:hover {
     background-color: rgba(45, 44, 45, 0.7);
 }
+#links {
+    transform: scale(0.90);
+}
+
+#insta-icon, #face-icon, #x-icon {
+    transition: all 0.4s ease-in-out;
+    margin-left: 0.9rem;
+}
+#insta-icon:hover {
+    color: #ed31e0;
+}
+#face-icon:hover {
+    color: #5094fa;
+}
+#x-icon:hover {
+    color: #ff7171;
+}
+
