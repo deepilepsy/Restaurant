@@ -11,6 +11,7 @@ public class HomeController : Controller
     public HomeController(ILogger<HomeController> logger)
     {
         _logger = logger;
+        _context = context;
     }
     
     [HttpGet]
@@ -65,6 +66,12 @@ public class HomeController : Controller
 
     public IActionResult Admin()
     {
+        var reservations = _context.Reservations.ToList();
+        var employees = _context.Employees.ToList();
+
+        ViewBag.Reservations = reservations;
+        ViewBag.Employees = employees;
+
         return View();
     }
 

@@ -1,6 +1,9 @@
 
 @{
-    Layout = null;
+    ViewData["Title"] = "Admin Paneli";
+    var reservations = ViewBag.Reservations as List<Restaurant.Models.Reservation>;
+    var employees = ViewBag.Employees as List<Restaurant.Models.Employee>;
+
 }
 <style>
     body {
@@ -28,6 +31,39 @@
     <title>Admin Page</title>
 </head>
 <body>
+<select id="dataSelector" onchange="toggleList()">
+    <option value="reservations">Rezervations</option>
+    <option value="employees">Employees</option>
+</select>
+
+<div id="reservationsDiv">
+    <h2>List of Rezervations</h2>
+    <ul>
+        @foreach (var res in reservations)
+        {
+            <li>@res.Name - @res.Date.ToShortDateString() @res.Time</li>
+        }
+    </ul>
+</div>
+
+<div id="employeesDiv" style="display: none;">
+    <h2>List of Employees</h2>
+    <ul>
+        @foreach (var emp in employees)
+        {
+            <li>@emp.Name</li>
+        }
+    </ul>
+    <button onclick="alert('Çalışan ekleme formu burada olcak')">Add Employee</button>
+</div>
+
+<script>
+    function toggleList() {
+        var val = document.getElementById("dataSelector").value;
+        document.getElementById("reservationsDiv").style.display = (val === "reservations") ? "block" : "none";
+        document.getElementById("employeesDiv").style.display = (val === "employees") ? "block" : "none";
+    }
+</script>
 <div>
     <a asp-controller="Home" asp-action="Index"><img src="~/images/home.png" alt="home" id="homebutton"></img></a>
 </div>
