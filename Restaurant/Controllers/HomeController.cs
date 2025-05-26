@@ -14,12 +14,12 @@ public class HomeController : Controller
         _context = context;
     }
     
-    [HttpGet]
+    /*[HttpGet]
     public IActionResult ReservationForm(Tables table)
     {
         
         return View(table);
-    }
+    } */
     public IActionResult Menu()
     {
         return View();
