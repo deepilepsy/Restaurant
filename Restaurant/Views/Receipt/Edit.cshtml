@@ -1,0 +1,67 @@
+@model Restaurant.Models.Receipt
+
+@{
+    var staffList = ViewData["StaffList"] as List<Restaurant.Models.Staff>;
+    var tableList = ViewData["TableList"] as List<Restaurant.Models.Tables>;
+}
+
+<h2>Edit Receipt</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="ReceiptId" />
+
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Surname"></label>
+        <input asp-for="Surname" class="form-control" />
+        <span asp-validation-for="Surname" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TelNo"></label>
+        <input asp-for="TelNo" class="form-control" />
+        <span asp-validation-for="TelNo" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="GuestNumber"></label>
+        <input asp-for="GuestNumber" type="number" class="form-control" />
+        <span asp-validation-for="GuestNumber" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ServedById"></label>
+        <select asp-for="ServedById" class="form-control" asp-items="@(new SelectList(staffList, "StaffId", "Name"))"></select>
+        <span asp-validation-for="ServedById" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="TableId"></label>
+        <select asp-for="TableId" class="form-control" asp-items="@(new SelectList(tableList, "TableId", "TableId"))"></select>
+        <span asp-validation-for="TableId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ReservationDate"></label>
+        <input asp-for="ReservationDate" type="date" class="form-control" />
+        <span asp-validation-for="ReservationDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ReservationHour"></label>
+        <input asp-for="ReservationHour" type="time" class="form-control" />
+        <span asp-validation-for="ReservationHour" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

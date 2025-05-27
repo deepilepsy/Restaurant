@@ -1,5 +1,6 @@
 ﻿@{
     var isLoggedIn = Context.Session.GetString("isLoggedIn");
+    var username = Context.Session.GetString("username");
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -47,7 +48,7 @@
                 {
                     <div id="loggedIn">
                         <a asp-controller="Home" asp-action="Admin" style="cursor: default"><img src="~/images/maintenance.png" alt="maintenance" id="maintenance" style="width: 2rem; margin-left: 2rem;"></a>
-                        <p style="font-family: 'Noto Sans Batak'; font-size: large; color: white; display: inline-block; margin-left: 0.5rem; padding-right: 2rem; padding-top: 1rem">Logged in as <span style="color: #ffcd39">Admin</span></p>
+                        <p style="font-family: 'Noto Sans Batak'; font-size: large; color: white; display: inline-block; margin-left: 0.5rem; padding-right: 2rem; padding-top: 1rem">Logged in as <span style="color: #ffcd39">@username</span></p>
                     </div>
                 }
             </div>

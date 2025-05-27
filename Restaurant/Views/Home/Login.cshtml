@@ -1,4 +1,4 @@
-
+@model Restaurant.Models.LoginDto
 @{
     Layout = null;
 }
@@ -27,8 +27,10 @@
                                 <div class="center-wrap">
                                     <form asp-controller="Home" asp-action="Login" method="post" class="section text-center">
                                         <h4 class="mb-4 pb-3" style="color: white">Log In</h4>
+
                                         <div class="form-group">
-                                            <input type="text" name="username" class="form-style" placeholder="Username" id="username" autocomplete="off" required>
+                                            <input asp-for="Username" type="text" class="form-style" placeholder="Username" autocomplete="off" required>
+                                            <span asp-validation-for="Username" class="text-danger"></span>
                                             <svg
                                                 width="24"
                                                 height="24"
@@ -49,8 +51,10 @@
                                                 />
                                             </svg>
                                         </div>
+
                                         <div class="form-group mt-2">
-                                            <input type="password" name="password" class="form-style" placeholder="Password" id="logpass" autocomplete="off" required>
+                                            <input asp-for="Password" type="password" class="form-style" placeholder="Password" autocomplete="off" required>
+                                            <span asp-validation-for="Password" class="text-danger"></span>
                                             <svg
                                                 width="24"
                                                 height="24"
@@ -73,7 +77,9 @@
                                                 />
                                             </svg>
                                         </div>
-                                        <button type="submit" class="btn mt-4">submit</button>
+
+                                        <button type="submit" class="btn mt-4">Submit</button>
+                                        @Html.AntiForgeryToken()
                                     </form>
                                 </div>
                             </div>
@@ -84,4 +90,8 @@
         </div>
     </div>
 </div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 </body>

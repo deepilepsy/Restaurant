@@ -1,11 +1,12 @@
+@model Restaurant.Models.AdminPanelView
 
 @{
     ViewData["Title"] = "Admin Paneli";
-    var reservations = ViewBag.Reservations as List<Restaurant.Models.Reservation>;
-    var employees = ViewBag.Employees as List<Restaurant.Models.Employee>;
-
 }
 <style>
+    * {
+        color:  white;
+    }
     body {
         background-image: url("../images/background.jpg");
         background-size: cover;      /* Fill the screen */
@@ -31,39 +32,74 @@
     <title>Admin Page</title>
 </head>
 <body>
-<select id="dataSelector" onchange="toggleList()">
-    <option value="reservations">Rezervations</option>
-    <option value="employees">Employees</option>
-</select>
+<h2>Staff Members</h2>
 
-<div id="reservationsDiv">
-    <h2>List of Rezervations</h2>
-    <ul>
-        @foreach (var res in reservations)
-        {
-            <li>@res.Name - @res.Date.ToShortDateString() @res.Time</li>
-        }
-    </ul>
-</div>
+<p>
+    <a asp-action="Create">Add New Staff</a>
+</p>
 
-<div id="employeesDiv" style="display: none;">
-    <h2>List of Employees</h2>
-    <ul>
-        @foreach (var emp in employees)
-        {
-            <li>@emp.Name</li>
-        }
-    </ul>
-    <button onclick="alert('Çalışan ekleme formu burada olcak')">Add Employee</button>
-</div>
-
-<script>
-    function toggleList() {
-        var val = document.getElementById("dataSelector").value;
-        document.getElementById("reservationsDiv").style.display = (val === "reservations") ? "block" : "none";
-        document.getElementById("employeesDiv").style.display = (val === "employees") ? "block" : "none";
+<table class="table">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Surname</th>
+        <th>Job</th>
+        <th>Tel No</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var staff in Model.StaffMembers)
+    {
+        <tr>
+            <td>@staff.Name</td>
+            <td>@staff.Surname</td>
+            <td>@staff.Job</td>
+            <td>@staff.TelNo</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@staff.StaffId">Edit</a> |
+                <a asp-action="Delete" asp-route-id="@staff.StaffId">Delete</a>
+            </td>
+        </tr>
     }
-</script>
+    </tbody>
+</table>
+
+<h2>Upcoming Receipts</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Guest Name</th>
+        <th>Tel No</th>
+        <th>Guest Number</th>
+        <th>Served By</th>
+        <th>Table</th>
+        <th>Reservation Date</th>
+        <th>Reservation Hour</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var receipt in Model.UpcomingReceipts)
+    {
+        <tr>
+            <td>@receipt.Name @receipt.Surname</td>
+            <td>@receipt.TelNo</td>
+            <td>@receipt.GuestNumber</td>
+            <td>@receipt.ServedBy?.Name @receipt.ServedBy?.Surname</td>
+            <td>@receipt.Table?.TableId</td>
+            <td>@receipt.ReservationDate.ToShortDateString()</td>
+            <td>@receipt.ReservationHour</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@receipt.ReceiptId">Edit</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
 <div>
     <a asp-controller="Home" asp-action="Index"><img src="~/images/home.png" alt="home" id="homebutton"></img></a>
 </div>
