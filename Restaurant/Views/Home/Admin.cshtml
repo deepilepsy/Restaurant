@@ -286,10 +286,7 @@
         const confirmMessage = `Are you sure you want to delete staff member "${staffName}"?\n\nThis action cannot be undone and will affect any reservations assigned to this staff member.`;
         
         if (confirm(confirmMessage)) {
-            // Additional confirmation for safety
-            if (confirm(`FINAL CONFIRMATION: Delete "${staffName}" permanently?`)) {
-                window.location.href = `/Home/Delete/${staffId}`;
-            }
+            window.location.href = `/Home/DeleteStaff/${staffId}`;
         }
     }
 

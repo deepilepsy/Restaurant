@@ -1,0 +1,62 @@
+@model Restaurant.Models.Staff
+
+@{
+    ViewData["Title"] = "Delete Reservation";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Staff</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/delete.css"></link>
+</head>
+<body>
+
+<a href="@Url.Action("Admin", new { id = Model.StaffId })" class="back-link">
+    ← Back to Admin Panel
+</a>
+
+<div class="container">
+    <div class="warning-icon">⚠️</div>
+
+    <div class="header">
+        <h1>Delete Staff</h1>
+        <p>You are about to permanently delete this staff</p>
+    </div>
+
+    <div class="reservation-details">
+        <div class="details-title">Staff to be Deleted</div>
+
+        <div class="detail-item">
+            <span class="detail-label">Staff ID:</span>
+            <span class="detail-value">#@Model.StaffId</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Staff Name:</span>
+            <span class="detail-value">@Model.Name @Model.Surname</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Phone Number:</span>
+            <span class="detail-value">@Model.TelNo</span>
+        </div>
+
+
+        <form asp-action="DeleteStaff" method="post" id="deleteForm">
+            <input type="hidden" name="id" value="@Model.StaffId"/>
+            <div class="button-group">
+                <button type="submit" class="btn btn-danger">
+                    Yes, Delete Forever
+                </button>
+                <a href="@Url.Action("Admin", new { id = Model.StaffId })" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
