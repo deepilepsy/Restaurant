@@ -1,0 +1,220 @@
+@model Restaurant.Models.AdminPanelView
+@{
+    ViewData["Title"] = "Staff";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Staff Page</title>
+    <link rel="stylesheet" href="~/css/tables.css?v=1.0.2" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/staffpage.css"></link>
+</head>
+<body>
+<div>
+    <a asp-controller="Home" asp-action="Index">
+        <img src="~/images/home.png" alt="home" id="homebutton" />
+    </a>
+</div>
+
+<!-- Success/Error Messages -->
+<div class="message-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <strong>Success!</strong> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error!</strong> @TempData["Error"]
+        </div>
+    }
+</div>
+<h1 class="page-title">Staff Panel</h1>
+<div class="stat-card">
+    <div class="stat-number">@Model.UpcomingReceipts.Count()</div>
+    <div class="stat-label">Active Reservations</div>
+</div>
+
+<h2 class="page-title">Upcoming Reservations</h2>
+<section class="wrapper">
+    <!-- Title Row -->
+    <main class="row title">
+        <ul>
+            <li>Name</li>
+            <li>Phone</li>
+            <li>Guests</li>
+            <li>Served By</li>
+            <li>Table</li>
+            <li>Date</li>
+            <li>Time</li>
+            <li>Actions</li>
+        </ul>
+    </main>
+    <!-- Data Rows -->
+    @if (Model.UpcomingReceipts != null && Model.UpcomingReceipts.Any())
+    {
+        @foreach (var receipt in Model.UpcomingReceipts)
+        {
+            <section class="row-fadeIn-wrapper">
+                <article class="row fadeIn reservation-row" id="reservation-@receipt.ReservationId">
+                    <ul>
+                        <li data-label="Name">@receipt.Name @receipt.Surname</li>
+                        <li data-label="Phone">@receipt.TelNo</li>
+                        <li data-label="Guests">@receipt.GuestNumber</li>
+                        <li data-label="Served By">@receipt.ServedBy?.Name @receipt.ServedBy?.Surname</li>
+                        <li data-label="Table">@receipt.Table?.TableId</li>
+                        <li data-label="Date">@receipt.ReservationDate.ToShortDateString()</li>
+                        <li data-label="Time">@receipt.ReservationHour</li>
+                        <li data-label="Actions">
+                            <div class="action-buttons">
+                                <button type="button" class="btn-action btn-checkin"
+                                        onclick="updateReservationStatus(@receipt.ReservationId, 'checked-in')">
+                                    Check-in
+                                </button>
+                                <button type="button" class="btn-action btn-cancel"
+                                        onclick="updateReservationStatus(@receipt.ReservationId, 'cancelled')">
+                                    Cancel
+                                </button>
+                                <a href="@Url.Action("Edit", new { id = receipt.ReservationId })"
+                                   class="btn-action btn-edit">
+                                    Edit
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </article>
+            </section>
+        }
+    }
+    else
+    {
+        <section class="row-fadeIn-wrapper">
+            <article class="row fadeIn">
+                <div style="text-align: center; padding: 40px; font-size: 1.2rem; opacity: 0.8;">
+                    <i class="fas fa-calendar-check" style="font-size: 3rem; margin-bottom: 20px; display: block;"></i>
+                    No active reservations found.
+                </div>
+            </article>
+        </section>
+    }
+</section>
+
+<script>
+    // Check for mobile and apply mobile class
+    function checkMobile() {
+        if (window.innerWidth <= 768) {
+            document.body.classList.add('mobile');
+        } else {
+            document.body.classList.remove('mobile');
+        }
+    }
+
+    // Check on load and resize
+    window.addEventListener('load', checkMobile);
+    window.addEventListener('resize', checkMobile);
+
+    // Auto-hide messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    });
+
+    // Function to update reservation status
+    async function updateReservationStatus(reservationId, status) {
+        // Show confirmation dialog
+        const statusText = status === 'checked-in' ? 'check-in' : 'cancel';
+        const confirmMessage = `Are you sure you want to ${statusText} this reservation?`;
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            // Disable the buttons to prevent double-clicking
+            const reservationRow = document.getElementById(`reservation-${reservationId}`);
+            const buttons = reservationRow.querySelectorAll('.btn-action');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            });
+
+            // Send AJAX request to update status
+            const response = await fetch('/Home/UpdateReservationStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({
+                    reservationId: reservationId,
+                    status: status
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Animate row removal
+                reservationRow.style.transition = 'all 0.5s ease';
+                reservationRow.style.opacity = '0';
+                reservationRow.style.transform = 'translateX(-100%)';
+
+                setTimeout(() => {
+                    reservationRow.remove();
+
+                    // Check if no reservations left
+                    const remainingRows = document.querySelectorAll('.reservation-row');
+                    if (remainingRows.length === 0) {
+                        location.reload(); // Reload to show "no reservations" message
+                    }
+                }, 500);
+
+                // Show success message
+                showMessage('success', result.message || `Reservation ${statusText} successfully!`);
+            } else {
+                // Re-enable buttons on error
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+                showMessage('error', result.message || 'An error occurred while updating the reservation.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Re-enable buttons on error
+            const reservationRow = document.getElementById(`reservation-${reservationId}`);
+            const buttons = reservationRow.querySelectorAll('.btn-action');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+            showMessage('error', 'A network error occurred. Please try again.');
+        }
+    }
+
+    // Function to show dynamic messages
+    function showMessage(type, message) {
+        const messageContainer = document.querySelector('.message-container');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
+        alertDiv.innerHTML = `<strong>${type === 'success' ? 'Success!' : 'Error!'}</strong> ${message}`;
+
+        messageContainer.appendChild(alertDiv);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            alertDiv.style.animation = 'slideIn 0.3s ease reverse';
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 5000);
+    }
+</script>
+</body>
+</html>

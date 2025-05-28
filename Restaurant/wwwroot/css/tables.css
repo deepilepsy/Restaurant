@@ -1,0 +1,171 @@
+/* Google fonts - Open Sans */
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
+
+/* Body */
+body {
+  font-family: "Open Sans", sans-serif;
+}
+
+/* Links */
+.reservation-row a {
+  text-decoration: none;
+  color: #d99a4e;
+  transition: color 0.2s ease-out;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(79, 192, 210, 0.1);
+}
+
+.reservation-row a:hover {
+  color: rgb(38, 134, 149);
+  background: rgba(79, 192, 210, 0.2);
+}
+
+/* Wrapper */
+.wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 20px auto 100px auto;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.7);
+  color: rgba(255, 255, 255, 0.95);
+  overflow: hidden;
+  position: relative;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Lists */
+.row ul {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  width: 100%;
+}
+
+.row ul li {
+  margin: 0;
+  font-size: 14px;
+  font-weight: normal;
+  list-style: none;
+  flex: 1;
+  box-sizing: border-box;
+  padding: 12px 8px;
+  text-align: left;
+}
+
+/* Specific column widths for better layout */
+.row ul li:nth-child(1) { flex: 1.5; } /* Name */
+.row ul li:nth-child(2) { flex: 1.2; } /* TelNo */
+.row ul li:nth-child(3) { flex: 0.8; } /* Guests */
+.row ul li:nth-child(4) { flex: 1.2; } /* Served By */
+.row ul li:nth-child(5) { flex: 0.6; } /* Table */
+.row ul li:nth-child(6) { flex: 1; }   /* Date */
+.row ul li:nth-child(7) { flex: 0.8; } /* Time */
+.row ul li:nth-child(8) { flex: 0.8; } /* Action */
+
+/* Title row */
+.title {
+  background-color: #d99a4e;
+  border-left: 4px solid #bf7330;
+  color: white;
+}
+
+.title ul li {
+  font-weight: 700;
+  font-size: 15px;
+  padding: 15px 8px;
+}
+
+/* Regular rows */
+.row {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease-out;
+  min-height: 50px;
+}
+
+.reservation-row {
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 4px solid #bf7330;
+}
+
+.reservation-row:hover {
+  background-color: rgba(79, 192, 210, 0.15);
+  border-left: 4px solid #d99a4e;
+  transform: translateX(2px);
+}
+
+/* Remove complex animations for better compatibility */
+.row-fadeIn-wrapper {
+  opacity: 1;
+  margin-bottom: 2px;
+}
+
+.fadeIn {
+  width: 100%;
+}
+
+/* More content (description area) */
+ul.more-content {
+  display: none; /* Hide for restaurant use - not needed */
+}
+
+/* Responsive design */
+@media only screen and (max-width: 768px) {
+  .wrapper {
+    margin: 10px;
+    max-width: none;
+  }
+
+  .row ul {
+    flex-direction: column;
+  }
+
+  .row ul li {
+    flex: none;
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .row ul li:before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    color: rgb(79, 192, 210);
+  }
+
+  .title {
+    display: none; /* Hide title row on mobile */
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .row ul li {
+    font-size: 13px;
+    padding: 6px;
+  }
+}
+
+/* Additional styling for better visibility */
+.wrapper h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 0;
+  padding: 20px;
+  background: rgba(79, 192, 210, 0.9);
+  margin: 0;
+  font-size: 24px;
+}
+
+/* Ensure text is readable */
+.row ul li {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Alternating row colors for better readability */
+.reservation-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.reservation-row:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.03);
+}

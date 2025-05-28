@@ -1,17 +1,836 @@
-
-@{
-    ViewData["Title"] = "Menu";
-}
-
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-    <title>Menu</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/menu.css?v=1.0.1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Restaurant Menu</title>
+    
 </head>
+
 <body>
-<div>
-      
-</div>s
+<!-- Header Navigation -->
+<nav class="header-nav">
+    <div class="nav-container">
+        <a asp-action="Index" class="home-btn">
+            <i class="fas fa-home"></i>
+            Home
+        </a>
+        <div class="logo">Quality food by <span><img src="~/images/logo2.png" alt="lites" height="40px" style="display: inline-block"></span></div>
+    </div>
+</nav>
+
+<!-- Top Marquee -->
+<div class="top-marquee">
+    <div class="marquee-content">
+        <span>Grilled Chicken Skewers – Tender and Juicy</span> |
+        <span>Homemade Pasta – Crafted with Love</span> |
+        <span>Signature Beef Burger – 100% Angus</span> |
+        <span>Fresh Garden Salad – Light and Crisp</span> |
+        <span>Spicy Shrimp Tacos – A Zesty Delight</span> |
+        <span>Chocolate Lava Cake – Melted Heaven Inside</span> |
+        <span>Grilled Chicken Skewers – Tender and Juicy</span> |
+        <span>Homemade Pasta – Crafted with Love</span> |
+        <span>Signature Beef Burger – 100% Angus</span> |
+        <span>Fresh Garden Salad – Light and Crisp</span> |
+        <span>Spicy Shrimp Tacos – A Zesty Delight</span> |
+        <span>Chocolate Lava Cake – Melted Heaven Inside</span>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title">MENU</h1>
+        <h2 class="hero-subtitle">HIGHLIGHTS</h2>
+    </div>
+
+    <!-- Menu Highlights -->
+    <div class="highlights-grid">
+        <div class="highlight-card" data-target="#DRINKS">
+            <img src="~/images/food1/1.jpg" alt="Espresso">
+            <div class="card-content">
+                <h3 class="card-title">Espresso</h3>
+                <div class="card-rating">
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="far fa-star star"></i>
+                    <i class="far fa-star star"></i>
+                </div>
+                <p class="card-description">
+                    "Espresso is a concentrated form of coffee produced by forcing hot water under high pressure through finely ground coffee beans. Originating in Italy, espresso has become one of the most popular coffee-brewing methods worldwide."
+                </p>
+            </div>
+        </div>
+
+        <div class="highlight-card" data-target="#STARTERS">
+            <img src="~/images/food1/minicr.jpeg" alt="Mini Croque Bites">
+            <div class="card-content">
+                <h3 class="card-title">Mini Croque Bites</h3>
+                <div class="card-rating">
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="far fa-star star"></i>
+                </div>
+                <p class="card-description">
+                    "Mini Croque Bites are crispy, bite-sized sandwiches filled with ham and melted cheese, inspired by the classic French Croque Monsieur."
+                </p>
+            </div>
+        </div>
+
+        <div class="highlight-card" data-target="#SALADS">
+            <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&h=300&fit=crop" alt="Quinoa Superfood">
+            <div class="card-content">
+                <h3 class="card-title">Quinoa Superfood</h3>
+                <div class="card-rating">
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                </div>
+                <p class="card-description">
+                    "The Quinoa Superfood Bowl is a nutrient-packed dish featuring quinoa, fresh vegetables and leafy greens for a healthy, energizing meal."
+                </p>
+            </div>
+        </div>
+
+        <div class="highlight-card" data-target="#MAIN">
+            <img src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500&h=300&fit=crop" alt="Grilled Ribeye Steak">
+            <div class="card-content">
+                <h3 class="card-title">Grilled Ribeye Steak</h3>
+                <div class="card-rating">
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                </div>
+                <p class="card-description">
+                    "Grilled Ribeye Steak is a tender, juicy cut of beef, perfectly seared to bring out its rich, smoky flavors."
+                </p>
+            </div>
+        </div>
+
+        <div class="highlight-card" data-target="#SIDES">
+            <img src="~/images/food1/2.jpg" alt="truffle fries">
+            <div class="card-content">
+                <h3 class="card-title">Truffle Fries</h3>
+                <div class="card-rating">
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="far fa-star star"></i>
+                </div>
+                <p class="card-description">
+                    "Hand-cut fries, baked to a beautiful golden-brown color, garnished with truffle oil, Parmesan cheese and fresh parsley."
+                </p>
+            </div>
+        </div>
+
+        <div class="highlight-card" data-target="#DESSERTS">
+            <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500&h=300&fit=crop" alt="Chocolate Fondant">
+            <div class="card-content">
+                <h3 class="card-title">Chocolate Fondant</h3>
+                <div class="card-rating">
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                    <i class="fas fa-star star"></i>
+                </div>
+                <p class="card-description">
+                    "Chocolate Fondant is a rich, warm dessert with a gooey, molten chocolate center."
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+        <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&h=300&fit=crop" alt="Regional cuisine">
+        <div class="info-text">
+            A rich variety of authentic regional delicacies is included on the menu, reflecting the essence of local culinary heritage.
+        </div>
+        <img src="~/images/food1/3.jpg" alt="Asian cuisine">
+        <div class="info-text">
+            A selection of flavorful Far Eastern dishes is thoughtfully incorporated into the menu, bringing the essence of Asian cuisine to your table.
+        </div>
+    </div>
+
+    <!-- Drinks Section -->
+    <div class="menu-section" id="DRINKS">
+        <div class="section-header">
+            <h2 class="section-title">DRINKS</h2>
+        </div>
+        <div class="section-content">
+            <h3 class="subsection-title">Coffees</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&h=250&fit=crop" alt="Coffees" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Espresso</div>
+                            <div class="item-description">5 kcal</div>
+                        </div>
+                        <div class="item-price">45.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Americano</div>
+                            <div class="item-description">10 kcal</div>
+                        </div>
+                        <div class="item-price">48.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Latte</div>
+                            <div class="item-description">150 kcal</div>
+                        </div>
+                        <div class="item-price">52.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Cappuccino</div>
+                            <div class="item-description">120 kcal</div>
+                        </div>
+                        <div class="item-price">52.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Mocha</div>
+                            <div class="item-description">250 kcal</div>
+                        </div>
+                        <div class="item-price">55.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Flat White</div>
+                            <div class="item-description">170 kcal</div>
+                        </div>
+                        <div class="item-price">53.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Macchiato</div>
+                            <div class="item-description">90 kcal</div>
+                        </div>
+                        <div class="item-price">50.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Frappe</div>
+                            <div class="item-description">220 kcal</div>
+                        </div>
+                        <div class="item-price">58.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">Cold Drinks</h3>
+            <div class="menu-item-container">
+                <img src="~/images/food1/4.jpg" alt="Cold Drinks" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Strawberry Lemonade</div>
+                            <div class="item-description">150 kcal</div>
+                        </div>
+                        <div class="item-price">45.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Mango Smoothie</div>
+                            <div class="item-description">220 kcal</div>
+                        </div>
+                        <div class="item-price">55.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Watermelon Cooler</div>
+                            <div class="item-description">130 kcal</div>
+                        </div>
+                        <div class="item-price">48.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Pineapple Mint Juice</div>
+                            <div class="item-description">140 kcal</div>
+                        </div>
+                        <div class="item-price">50.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Blueberry Lemon Fizz</div>
+                            <div class="item-description">160 kcal</div>
+                        </div>
+                        <div class="item-price">52.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Honey Citrus Iced Tea</div>
+                            <div class="item-description">90 kcal</div>
+                        </div>
+                        <div class="item-price">40.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Passion Fruit Soda</div>
+                            <div class="item-description">170 kcal</div>
+                        </div>
+                        <div class="item-price">55.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Tropical Fruit Punch</div>
+                            <div class="item-description">210 kcal</div>
+                        </div>
+                        <div class="item-price">60.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">Cocktails</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=300&h=250&fit=crop" alt="Cocktails" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Strawberry Daiquiri</div>
+                            <div class="item-description">210 kcal</div>
+                        </div>
+                        <div class="item-price">75.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Mango Margarita</div>
+                            <div class="item-description">230 kcal</div>
+                        </div>
+                        <div class="item-price">80.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Peach Bellini</div>
+                            <div class="item-description">200 kcal</div>
+                        </div>
+                        <div class="item-price">85.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Watermelon Mojito</div>
+                            <div class="item-description">190 kcal</div>
+                        </div>
+                        <div class="item-price">78.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Tropical Rum Punch</div>
+                            <div class="item-description">240 kcal</div>
+                        </div>
+                        <div class="item-price">85.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Pineapple Coconut Punch</div>
+                            <div class="item-description">220 kcal</div>
+                        </div>
+                        <div class="item-price">82.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Honey Citrus Mule</div>
+                            <div class="item-description">170 kcal</div>
+                        </div>
+                        <div class="item-price">74.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">Wine</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=300&h=250&fit=crop" alt="Wine" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Cabernet Sauvignon</div>
+                            <div class="item-description">125 kcal per glass</div>
+                        </div>
+                        <div class="item-price">95.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Merlot</div>
+                            <div class="item-description">120 kcal per glass</div>
+                        </div>
+                        <div class="item-price">85.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Pinot Noir</div>
+                            <div class="item-description">118 kcal per glass</div>
+                        </div>
+                        <div class="item-price">92.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Chardonnay</div>
+                            <div class="item-description">115 kcal per glass</div>
+                        </div>
+                        <div class="item-price">88.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Sauvignon Blanc</div>
+                            <div class="item-description">110 kcal per glass</div>
+                        </div>
+                        <div class="item-price">82.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Prosecco</div>
+                            <div class="item-description">98 kcal per glass</div>
+                        </div>
+                        <div class="item-price">75.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Riesling</div>
+                            <div class="item-description">105 kcal per glass</div>
+                        </div>
+                        <div class="item-price">80.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Starters Section -->
+    <div class="menu-section" id="STARTERS">
+        <div class="section-header">
+            <h2 class="section-title">STARTERS</h2>
+        </div>
+        <div class="section-content">
+            <h3 class="subsection-title">Appetizers</h3>
+            <div class="menu-item-container">
+                <img src="~/images/food1/5.jpg" alt="Appetizers" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Mini Croque Bites</div>
+                            <div class="item-description">Crispy ham and cheese bites - 180 kcal</div>
+                        </div>
+                        <div class="item-price">65.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Stuffed Mushrooms</div>
+                            <div class="item-description">Mushrooms filled with herbs and cheese - 150 kcal</div>
+                        </div>
+                        <div class="item-price">58.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Bruschetta Trio</div>
+                            <div class="item-description">Tomato, olive tapenade, and ricotta - 220 kcal</div>
+                        </div>
+                        <div class="item-price">72.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Calamari Rings</div>
+                            <div class="item-description">Crispy fried squid with marinara sauce - 280 kcal</div>
+                        </div>
+                        <div class="item-price">85.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Chicken Wings</div>
+                            <div class="item-description">Spicy buffalo wings with blue cheese dip - 320 kcal</div>
+                        </div>
+                        <div class="item-price">78.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Mozzarella Sticks</div>
+                            <div class="item-description">Golden fried cheese sticks with marinara - 250 kcal</div>
+                        </div>
+                        <div class="item-price">68.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Salads Section -->
+    <div class="menu-section" id="SALADS">
+        <div class="section-header">
+            <h2 class="section-title">SALADS</h2>
+        </div>
+        <div class="section-content">
+            <h3 class="subsection-title">Garden Fresh</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&h=250&fit=crop" alt="Salads" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Quinoa Superfood</div>
+                            <div class="item-description">Quinoa, kale, avocado, nuts, and seeds - 380 kcal</div>
+                        </div>
+                        <div class="item-price">95.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Caesar Salad</div>
+                            <div class="item-description">Romaine lettuce, parmesan, croutons - 280 kcal</div>
+                        </div>
+                        <div class="item-price">75.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Greek Salad</div>
+                            <div class="item-description">Feta, olives, cucumber, tomatoes - 250 kcal</div>
+                        </div>
+                        <div class="item-price">82.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Caprese Salad</div>
+                            <div class="item-description">Fresh mozzarella, tomatoes, basil - 320 kcal</div>
+                        </div>
+                        <div class="item-price">88.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Arugula Walnut</div>
+                            <div class="item-description">Arugula, walnuts, pear, goat cheese - 290 kcal</div>
+                        </div>
+                        <div class="item-price">92.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Asian Sesame</div>
+                            <div class="item-description">Mixed greens, sesame dressing, edamame - 240 kcal</div>
+                        </div>
+                        <div class="item-price">85.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Courses Section -->
+    <div class="menu-section" id="MAIN">
+        <div class="section-header">
+            <h2 class="section-title">MAIN COURSES</h2>
+        </div>
+        <div class="section-content">
+            <h3 class="subsection-title">Steaks & Grills</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=300&h=250&fit=crop" alt="Steaks" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Grilled Ribeye Steak</div>
+                            <div class="item-description">12oz ribeye with garlic butter - 650 kcal</div>
+                        </div>
+                        <div class="item-price">185.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Filet Mignon</div>
+                            <div class="item-description">8oz tender filet with herb crust - 480 kcal</div>
+                        </div>
+                        <div class="item-price">220.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">New York Strip</div>
+                            <div class="item-description">10oz strip steak with peppercorn sauce - 580 kcal</div>
+                        </div>
+                        <div class="item-price">195.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Grilled Lamb Chops</div>
+                            <div class="item-description">Herb crusted lamb with mint sauce - 520 kcal</div>
+                        </div>
+                        <div class="item-price">210.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">Seafood</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=300&h=250&fit=crop" alt="Seafood" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Salmon Teriyaki</div>
+                            <div class="item-description">Grilled salmon with teriyaki glaze - 420 kcal</div>
+                        </div>
+                        <div class="item-price">165.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Pan Seared Halibut</div>
+                            <div class="item-description">Fresh halibut with lemon butter - 380 kcal</div>
+                        </div>
+                        <div class="item-price">175.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Lobster Tail</div>
+                            <div class="item-description">Grilled lobster tail with drawn butter - 320 kcal</div>
+                        </div>
+                        <div class="item-price">240.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Seafood Paella</div>
+                            <div class="item-description">Traditional Spanish rice with mixed seafood - 480 kcal</div>
+                        </div>
+                        <div class="item-price">185.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title">Pasta & Italian</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1551892374-ecf8754cf8b0?w=300&h=250&fit=crop" alt="Pasta" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Spaghetti Carbonara</div>
+                            <div class="item-description">Creamy pasta with bacon and parmesan - 580 kcal</div>
+                        </div>
+                        <div class="item-price">125.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Chicken Alfredo</div>
+                            <div class="item-description">Fettuccine with grilled chicken in cream sauce - 650 kcal</div>
+                        </div>
+                        <div class="item-price">135.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Penne Arrabbiata</div>
+                            <div class="item-description">Spicy tomato sauce with fresh herbs - 420 kcal</div>
+                        </div>
+                        <div class="item-price">115.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Mushroom Risotto</div>
+                            <div class="item-description">Creamy arborio rice with wild mushrooms - 450 kcal</div>
+                        </div>
+                        <div class="item-price">128.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sides Section -->
+    <div class="menu-section" id="SIDES">
+        <div class="section-header">
+            <h2 class="section-title">SIDES</h2>
+        </div>
+        <div class="section-content">
+            <h3 class="subsection-title">Accompaniments</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=300&h=250&fit=crop" alt="Sides" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Truffle Fries</div>
+                            <div class="item-description">Crispy fries with truffle oil and parmesan - 380 kcal</div>
+                        </div>
+                        <div class="item-price">55.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Garlic Mashed Potatoes</div>
+                            <div class="item-description">Creamy potatoes with roasted garlic - 280 kcal</div>
+                        </div>
+                        <div class="item-price">45.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Grilled Asparagus</div>
+                            <div class="item-description">Fresh asparagus with lemon zest - 120 kcal</div>
+                        </div>
+                        <div class="item-price">48.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Roasted Brussels Sprouts</div>
+                            <div class="item-description">Caramelized sprouts with bacon - 180 kcal</div>
+                        </div>
+                        <div class="item-price">52.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Wild Rice Pilaf</div>
+                            <div class="item-description">Aromatic rice with herbs and nuts - 220 kcal</div>
+                        </div>
+                        <div class="item-price">42.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Sautéed Spinach</div>
+                            <div class="item-description">Fresh spinach with garlic and olive oil - 95 kcal</div>
+                        </div>
+                        <div class="item-price">38.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desserts Section -->
+    <div class="menu-section" id="DESSERTS">
+        <div class="section-header">
+            <h2 class="section-title">DESSERTS</h2>
+        </div>
+        <div class="section-content">
+            <h3 class="subsection-title">Sweet Endings</h3>
+            <div class="menu-item-container">
+                <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&h=250&fit=crop" alt="Desserts" class="menu-item-image">
+                <div class="menu-items">
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Chocolate Fondant</div>
+                            <div class="item-description">Warm chocolate cake with molten center - 450 kcal</div>
+                        </div>
+                        <div class="item-price">85.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Tiramisu</div>
+                            <div class="item-description">Classic Italian coffee-flavored dessert - 380 kcal</div>
+                        </div>
+                        <div class="item-price">75.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Crème Brûlée</div>
+                            <div class="item-description">Vanilla custard with caramelized sugar top - 320 kcal</div>
+                        </div>
+                        <div class="item-price">78.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">New York Cheesecake</div>
+                            <div class="item-description">Rich and creamy with berry compote - 420 kcal</div>
+                        </div>
+                        <div class="item-price">82.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Gelato Trio</div>
+                            <div class="item-description">Vanilla, chocolate, and strawberry - 280 kcal</div>
+                        </div>
+                        <div class="item-price">65.00</div>
+                    </div>
+                    <div class="menu-item">
+                        <div class="item-info">
+                            <div class="item-name">Apple Tart</div>
+                            <div class="item-description">Warm apple tart with vanilla ice cream - 350 kcal</div>
+                        </div>
+                        <div class="item-price">72.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Notice -->
+    <div class="footer-notice">
+        <img src="~/images/food/ss.png" alt="sus">
+        <div class="notice-text">
+            All dishes are prepared fresh daily using the finest ingredients. Please inform your server of any allergies or dietary restrictions.
+        </div>
+    </div>
+</div>
+
+<!-- Scroll to Top Button -->
+<button id="scrollTopBtn" onclick="scrollToTop()">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<script>
+    // Smooth scrolling for highlight cards
+    document.querySelectorAll('.highlight-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const target = this.getAttribute('data-target');
+            if (target) {
+                document.querySelector(target).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // Scroll to top button functionality
+    window.addEventListener('scroll', function() {
+        const scrollBtn = document.getElementById('scrollTopBtn');
+        if (window.pageYOffset > 300) {
+            scrollBtn.style.display = 'block';
+        } else {
+            scrollBtn.style.display = 'none';
+        }
+    });
+
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    // Add hover effects to menu items
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+            this.style.transform = 'translateX(5px)';
+            this.style.transition = 'all 0.3s ease';
+        });
+
+        item.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = 'transparent';
+            this.style.transform = 'translateX(0)';
+        });
+    });
+
+    // Add animation to cards on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all cards and sections
+    document.querySelectorAll('.highlight-card, .menu-section, .info-banner').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+</script>
 </body>
 </html>

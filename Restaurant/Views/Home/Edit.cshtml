@@ -1,0 +1,424 @@
+@model Restaurant.Models.Reservation
+
+@{
+    ViewData["Title"] = "Edit Reservation";
+    Layout = null;
+    var admin = Context.Session.GetString("admin");
+    var staff = Context.Session.GetString("staff");
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Reservation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/edit.css"></link>
+</head>
+<body>
+@if (admin != "true" && staff == "true")
+{
+    <a href="@Url.Action("Staff", "Home")" class="back-link">
+        ← Back to Staff Panel
+    </a>
+}
+@if (admin == "true" && staff != "true")
+{
+    <a href="@Url.Action("Admin", "Home")" class="back-link">
+        ← Back to Admin Panel
+    </a>
+}
+
+
+<div class="container">
+    <div class="header">
+        <h1>Edit Reservation</h1>
+        <p>Modify reservation details for ID: #@Model.ReservationId</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <strong>Success!</strong> @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error!</strong> @TempData["Error"]
+        </div>
+    }
+
+    <div class="reservation-info">
+        <div class="info-title">Current Reservation Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Reservation ID</div>
+                <div class="info-value">#@Model.ReservationId</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Table Number</div>
+                <div class="info-value">@Model.TableId</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Created On</div>
+                <div class="info-value">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Current Status</div>
+                <div class="info-value">
+                    <span class="status-badge status-@Model.ReservationStatus.Replace("-", "")">
+                        @Model.ReservationStatus
+                    </span>
+                </div>
+            </div>
+        </div>
+        @if (Model.ReservationStatus != "active")
+        {
+            <div class="modification-note">
+                <strong>⚠️ Note:</strong> This reservation is currently @Model.ReservationStatus.ToUpper().
+                Some fields may be restricted for modification.
+            </div>
+        }
+    </div>
+
+    <form asp-action="Edit" asp-controller="Home" method="post" id="editForm">
+        <input type="hidden" name="ReservationId" value="@Model.ReservationId"/>
+        <input type="hidden" name="CreatedAt" value="@Model.CreatedAt"/>
+        <input type="hidden" name="ReservationStatus" value="@Model.ReservationStatus"/>
+
+        <div class="form-section">
+            <div class="section-title">Personal Information</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="firstName">First Name <span class="required">*</span></label>
+                    <input type="text" id="firstName" name="Name" value="@Model.Name" required placeholder="Enter first name">
+                    <div class="error-message" id="firstNameError">Please enter a first name</div>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="Surname" value="@Model.Surname" placeholder="Enter last name">
+                    <div class="error-message" id="lastNameError">Please enter a last name</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">Contact Information</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" name="TelNo" value="@Model.TelNo" required placeholder="+90 (555) 123-4567">
+                    <div class="error-message" id="phoneError">Please enter a valid phone number</div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="Email" value="" placeholder="your.email@@example.com">
+                    <div class="error-message" id="emailError">Please enter a valid email address</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">Reservation Details</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="guestNumber">Number of Guests <span class="required">*</span></label>
+                    @if (Model.ReservationStatus != "active")
+                    {
+                        <input type="number" id="guestNumber" name="GuestNumber" value="@Model.GuestNumber"
+                               min="1" max="10" required readonly class="readonly-field">
+                    }
+                    else
+                    {
+                        <input type="number" id="guestNumber" name="GuestNumber" value="@Model.GuestNumber"
+                               min="1" max="10" required>
+                    }
+                    <div class="error-message" id="guestError">Please enter a valid number of guests</div>
+                </div>
+                <div class="form-group">
+                    <label for="tableId">Table Number</label>
+                    @if (Model.ReservationStatus != "active")
+                    {
+                        <select id="tableId" name="TableId" disabled class="readonly-field">
+                            <option value="@Model.TableId" selected>Table @Model.TableId</option>
+                        </select>
+                    }
+                    else
+                    {
+                        <select id="tableId" name="TableId">
+                            <option value="@Model.TableId" selected>Table @Model.TableId</option>
+                        </select>
+                    }
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="reservationDate">Reservation Date <span class="required">*</span></label>
+                    @if (Model.ReservationStatus != "active")
+                    {
+                        <input type="date" id="reservationDate" name="ReservationDate"
+                               value="@Model.ReservationDate.ToString("yyyy-MM-dd")" required
+                               readonly class="readonly-field">
+                    }
+                    else
+                    {
+                        <input type="date" id="reservationDate" name="ReservationDate"
+                               value="@Model.ReservationDate.ToString("yyyy-MM-dd")" required>
+                    }
+                    <div class="error-message" id="dateError">Please select a valid date</div>
+                </div>
+                <div class="form-group">
+                    <label for="reservationTime">Reservation Time <span class="required">*</span></label>
+                    @if (Model.ReservationStatus != "active")
+                    {
+                        <select id="reservationTime" name="ReservationHour" required disabled class="readonly-field">
+                            @if (Model.ReservationHour == "14:00")
+                            {
+                                <option value="14:00" selected>14:00</option>
+                            }
+                            else if (Model.ReservationHour == "16:00")
+                            {
+                                <option value="16:00" selected>16:00</option>
+                            }
+                            else if (Model.ReservationHour == "18:00")
+                            {
+                                <option value="18:00" selected>18:00</option>
+                            }
+                            else if (Model.ReservationHour == "20:00")
+                            {
+                                <option value="20:00" selected>20:00</option>
+                            }
+                            else if (Model.ReservationHour == "22:00")
+                            {
+                                <option value="22:00" selected>22:00</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <select id="reservationTime" name="ReservationHour" required>
+                            @if (Model.ReservationHour == "14:00")
+                            {
+                                <option value="14:00" selected>14:00</option>
+                            }
+                            else
+                            {
+                                <option value="14:00">14:00</option>
+                            }
+
+                            @if (Model.ReservationHour == "16:00")
+                            {
+                                <option value="16:00" selected>16:00</option>
+                            }
+                            else
+                            {
+                                <option value="16:00">16:00</option>
+                            }
+
+                            @if (Model.ReservationHour == "18:00")
+                            {
+                                <option value="18:00" selected>18:00</option>
+                            }
+                            else
+                            {
+                                <option value="18:00">18:00</option>
+                            }
+
+                            @if (Model.ReservationHour == "20:00")
+                            {
+                                <option value="20:00" selected>20:00</option>
+                            }
+                            else
+                            {
+                                <option value="20:00">20:00</option>
+                            }
+
+                            @if (Model.ReservationHour == "22:00")
+                            {
+                                <option value="22:00" selected>22:00</option>
+                            }
+                            else
+                            {
+                                <option value="22:00">22:00</option>
+                            }
+                        </select>
+                    }
+                    <div class="error-message" id="timeError">Please select a time</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">Staff Assignment</div>
+            <div class="form-group">
+                <label for="servedBy">Served By</label>
+                <select id="servedBy" name="ServedById">
+                    <option value="@Model.ServedById" selected>@Model.ServedBy?.Name @Model.ServedBy?.Surname</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-title">Additional Information</div>
+            <div class="form-group">
+                <label for="specialRequests">Special Requests or Notes</label>
+                <textarea id="specialRequests" name="SpecialRequests"
+                          placeholder="Any special requests, dietary requirements, or notes..."></textarea>
+            </div>
+        </div>
+
+        <div class="button-group">
+
+            <button type="submit" class="btn btn-primary">
+                Save Changes
+            </button>
+
+            <a href="@Url.Action("Staff", "Home")" class="btn btn-secondary">
+                Cancel
+            </a>
+
+            @if (Model.ReservationStatus == "active")
+            {
+                <button type="button" class="btn btn-danger" onclick="">
+                    Delete Reservation
+                </button>
+            }
+        </div>
+    </form>
+</div>
+
+<script>
+    // Check for mobile and apply mobile class
+    function checkMobile() {
+        if (window.innerWidth <= 768) {
+            document.body.classList.add('mobile');
+        } else {
+            document.body.classList.remove('mobile');
+        }
+    }
+
+    window.addEventListener('load', checkMobile);
+    window.addEventListener('resize', checkMobile);
+
+    // Form validation
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Clear previous errors
+        document.querySelectorAll('.error-message').forEach(error => {
+            error.style.display = 'none';
+        });
+
+        // Validate first name
+        const firstName = document.getElementById('firstName').value.trim();
+        if (!firstName) {
+            document.getElementById('firstNameError').style.display = 'block';
+            isValid = false;
+        }
+
+        // Validate phone
+        const phone = document.getElementById('phone').value.trim();
+        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+        if (!phone || !phoneRegex.test(phone)) {
+            document.getElementById('phoneError').style.display = 'block';
+            isValid = false;
+        }
+
+        // Validate email if provided
+        const email = document.getElementById('email').value.trim();
+        if (email) {
+            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            }
+        }
+
+        // Validate guest number
+        const guests = parseInt(document.getElementById('guestNumber').value);
+        if (!guests || guests < 1 || guests > 10) {
+            document.getElementById('guestError').style.display = 'block';
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            const firstError = document.querySelector('.error-message[style*="block"]');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    // Phone number formatting
+    document.getElementById('phone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.startsWith('90')) {
+            value = '+' + value;
+        } else if (value.startsWith('0')) {
+            value = '+90' + value.substring(1);
+        } else if (!value.startsWith('+')) {
+            value = '+90' + value;
+        }
+        e.target.value = value;
+    });
+
+    // Status change functions
+    async function changeStatus(newStatus) {
+
+
+        try {
+            const response = await fetch('/Home/UpdateReservationStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    reservationId: @Model.ReservationId,
+                    status: newStatus
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert(`Reservation ${statusText} successfully!`);
+                window.location.href = '@Url.Action("Staff", "Home")';
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            alert('An error occurred. Please try again.');
+        }
+    
+
+    }
+
+    // Real-time validation feedback
+    document.querySelectorAll('input[required]').forEach(input => {
+        input.addEventListener('blur', function() {
+            const errorElement = document.getElementById(this.id + 'Error');
+            if (errorElement && !this.readOnly) {
+                if (this.value.trim() === '') {
+                    errorElement.style.display = 'block';
+                    this.style.borderColor = '#ff6b6b';
+                } else {
+                    errorElement.style.display = 'none';
+                    this.style.borderColor = '';
+                }
+            }
+        });
+    });
+
+    // Auto-hide alerts
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 5000);
+</script>
+</body>
+</html>

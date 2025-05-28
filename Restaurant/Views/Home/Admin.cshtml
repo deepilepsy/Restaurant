@@ -1,107 +1,313 @@
 @model Restaurant.Models.AdminPanelView
-
 @{
-    ViewData["Title"] = "Admin Paneli";
+    ViewData["Title"] = "Admin Panel";
+    Layout = null;
 }
-<style>
-    * {
-        color:  white;
-    }
-    body {
-        background-image: url("../images/background.jpg");
-        background-size: cover;      /* Fill the screen */
-        background-repeat: no-repeat;
-        background-position: center;
-    }
-    
-    #homebutton {
-        width: 2.5rem; 
-        padding-left: 1rem; 
-        padding-top: 1rem;
-        transition: all 0.4s;
-    }
-    #homebutton:hover {
-        transform: scale(1.25);
-    }
-</style>
-
 <!DOCTYPE html>
-
 <html>
 <head>
-    <title>Admin Page</title>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="~/css/tables.css?v=1.0.2" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/adminpage.css"></link>
 </head>
 <body>
-<h2>Staff Members</h2>
-
-<p>
-    <a asp-action="Create">Add New Staff</a>
-</p>
-
-<table class="table">
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Surname</th>
-        <th>Job</th>
-        <th>Tel No</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var staff in Model.StaffMembers)
-    {
-        <tr>
-            <td>@staff.Name</td>
-            <td>@staff.Surname</td>
-            <td>@staff.Job</td>
-            <td>@staff.TelNo</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@staff.StaffId">Edit</a> |
-                <a asp-action="Delete" asp-route-id="@staff.StaffId">Delete</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-
-<h2>Upcoming Receipts</h2>
-
-<table class="table">
-    <thead>
-    <tr>
-        <th>Guest Name</th>
-        <th>Tel No</th>
-        <th>Guest Number</th>
-        <th>Served By</th>
-        <th>Table</th>
-        <th>Reservation Date</th>
-        <th>Reservation Hour</th>
-        <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var receipt in Model.UpcomingReceipts)
-    {
-        <tr>
-            <td>@receipt.Name @receipt.Surname</td>
-            <td>@receipt.TelNo</td>
-            <td>@receipt.GuestNumber</td>
-            <td>@receipt.ServedBy?.Name @receipt.ServedBy?.Surname</td>
-            <td>@receipt.Table?.TableId</td>
-            <td>@receipt.ReservationDate.ToShortDateString()</td>
-            <td>@receipt.ReservationHour</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@receipt.ReceiptId">Edit</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-
-
 <div>
-    <a asp-controller="Home" asp-action="Index"><img src="~/images/home.png" alt="home" id="homebutton"></img></a>
+    <a asp-controller="Home" asp-action="Index">
+        <img src="~/images/home.png" alt="home" id="homebutton" />
+    </a>
 </div>
+
+<!-- Success/Error Messages -->
+<div class="message-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <strong>Success!</strong> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error!</strong> @TempData["Error"]
+        </div>
+    }
+</div>
+
+<h1 class="page-title">Admin Panel</h1>
+
+<!-- Statistics Cards -->
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-number">@Model.StaffMembers.Count()</div>
+        <div class="stat-label">Total Staff</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">@Model.StaffMembers.Count(s => s.Job == "waiter")</div>
+        <div class="stat-label">Waiters</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">@Model.UpcomingReceipts.Count()</div>
+        <div class="stat-label">Active Reservations</div>
+    </div>
+</div>
+
+<!-- Staff Management Section -->
+<h2 class="section-title">Staff Management</h2>
+
+<div class="add-staff-container">
+    <a asp-controller="Home" asp-action="CreateStaff" class="btn-add-staff">
+        ➕ Add New Staff Member
+    </a>
+</div>
+
+<section class="wrapper">
+    <!-- Staff Title Row -->
+    <main class="row title">
+        <ul>
+            <li>Name</li>
+            <li>Surname</li>
+            <li>Job Position</li>
+            <li>Phone Number</li>
+            <li>Actions</li>
+        </ul>
+    </main>
+    
+    <!-- Staff Data Rows -->
+    @if (Model.StaffMembers != null && Model.StaffMembers.Any())
+    {
+        @foreach (var staff in Model.StaffMembers)
+        {
+            <section class="row-fadeIn-wrapper">
+                <article class="row fadeIn staff-row" id="staff-@staff.StaffId">
+                    <ul>
+                        <li data-label="Name">@staff.Name</li>
+                        <li data-label="Surname">@staff.Surname</li>
+                        <li data-label="Job Position">
+                            <span class="job-badge job-@staff.Job.ToLower()">@staff.Job</span>
+                        </li>
+                        <li data-label="Phone">@staff.TelNo</li>
+                        <li data-label="Actions">
+                            <div class="action-buttons">
+                                <a href="@Url.Action("EditStaff", new { id = staff.StaffId })"
+                                   class="btn-action btn-edit">
+                                    Edit
+                                </a>
+                                <button type="button" class="btn-action btn-delete"
+                                        onclick="confirmDeleteStaff(@staff.StaffId, '@staff.Name @staff.Surname')">
+                                    Delete
+                                </button>
+                            </div>
+                        </li>
+                    </ul>
+                </article>
+            </section>
+        }
+    }
+    else
+    {
+        <section class="row-fadeIn-wrapper">
+            <article class="row fadeIn">
+                <div class="no-data-message">
+                    <span class="no-data-icon"></span>
+                    No staff members found. Click "Add New Staff Member" to get started.
+                </div>
+            </article>
+        </section>
+    }
+</section>
+
+<!-- Reservations Section -->
+<h2 class="section-title">Active Reservations</h2>
+
+<section class="wrapper">
+    <!-- Reservations Title Row -->
+    <main class="row title">
+        <ul>
+            <li>Guest Name</li>
+            <li>Phone</li>
+            <li>Guests</li>
+            <li>Served By</li>
+            <li>Table</li>
+            <li>Date</li>
+            <li>Time</li>
+            <li>Actions</li>
+        </ul>
+    </main>
+    
+    <!-- Reservations Data Rows -->
+    @if (Model.UpcomingReceipts != null && Model.UpcomingReceipts.Any())
+    {
+        @foreach (var receipt in Model.UpcomingReceipts)
+        {
+            <section class="row-fadeIn-wrapper">
+                <article class="row fadeIn reservation-row" id="reservation-@receipt.ReservationId">
+                    <ul>
+                        <li data-label="Guest Name">@receipt.Name @receipt.Surname</li>
+                        <li data-label="Phone">@receipt.TelNo</li>
+                        <li data-label="Guests">@receipt.GuestNumber</li>
+                        <li data-label="Served By">@receipt.ServedBy?.Name @receipt.ServedBy?.Surname</li>
+                        <li data-label="Table">@receipt.Table?.TableId</li>
+                        <li data-label="Date">@receipt.ReservationDate.ToShortDateString()</li>
+                        <li data-label="Time">@receipt.ReservationHour</li>
+                        <li data-label="Actions">
+                            <div class="action-buttons">
+                                <button type="button" class="btn-action btn-checkin"
+                                        onclick="updateReservationStatus(@receipt.ReservationId, 'checked-in')">
+                                    Check-in
+                                </button>
+                                <button type="button" class="btn-action btn-cancel"
+                                        onclick="updateReservationStatus(@receipt.ReservationId, 'cancelled')">
+                                    Cancel
+                                </button>
+                                <a href="@Url.Action("Edit", new { id = receipt.ReservationId })"
+                                   class="btn-action btn-edit">
+                                    Edit
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </article>
+            </section>
+        }
+    }
+    else
+    {
+        <section class="row-fadeIn-wrapper">
+            <article class="row fadeIn">
+                <div class="no-data-message">
+                    <span class="no-data-icon"></span>
+                    No active reservations found.
+                </div>
+            </article>
+        </section>
+    }
+</section>
+
+<script>
+    // Check for mobile and apply mobile class
+    function checkMobile() {
+        if (window.innerWidth <= 768) {
+            document.body.classList.add('mobile');
+        } else {
+            document.body.classList.remove('mobile');
+        }
+    }
+
+    // Check on load and resize
+    window.addEventListener('load', checkMobile);
+    window.addEventListener('resize', checkMobile);
+
+    // Auto-hide messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    });
+
+    // Function to update reservation status
+    async function updateReservationStatus(reservationId, status) {
+        // Show confirmation dialog
+        const statusText = status === 'checked-in' ? 'check-in' : 'cancel';
+        const confirmMessage = `Are you sure you want to ${statusText} this reservation?`;
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        try {
+            // Disable the buttons to prevent double-clicking
+            const reservationRow = document.getElementById(`reservation-${reservationId}`);
+            const buttons = reservationRow.querySelectorAll('.btn-action');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            });
+
+            // Send AJAX request to update status
+            const response = await fetch('/Home/UpdateReservationStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({
+                    reservationId: reservationId,
+                    status: status
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Animate row removal
+                reservationRow.style.transition = 'all 0.5s ease';
+                reservationRow.style.opacity = '0';
+                reservationRow.style.transform = 'translateX(-100%)';
+
+                setTimeout(() => {
+                    reservationRow.remove();
+
+                    // Check if no reservations left
+                    const remainingRows = document.querySelectorAll('.reservation-row');
+                    if (remainingRows.length === 0) {
+                        location.reload(); // Reload to show "no reservations" message
+                    }
+                }, 500);
+
+                // Show success message
+                showMessage('success', result.message || `Reservation ${statusText} successfully!`);
+            } else {
+                // Re-enable buttons on error
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+                showMessage('error', result.message || 'An error occurred while updating the reservation.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Re-enable buttons on error
+            const reservationRow = document.getElementById(`reservation-${reservationId}`);
+            const buttons = reservationRow.querySelectorAll('.btn-action');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            });
+            showMessage('error', 'A network error occurred. Please try again.');
+        }
+    }
+
+    // Function to confirm staff deletion
+    function confirmDeleteStaff(staffId, staffName) {
+        const confirmMessage = `Are you sure you want to delete staff member "${staffName}"?\n\nThis action cannot be undone and will affect any reservations assigned to this staff member.`;
+        
+        if (confirm(confirmMessage)) {
+            // Additional confirmation for safety
+            if (confirm(`FINAL CONFIRMATION: Delete "${staffName}" permanently?`)) {
+                window.location.href = `/Home/Delete/${staffId}`;
+            }
+        }
+    }
+
+    // Function to show dynamic messages
+    function showMessage(type, message) {
+        const messageContainer = document.querySelector('.message-container');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
+        alertDiv.innerHTML = `<strong>${type === 'success' ? 'Success!' : 'Error!'}</strong> ${message}`;
+
+        messageContainer.appendChild(alertDiv);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            alertDiv.style.animation = 'slideIn 0.3s ease reverse';
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 5000);
+    }
+</script>
 </body>
 </html>

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.Models;
 using System.Threading.Tasks;
+using Restaurant;
 
 public class StaffController : Controller
 {
@@ -39,23 +40,23 @@ public class StaffController : Controller
     }
 
     // GET: Staff/Edit/5
-    public async Task<IActionResult> Edit(int? id)
+    public async Task<IActionResult> EditStaff(int? id)
     {
         if (id == null) return NotFound();
-
+    
         var staff = await _context.Staff.FindAsync(id);
         if (staff == null) return NotFound();
-
+    
         return View(staff);
     }
-
+    
     // POST: Staff/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Staff staff)
+    public async Task<IActionResult> EditStaff(int id, Staff staff)
     {
         if (id != staff.StaffId) return NotFound();
-
+    
         if (ModelState.IsValid)
         {
             try

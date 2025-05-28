@@ -1,0 +1,97 @@
+@model Restaurant.Models.Reservation
+
+@{
+    ViewData["Title"] = "Delete Reservation";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Reservation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/delete.css"></link>
+</head>
+<body>
+<a href="@Url.Action("Edit", new { id = Model.ReservationId })" class="back-link">
+    ← Back to Edit
+</a>
+
+<div class="container">
+    <div class="warning-icon">⚠️</div>
+
+    <div class="header">
+        <h1>Delete Reservation</h1>
+        <p>You are about to permanently delete this reservation</p>
+    </div>
+
+    <div class="reservation-details">
+        <div class="details-title">Reservation to be Deleted</div>
+
+        <div class="detail-item">
+            <span class="detail-label">Reservation ID:</span>
+            <span class="detail-value">#@Model.ReservationId</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Guest Name:</span>
+            <span class="detail-value">@Model.Name @Model.Surname</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Phone Number:</span>
+            <span class="detail-value">@Model.TelNo</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Table Number:</span>
+            <span class="detail-value">@Model.TableId</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Number of Guests:</span>
+            <span class="detail-value">@Model.GuestNumber</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Date & Time:</span>
+            <span class="detail-value">@Model.ReservationDate.ToString("MMM dd, yyyy") at @Model.ReservationHour</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Server:</span>
+            <span class="detail-value">@Model.ServedBy?.Name @Model.ServedBy?.Surname</span>
+        </div>
+
+        <div class="detail-item">
+            <span class="detail-label">Created:</span>
+            <span class="detail-value">@Model.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</span>
+        </div>
+    </div>
+    
+
+    <form asp-action="Delete" method="post" id="deleteForm">
+        <input type="hidden" name="id" value="@Model.ReservationId" />
+        <div class="button-group">
+            <button type="submit" class="btn btn-danger" onclick="return confirmDelete()">
+                Yes, Delete Forever
+            </button>
+            <a href="@Url.Action("Edit", new { id = Model.ReservationId })" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Mobile detection
+    function checkMobile() {
+        if (window.innerWidth <= 768) {
+            document.body.classList.add('mobile');
+        } else {
+            document.body.classList.remove('mobile');
+        }
+    }
+</script>
+</body>
+</html>

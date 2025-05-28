@@ -1,11 +1,12 @@
 ﻿@{
-    var isLoggedIn = Context.Session.GetString("isLoggedIn");
+    var admin = Context.Session.GetString("admin");
+    var staff = Context.Session.GetString("staff");
     var username = Context.Session.GetString("username");
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
+
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - Restaurant</title>
@@ -26,6 +27,20 @@
             opacity: 0.5;
             cursor: default;
         }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 205, 57, 0.5);
+            border-color: #ffcd39;
+        }
     </style>
 </head>
 <body id="home">
@@ -33,21 +48,28 @@
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm mb-3">
         <div id="site-header" class="header-div" style="z-index: 2; width: 100%">
             <div class="left-div">
-                @if (isLoggedIn != "true")
+                @if (admin != "true" && staff != "true")
                 {
                     <div class="search-bar">
-                        <form id="search-form" asp-controller="Home" asp-action="Receipt">
+                        <form id="search-form" asp-controller="Home" asp-action="Receipt" method="get">
                             <i id="search-icon" class="fa-solid fa-magnifying-glass"></i>
-                            <input id="receipt-search" name="receipt-search" type="text" maxlength="9" placeholder="Receipt Number"></input>
+                            <input id="receipt-search" name="receiptSearch" type="text" maxlength="12" placeholder="Reservation ID" autocomplete="off"></input>
                             <div id="sbmt-div"><button type="submit" id="submit-btn"><i id="arrw-rght" class="fa-solid fa-arrow-right"></i></button></div>
                         </form>
                     </div>
                 }
 
-                @if (isLoggedIn == "true")
+                @if (admin == "true" && staff != "true")
                 {
                     <div id="loggedIn">
                         <a asp-controller="Home" asp-action="Admin" style="cursor: default"><img src="~/images/maintenance.png" alt="maintenance" id="maintenance" style="width: 2rem; margin-left: 2rem;"></a>
+                        <p style="font-family: 'Noto Sans Batak'; font-size: large; color: white; display: inline-block; margin-left: 0.5rem; padding-right: 2rem; padding-top: 1rem">Logged in as <span style="color: #ffcd39">@username</span></p>
+                    </div>
+                }
+                @if (staff == "true" && admin != "true")
+                {
+                    <div id="loggedIn">
+                        <a asp-controller="Home" asp-action="Staff" style="cursor: default"><img src="~/images/reservations.png" alt="maintenance" id="maintenance" style="width: 2rem; margin-left: 2rem;"></a>
                         <p style="font-family: 'Noto Sans Batak'; font-size: large; color: white; display: inline-block; margin-left: 0.5rem; padding-right: 2rem; padding-top: 1rem">Logged in as <span style="color: #ffcd39">@username</span></p>
                     </div>
                 }
@@ -84,6 +106,24 @@
         </div>
     </nav>
 </header>
+
+<!-- Success/Error Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin: 0;">
+        <strong>Success!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin: 0;">
+        <strong>Error!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="" style="">
     <main role="main" class="pb-3">
         @RenderBody()
@@ -93,14 +133,14 @@
 <footer class="footer text-muted navbar-transparent" style="display: flex; background-color: rgba(35, 35, 35, 0.9)">
 
     <div style="flex: 1; width: 100%; max-height: 70px; color: white">
-        &nbsp;&nbsp;&nbsp;&copy; 2025 - Restaurant - <a asp-area="" asp-controller="Home" asp-action="Privacy" id="privacy">Privacy</a>
+        &nbsp;&nbsp;&nbsp;&copy; 2025 - LITES - All Rights Reserved - <a asp-area="" asp-controller="Home" asp-action="Privacy" id="privacy">Privacy</a>
     </div>
     <div style="flex: 1; text-align: end">
-        @if (isLoggedIn != "true")
+        @if (admin != "true" && staff != "true")
         {
             <a asp-controller="Home" asp-action="Login" id="login">Login</a>
         }
-        @if (isLoggedIn == "true")
+        @if (admin == "true" || staff == "true")
         {
             <a asp-controller="Home" asp-action="Logout" id="logout">Logout</a>
         }
@@ -128,6 +168,33 @@
             header.style.backgroundColor = "rgba(35, 35, 35, 0.9)";
         }
     }
+
+    // Simple form validation for reservation search
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('receipt-search');
+
+        if (searchForm && searchInput) {
+            // Handle form submission
+            searchForm.addEventListener('submit', function(e) {
+                const query = searchInput.value.trim();
+                if (!query) {
+                    e.preventDefault();
+                    alert('Please enter a reservation ID');
+                }
+            });
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                if (alert.classList.contains('show')) {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }
+            });
+        }, 5000);
+    });
 </script>
-<script src="site.js"></script>
 </html>

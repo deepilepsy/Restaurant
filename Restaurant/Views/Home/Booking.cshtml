@@ -1,367 +1,243 @@
+@model Restaurant.Models.BookingViewModel
+
 @{
     ViewData["Title"] = "Booking";
 }
 
 <!DOCTYPE html>
-
 <html>
 <head>
     <title>Booking</title>
-<style>
-    .container {
-            width: 80vw;
-            min-height: 85vh;
-            padding: 20px;
-            border-radius: 15px;
-            display: flex;
-            flex-direction: column;
-            background-color: rgba(0, 0, 0, 0.5);
-            text-align: center;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-            padding-left: 100px;
-            padding-right: 100px;
-        }
-
-        
-        #svg-wrapper {
-            position: relative;
-            width: fit-content;
-            margin-left: -35px;
-        }
-
-        svg {
-            display: block;
-        }
-
-        .tables {
-            position: absolute;
-            background-color: white;
-            border-color: white;
-            border-width: 1px;
-            border-style: solid;
-            border-radius: 20px;
-            width: 55px;
-            height: 55px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 15px;
-        }
-
-        .tables:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(242, 230, 209, 0.6);
-        }
-
-        .tables.selected {
-            background-color: green;
-            color: white;
-            box-shadow: 0 0 15px #28a745;
-            border-color: #135122;
-        }
-
-        .tables.occupied {
-            background-color: #b00000;
-            color: rgb(193, 192, 192);
-            border-color: #b00000;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .tables.disabled {
-            background-color: grey;
-            border-color: grey;
-        }
-
-        .date-time-picker {
-            margin-bottom: 20px;
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            color: white;
-            font-weight: 500;
-            font-size: 18px;
-        }
-
-        .date-time-picker input[type="date"],
-        .date-time-picker input[type="time"] {
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: none;
-            font-size: 16px;
-            background-color: white;
-            color: #333;
-            cursor: pointer;
-        }
-
-        #confirmationModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        #confirmationModal>div {
-            background: rgb(255, 249, 239);
-            padding: 20px;
-            border-radius: 8px;
-            min-width: 250px;
-            text-align: center;
-        }
-
-        #confirmationModal button {
-            margin: 10px 15px 0 15px;
-            padding: 8px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        #confirmYes {
-            background-color: rgb(0, 149, 0);
-            color: white;
-        }
-
-        #confirmNo {
-            background-color: rgb(227, 0, 0);
-            color: white;
-        }
-
-        #warningModal {
-            display: none;
-            position: fixed;
-            top: 12%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 243, 205, 0.95);
-            border: 1.5px solid #f0c14b;
-            border-radius: 12px;
-            box-shadow: 0 6px 16px rgba(240, 193, 75, 0.4);
-            min-width: 300px;
-            max-width: 460px;
-            padding: 14px 24px 14px 24px;
-            font-family: 'Poppins', sans-serif;
-            color: #5a4b1a;
-            z-index: 10000;
-            align-items: center;
-            gap: 14px;
-            position: fixed;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        #warningModal button {
-            background: transparent;
-            border: 2px solid #5a4b1a;
-            color: #5a4b1a;
-            padding: 7px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 15px;
-            transition: all 0.25s ease;
-        }
-
-        #warningModal button:hover {
-            background: #5a4b1a;
-            color: #fff;
-            border-color: #5a4b1a;
-        }
-
-        .make-rez {
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .make-rez:hover {
-            background-color: #9b9b9b;
-        }
-
-        .make-rez:active {
-            background-color: #6b6b6b;
-        }
-
-    </style>
+    <link rel="stylesheet" href="~/css/booking.css"></link>
 </head>
 
 <body>
-    <div class="container">
-        <div id="warningModal">
-            <div>
-                <p id="warningText"></p>
-                <button id="warningOk">Okay</button>
-            </div>
-        </div>
-
-        <div id="confirmationModal">
-            <div>
-                <p id="modalText"></p>
-                <button id="confirmYes">Yes</button>
-                <button id="confirmNo">No</button>
-            </div>
-        </div>
-
-        <div class="date-time-picker">
-            <label for="reservation-date">Date:</label>
-            <input type="date" id="reservation-date" name="reservation-date" />
-
-            <label for="reservation-time">Time:</label>
-            <select id="reservation-time" name="reservation-time">
-                <option value="">Select Time</option>
-                <option value="14:00">14:00</option>
-                <option value="16:00">16:00</option>
-                <option value="18:00">18:00</option>
-                <option value="20:00">20:00</option>
-                <option value="22:00">22:00</option>
-            </select>
-
-
-            <label for="people-count">Number of People:</label>
-            <input type="number" id="people-count" min="1" max="10" placeholder="select number" />
-            <div id="table-info" style="color:white; font-weight: 500; margin-top:10px;"></div>
-
-        </div>
-
-        <div id="svg-wrapper">
-            <svg width="1100" height="500" style="border:2px solid gray;">
-                 
-                <text x="285" y="30" fill="white" font-size="18" font-family="arial">Indoor Seating</text>   
-                <text x="785" y="30" fill="white" font-size="18" font-family="arial">Outdoor Seating</text>   
-                
-                <rect x="30" y="50" width="600" height="400" fill="#FFDAB9" fill-opacity="0.2" stroke="gray" stroke-width="2" />
-                <rect x="630" y="50" width="440" height="430" fill="#FFDAB9" fill-opacity="0.2" stroke="gray" stroke-width="2"/>
-                
-                <rect x="30" y="50" width="100" height="55" fill="gray" fill-opacity="0.6" />
-                <text x="45" y="82" fill="black" fill-opacity="0.7" font-size="14" font-family="arial">Reseption</text>
-                
-                <rect x="30" y="430" width="50" height="20" fill="gray"fill-opacity="0.6" />
-                <text x="40" y="445" fill="black" fill-opacity="0.7" font-size="12" font-family="arial">Entry</text>
-
-                <rect x="620" y="60" width="20" height="60" fill="gray" fill-opacity="0.6"/> 
-                <text x="620" y="60" fill="black" fill-opacity="0.7" font-size="12" font-family="arial" transform="rotate(-90,650,75)">Door</text>
-
-                <path d="M 2 0 A 180 100 0 0 0 280 0" fill="gray" transform="translate(200, 50)"fill-opacity="0.6" />
-                <text x="328" y="70" fill="black" fill-opacity="0.7" font-size="16" font-family="arial">Bar</text>
-                
-            
-                <rect x="140" y="444" width="220" height="6" fill="	#87CEEB"fill-opacity="0.6" />
-                <text x="230" y="462" fill="white" fill-opacity="0.7" font-size="12" font-family="arial">Window</text>
-         
-                <rect x="380" y="444" width="220" height="6" fill="#87CEEB"fill-opacity="0.6" />
-                <text x="470" y="462" fill="white" fill-opacity="0.7" font-size="12" font-family="arial">Window</text>   
-            </svg>
-
-        </div>
-
+<div class="container">
+    <div id="warningModal">
         <div>
-            <button id="makeReservation" disabled class="make-rez">
-                Rezervasyon Yap
-            </button>
+            <p id="warningText"></p>
+            <button id="warningOk">Okay</button>
         </div>
-
     </div>
 
-    <script>
-        const wrapper = document.getElementById('table-wrapper');
-        const modal = document.getElementById('confirmationModal');
-        const modalText = document.getElementById('modalText');
-        const btnYes = document.getElementById('confirmYes');
-        const btnNo = document.getElementById('confirmNo');
+    <div class="error-message" id="errorMessage"></div>
 
-        // Saatlerdeki dolu masalar geçici
-        const occupiedTablesByHour = {
-            "14:00": [2, 11],
-            "16:00": [3, 7],
-            "18:00": [12],
-            "20:00": [],
-            "22:00": [5, 8]
-        };
+    <div class="date-time-picker">
+        <label for="reservation-date">Date:</label>
+        <input type="date" id="reservation-date" name="reservation-date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
 
-        const timeSelect = document.getElementById('reservation-time');
+        <label for="reservation-time">Time:</label>
+        <select id="reservation-time" name="reservation-time">
+            <option value="">Select Time</option>
+            <option value="14:00">14:00</option>
+            <option value="16:00">16:00</option>
+            <option value="18:00">18:00</option>
+            <option value="20:00">20:00</option>
+            <option value="22:00">22:00</option>
+        </select>
 
-        timeSelect.addEventListener('change', () => {
-            const selectedTime = timeSelect.value;
-            const allTables = document.querySelectorAll('.tables');
+        <label for="people-count">Number of People:</label>
+        <input type="number" id="people-count" min="1" max="10" placeholder="select number" />
+        <div id="table-info" style="color:white; font-weight: 500; margin-top:10px;"></div>
+    </div>
 
-            allTables.forEach((table, index) => {
-                const tableNumber = index+1 ;
+    <div class="selected-table-info" id="selectedTableInfo">
+        <span id="selectedTableText"></span>
+    </div>
 
-                table.classList.remove('occupied');
-                table.disabled = false;
+    <div id="svg-wrapper">
+        <svg width="1100" height="500" style="border:2px solid gray;">
+            <text x="285" y="30" fill="white" font-size="18" font-family="arial">Indoor Seating</text>
+            <text x="785" y="30" fill="white" font-size="18" font-family="arial">Outdoor Seating</text>
 
-                if (occupiedTablesByHour[selectedTime] && occupiedTablesByHour[selectedTime].includes(tableNumber)) {
-                    table.classList.add('occupied');
-                    table.classList.remove('selected');
-                    table.disabled = true;
-                }
-            });
-        });
+            <rect x="30" y="50" width="600" height="400" fill="#FFDAB9" fill-opacity="0.2" stroke="gray" stroke-width="2" />
+            <rect x="630" y="50" width="440" height="430" fill="#FFDAB9" fill-opacity="0.2" stroke="gray" stroke-width="2"/>
 
-        const warningModal = document.getElementById('warningModal');
-        const warningOk = document.getElementById('warningOk');
+            <rect x="30" y="50" width="100" height="55" fill="gray" fill-opacity="0.6" />
+            <text x="45" y="82" fill="black" fill-opacity="0.7" font-size="14" font-family="arial">Reception</text>
 
-        function showWarning(message) {
-            document.getElementById('warningText').textContent = message;
-            warningModal.style.display = 'block';
+            <rect x="30" y="430" width="50" height="20" fill="gray" fill-opacity="0.6" />
+            <text x="40" y="445" fill="black" fill-opacity="0.7" font-size="12" font-family="arial">Entry</text>
+
+            <rect x="620" y="60" width="20" height="60" fill="gray" fill-opacity="0.6"/>
+            <text x="620" y="60" fill="black" fill-opacity="0.7" font-size="12" font-family="arial" transform="rotate(-90,650,75)">Door</text>
+
+            <path d="M 2 0 A 180 100 0 0 0 280 0" fill="gray" transform="translate(200, 50)" fill-opacity="0.6" />
+            <text x="328" y="70" fill="black" fill-opacity="0.7" font-size="16" font-family="arial">Bar</text>
+
+            <rect x="140" y="444" width="220" height="6" fill="#87CEEB" fill-opacity="0.6" />
+            <text x="230" y="462" fill="white" fill-opacity="0.7" font-size="12" font-family="arial">Window</text>
+
+            <rect x="380" y="444" width="220" height="6" fill="#87CEEB" fill-opacity="0.6" />
+            <text x="470" y="462" fill="white" fill-opacity="0.7" font-size="12" font-family="arial">Window</text>
+        </svg>
+    </div>
+
+    <div>
+        <button id="makeReservation" disabled class="make-rez">
+            Continue to Reservation Form
+        </button>
+    </div>
+</div>
+
+<script>
+    const errorMessage = document.getElementById('errorMessage');
+    const selectedTableInfo = document.getElementById('selectedTableInfo');
+    const selectedTableText = document.getElementById('selectedTableText');
+
+    // Store table information from the server
+    let tableCapacities = [];
+    let currentOccupiedTables = [];
+
+    // Initialize date to today
+    document.getElementById('reservation-date').value = new Date().toISOString().split('T')[0];
+
+    const timeSelect = document.getElementById('reservation-time');
+    timeSelect.addEventListener('change', async () => {
+        const selectedTime = timeSelect.value;
+        const selectedDate = document.getElementById('reservation-date').value;
+
+        if (selectedDate && selectedTime) {
+            await loadOccupiedTables(selectedDate, selectedTime);
+            updateTableAvailability();
         }
+    });
 
-        warningOk.addEventListener('click', () => {
-            warningModal.style.display = 'none';
-        });
+    document.getElementById('reservation-date').addEventListener('change', async () => {
+        const selectedTime = timeSelect.value;
+        const selectedDate = document.getElementById('reservation-date').value;
 
-        const tableCapacities = [
-            ...Array(5).fill(1),
-            ...Array(5).fill(2),
-            ...Array(8).fill(4),
-            ...Array(2).fill(10)
-        ];
+        if (selectedDate && selectedTime) {
+            await loadOccupiedTables(selectedDate, selectedTime);
+            updateTableAvailability();
+        }
+    });
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+    async function loadOccupiedTables(date, time) {
+        try {
+            const response = await fetch(`/Home/GetOccupiedTables?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`);
+            const data = await response.json();
+
+            if (data.success) {
+                currentOccupiedTables = data.occupiedTables || [];
+            } else {
+                showError('Error loading table availability: ' + data.message);
+                currentOccupiedTables = [];
             }
+        } catch (error) {
+            console.error('Error loading occupied tables:', error);
+            showError('Network error while checking table availability');
+            currentOccupiedTables = [];
         }
+    }
 
-        shuffleArray(tableCapacities);
+    async function loadTableCapacities() {
+        try {
+            const response = await fetch('/Home/GetTableCapacities');
+            const data = await response.json();
 
-        const tableButtons = [];
-        let selectedButton = null;
+            if (data.success) {
+                tableCapacities = data.tableCapacities || [];
+            } else {
+                showError('Error loading table information: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error loading table capacities:', error);
+            showError('Network error while loading table information');
+        }
+    }
 
+    function updateTableAvailability() {
+        const allTables = document.querySelectorAll('.tables');
 
-        const svgWrapper = document.getElementById("svg-wrapper");
-        const makeReservationBtn = document.getElementById('makeReservation');
+        allTables.forEach((table) => {
+            const tableNumber = parseInt(table.dataset.tableId);
 
+            // Remove occupied status first
+            table.classList.remove('occupied');
+            table.disabled = false;
 
-        const tablePositions = [
-            [200, 120], [320, 120], [440, 120], [140, 230],
-            [260, 230], [380, 230], [500, 230], [140, 340],
-            [260, 340], [380, 340], [500, 340],
-            [700, 100], [820, 100],[940, 100], [700, 225], 
-            [820, 225], [940, 225], [700, 350],[820,350],[940,350]
-        ];
+            // Check if table is occupied
+            if (currentOccupiedTables.includes(tableNumber)) {
+                table.classList.add('occupied');
+                table.classList.remove('selected');
+                table.disabled = true;
+            }
+        });
+
+        // Update selected table info if current selection is now occupied
+        updateSelectedTableDisplay();
+    }
+
+    const warningModal = document.getElementById('warningModal');
+    const warningOk = document.getElementById('warningOk');
+
+    function showWarning(message) {
+        document.getElementById('warningText').textContent = message;
+        warningModal.style.display = 'block';
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 5000);
+    }
+
+    warningOk.addEventListener('click', () => {
+        warningModal.style.display = 'none';
+    });
+
+    const tableButtons = [];
+    let selectedButton = null;
+    let selectedTableId = null;
+
+    const svgWrapper = document.getElementById("svg-wrapper");
+    const makeReservationBtn = document.getElementById('makeReservation');
+
+    const tablePositions = [
+        [200, 120], [320, 120], [440, 120], [140, 230],
+        [260, 230], [380, 230], [500, 230], [140, 340],
+        [260, 340], [380, 340], [500, 340],
+        [700, 100], [820, 100],[940, 100], [700, 225],
+        [820, 225], [940, 225], [700, 350],[820,350],[940,350]
+    ];
+
+    function updateSelectedTableDisplay() {
+        if (selectedTableId && selectedButton) {
+            const tableInfo = tableCapacities.find(t => t.tableId === selectedTableId);
+            if (tableInfo) {
+                selectedTableText.textContent = `Table ${selectedTableId} selected (Capacity: ${tableInfo.minCapacity}-${tableInfo.maxCapacity} people)`;
+                selectedTableInfo.style.display = 'block';
+            }
+        } else {
+            selectedTableInfo.style.display = 'none';
+        }
+    }
+
+    // Create table buttons dynamically
+    async function initializeTables() {
+        await loadTableCapacities();
 
         for (let i = 1; i <= 20; i++) {
             const [x, y] = tablePositions[i-1];
             const button = document.createElement("button");
             button.className = "tables";
-            button.innerText = i ;
-            button.dataset.capacity = tableCapacities[i];
+            button.innerText = i;
+            button.dataset.tableId = i;
+
+            // Find capacity from database data
+            const tableInfo = tableCapacities.find(t => t.tableId === i);
+            if (tableInfo) {
+                button.dataset.minCapacity = tableInfo.minCapacity;
+                button.dataset.maxCapacity = tableInfo.maxCapacity;
+            } else {
+                // Fallback to default values
+                button.dataset.minCapacity = 1;
+                button.dataset.maxCapacity = 4;
+            }
+
             button.style.left = `${x}px`;
             button.style.top = `${y}px`;
 
@@ -375,63 +251,107 @@
                     return;
                 }
 
-                if (button.classList.contains("disabled") || button.classList.contains("occupied")) return;
+                if (button.classList.contains("disabled") || button.classList.contains("occupied")) {
+                    if (button.classList.contains("occupied")) {
+                        showWarning("This table is already reserved for the selected time.");
+                    } else {
+                        showWarning("This table doesn't have sufficient capacity for your party size.");
+                    }
+                    return;
+                }
 
-                document.getElementById("modalText").textContent = `You have selected table: ${i + 1}. Do you want to continue?`;
-                document.getElementById("confirmationModal").style.display = "flex";
+                // Direct selection without confirmation
+                // Clear all other selected tables
+                tableButtons.forEach(btn => btn.classList.remove('selected'));
+
+                // Select this table
+                button.classList.add('selected');
                 selectedButton = button;
+                selectedTableId = i;
+
+                // Update display and enable button
+                updateSelectedTableDisplay();
+                makeReservationBtn.disabled = false;
             });
 
             tableButtons.push(button);
             svgWrapper.appendChild(button);
         }
+    }
 
-        
-        btnYes.addEventListener('click', () => {
-            if (selectedButton) {
-                selectedButton.classList.toggle('selected');
-                makeReservationBtn.disabled = !selectedButton.classList.contains('selected');
-            }
-            modal.style.display = 'none';
-            selectedButton = null;
-        });
-        makeReservationBtn.addEventListener('click', () => {
-            alert('Rezervasyon yapılıyor...');
-        });
+    makeReservationBtn.addEventListener('click', () => {
+        const dateVal = document.getElementById("reservation-date").value;
+        const timeVal = document.getElementById("reservation-time").value;
+        const peopleVal = document.getElementById("people-count").value;
 
-        btnNo.addEventListener('click', () => {
-            modal.style.display = 'none';
-            selectedButton = null;
-        });
-
-        const peopleSelect = document.getElementById('people-count');
-        peopleSelect.addEventListener('input', () => {
-            const selectedPeople = parseInt(peopleSelect.value);
-
-            tableButtons.forEach(button => {
-                const capacity = parseInt(button.dataset.capacity);
-
-                if (button.classList.contains('occupied')) {
-                    button.classList.add('disabled');
-                    button.disabled = true;
-                    button.classList.remove('selected');
-                    return;
-                }
-
-                if (isNaN(selectedPeople)) {
-                    button.classList.remove('disabled');
-                    button.disabled = false;
-                } else if (selectedPeople <= capacity) {
-                    button.classList.remove('disabled');
-                    button.disabled = false;
-                } else {
-                    button.classList.add('disabled');
-                    button.disabled = true;
-                    button.classList.remove('selected');
-                }
+        if (selectedTableId && dateVal && timeVal && peopleVal) {
+            // Redirect to reservation form with parameters
+            const params = new URLSearchParams({
+                tableId: selectedTableId,
+                date: dateVal,
+                time: timeVal,
+                guests: peopleVal
             });
+
+            // Debug: Log the URL being generated
+            console.log('Redirecting to:', `/Reservation/Create?${params.toString()}`);
+
+            // Try the redirect
+            try {
+                window.location.href = `/Reservation/Create?${params.toString()}`;
+            } catch (error) {
+                console.error('Redirect error:', error);
+                alert('Error redirecting to reservation form. Please try again.');
+            }
+        }
+    });
+
+    const peopleSelect = document.getElementById('people-count');
+    peopleSelect.addEventListener('input', () => {
+        const selectedPeople = parseInt(peopleSelect.value);
+
+        tableButtons.forEach(button => {
+            const minCapacity = parseInt(button.dataset.minCapacity);
+            const maxCapacity = parseInt(button.dataset.maxCapacity);
+
+            if (button.classList.contains('occupied')) {
+                button.classList.add('disabled');
+                button.disabled = true;
+                button.classList.remove('selected');
+                return;
+            }
+
+            if (isNaN(selectedPeople)) {
+                button.classList.remove('disabled');
+                button.disabled = false;
+            } else if (selectedPeople >= minCapacity && selectedPeople <= maxCapacity) {
+                button.classList.remove('disabled');
+                button.disabled = false;
+            } else {
+                button.classList.add('disabled');
+                button.disabled = true;
+                button.classList.remove('selected');
+            }
         });
-    </script>
+
+        // Reset selection if currently selected table is now disabled
+        if (selectedButton && selectedButton.classList.contains('disabled')) {
+            selectedButton = null;
+            selectedTableId = null;
+            updateSelectedTableDisplay();
+        }
+
+        // Reset make reservation button if no valid table is selected
+        const hasValidSelection = tableButtons.some(btn =>
+            btn.classList.contains('selected') && !btn.classList.contains('disabled')
+        );
+        makeReservationBtn.disabled = !hasValidSelection;
+    });
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeTables();
+    });
+</script>
 </body>
 </html>
-

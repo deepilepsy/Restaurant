@@ -1,0 +1,140 @@
+@model Restaurant.Models.Staff
+
+@{
+    ViewData["Title"] = "Add New Staff Member";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add New Staff Member</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/createstaff.css"></link>
+</head>
+<body>
+<a href="@Url.Action("Admin")" class="back-link">
+    ← Back to Admin Panel
+</a>
+
+<div class="container">
+    <div class="header">
+        <h1>Add New Staff Member</h1>
+        <p>Fill in the details below to add a new staff member</p>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <strong>Please correct the following errors:</strong>
+            <ul style="margin: 10px 0 0 20px;">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <form asp-action="CreateStaff" method="post" id="staffForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="Name">First Name <span class="required">*</span></label>
+                <input asp-for="Name" type="text" id="Name" required placeholder="Enter first name">
+                <span asp-validation-for="Name" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Surname">Last Name <span class="required">*</span></label>
+                <input asp-for="Surname" type="text" id="Surname" required placeholder="Enter last name">
+                <span asp-validation-for="Surname" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Job">Job Position <span class="required">*</span></label>
+                <select asp-for="Job" id="Job" required>
+                    <option value="">Select Job Position</option>
+                    <option value="waiter">Waiter</option>
+                    <option value="chef">Chef</option>
+                    <option value="manager">Manager</option>
+                    <option value="cashier">Cashier</option>
+                </select>
+                <span asp-validation-for="Job" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="TelNo">Phone Number <span class="required">*</span></label>
+                <input asp-for="TelNo" type="tel" id="TelNo" required placeholder="+90 (555) 123-4567">
+                <span asp-validation-for="TelNo" class="error-message"></span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">
+                Add Staff Member
+            </button>
+            <a href="@Url.Action("Admin")" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Phone number formatting
+    document.getElementById('TelNo').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.startsWith('90')) {
+            value = '+' + value;
+        } else if (value.startsWith('0')) {
+            value = '+90' + value.substring(1);
+        } else if (!value.startsWith('+')) {
+            value = '+90' + value;
+        }
+        e.target.value = value;
+    });
+
+    // Form validation
+    document.getElementById('staffForm').addEventListener('submit', function(e) {
+        let isValid = true;
+        const requiredFields = ['Name', 'Surname', 'Job', 'TelNo'];
+
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            const value = field.value.trim();
+
+            if (!value) {
+                field.style.borderColor = '#ff6b6b';
+                isValid = false;
+            } else {
+                field.style.borderColor = '';
+            }
+        });
+
+        // Phone validation
+        const phone = document.getElementById('TelNo').value.trim();
+        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+        if (phone && !phoneRegex.test(phone)) {
+            document.getElementById('TelNo').style.borderColor = '#ff6b6b';
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields correctly.');
+        }
+    });
+
+    // Real-time validation
+    document.querySelectorAll('input[required], select[required]').forEach(field => {
+        field.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.style.borderColor = '#ff6b6b';
+            } else {
+                this.style.borderColor = '';
+            }
+        });
+    });
+</script>
+</body>
+</html>
