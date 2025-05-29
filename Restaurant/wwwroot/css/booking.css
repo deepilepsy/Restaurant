@@ -138,17 +138,17 @@ svg {
     cursor: pointer;
     margin-top: 20px;
     text-align: center;
-    background-color: #28a745;
+    background: none;
     color: white;
-    border: none;
+    border: 2px solid #d99a4e;
     font-weight: 600;
     transition: all 0.3s ease;
 }
 
 .make-rez:hover:not(:disabled) {
-    background-color: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    background-color: rgba(219, 165, 0, 0.15);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(167, 131, 40, 0.3);
 }
 
 .make-rez:disabled {
@@ -219,4 +219,23 @@ svg {
         align-items: center;
         gap: 15px;
     }
+}
+:root {
+    --primary-gold: #d4af37;
+    --dark-gold: #b8941f;
+    --light-gold: #f4e7c1;
+    --deep-charcoal: #1a1a1a;
+    --charcoal: #2d2d2d;
+    --light-gray: #f8f8f8;
+    --text-dark: #333;
+    --text-light: #666;
+    --white: #ffffff;
+    --success: #28a745;
+    --success-dark: #1e7e34;
+    --error: #dc3545;
+    --warning: #ffc107;
+    --shadow: 0 4px 20px rgba(0,0,0,0.1);
+    --shadow-strong: 0 8px 32px rgba(0,0,0,0.2);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius: 12px;
 }

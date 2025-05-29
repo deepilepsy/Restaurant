@@ -9,6 +9,88 @@
 <head>
     <title>Booking</title>
     <link rel="stylesheet" href="~/css/booking.css"></link>
+    <style>
+        /* Professional booking form styles */
+        .booking-form {
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+
+
+        .form-input {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+
+            background-color: var(--white);
+            color: var(--text-dark);
+            border: 1px solid var(--charcoal);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+
+            background-image: none;
+            box-shadow: none;
+            outline: none;
+            transition: var(--transition);
+
+            background-position: right 1rem center;
+            background-repeat: no-repeat;
+            background-size: 1rem;
+            
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
+        }
+
+
+        .form-section {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+        }
+    </style>
 </head>
 
 <body>
@@ -22,22 +104,34 @@
 
     <div class="error-message" id="errorMessage"></div>
 
-    <div class="date-time-picker">
-        <label for="reservation-date">Date:</label>
-        <input type="date" id="reservation-date" name="reservation-date" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+    <!-- Booking Form -->
+    <div class="booking-form">
+        <div class="form-section">
+            <h2 class="section-title">Reservation Details</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="reservation-date" class="form-label">Preferred Date</label>
+                    <input type="date" id="reservation-date" name="reservation-date" class="form-input" min="@DateTime.Today.ToString("yyyy-MM-dd")">
+                </div>
 
-        <label for="reservation-time">Time:</label>
-        <select id="reservation-time" name="reservation-time">
-            <option value="">Select Time</option>
-            <option value="14:00">14:00</option>
-            <option value="16:00">16:00</option>
-            <option value="18:00">18:00</option>
-            <option value="20:00">20:00</option>
-            <option value="22:00">22:00</option>
-        </select>
+                <div class="form-group">
+                    <label for="reservation-time" class="form-label">Preferred Time</label>
+                    <select id="reservation-time" name="reservation-time" class="form-input">
+                        <option value="">Select Time</option>
+                        <option value="14:00">2:00 PM</option>
+                        <option value="16:00">4:00 PM</option>
+                        <option value="18:00">6:00 PM</option>
+                        <option value="20:00">8:00 PM</option>
+                        <option value="22:00">10:00 PM</option>
+                    </select>
+                </div>
 
-        <label for="people-count">Number of People:</label>
-        <input type="number" id="people-count" min="1" max="10" placeholder="select number" />
+                <div class="form-group">
+                    <label for="people-count" class="form-label">Number of Guests</label>
+                    <input type="number" id="people-count" min="1" max="10" placeholder="How many guests? (max 10)" class="form-input">
+                </div>
+            </div>
+        </div>
         <div id="table-info" style="color:white; font-weight: 500; margin-top:10px;"></div>
     </div>
 
