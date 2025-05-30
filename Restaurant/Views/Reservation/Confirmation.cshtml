@@ -10,7 +10,7 @@
 <head>
     <title>Reservation Confirmed</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/confirmation.css"></link>
+    <link rel="stylesheet" href="~/css/confirmation.css?v=1.0.2"></link>
 </head>
 <body>
 <div class="container">
@@ -72,17 +72,7 @@
             <span class="detail-value">@Model.CreatedAt.ToString("MM/dd/yyyy hh:mm tt")</span>
         </div>
     </div>
-
-    <div class="important-info">
-        <h4>Important Information</h4>
-        <ul>
-            <li>Please arrive 10 minutes before your reservation time</li>
-            <li>Your table will be held for 15 minutes past the reservation time</li>
-            <li>For changes or cancellations, please call us at least 2 hours in advance</li>
-            <li>Please bring a valid ID for verification</li>
-            <li>Keep your reservation ID for reference</li>
-        </ul>
-    </div>
+    
 
     <div class="button-group">
         <a href="@Url.Action("Booking", "Home")" class="btn btn-primary">
@@ -94,28 +84,8 @@
     </div>
 </div>
 
-<script>
-    // Auto-focus for better UX
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add some celebration effect
-        setTimeout(() => {
-            document.querySelector('.success-icon').style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                document.querySelector('.success-icon').style.transform = 'scale(1)';
-            }, 200);
-        }, 500);
-    });
-
-    // Copy reservation ID to clipboard when clicked
-    document.querySelector('.id-number').addEventListener('click', function() {
-        navigator.clipboard.writeText(this.textContent).then(function() {
-            const originalText = document.querySelector('.id-number').textContent;
-            document.querySelector('.id-number').textContent = 'Copied!';
-            setTimeout(() => {
-                document.querySelector('.id-number').textContent = originalText;
-            }, 1000);
-        });
-    });
+<script src="~/js/confirmation.js">
+    
 </script>
 </body>
 </html>

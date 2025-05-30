@@ -12,22 +12,21 @@
 <head>
     <title>Edit Reservation</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/edit.css"></link>
+    <link rel="stylesheet" href="~/css/edit.css">
 </head>
 <body>
-@if (admin != "true" && staff == "true")
+@if (staff == "true")
 {
     <a href="@Url.Action("Staff", "Home")" class="back-link">
         ← Back to Staff Panel
     </a>
 }
-@if (admin == "true" && staff != "true")
+else
 {
     <a href="@Url.Action("Admin", "Home")" class="back-link">
         ← Back to Admin Panel
     </a>
 }
-
 
 <div class="container">
     <div class="header">
@@ -93,12 +92,10 @@
                 <div class="form-group">
                     <label for="firstName">First Name <span class="required">*</span></label>
                     <input type="text" id="firstName" name="Name" value="@Model.Name" required placeholder="Enter first name">
-                    <div class="error-message" id="firstNameError">Please enter a first name</div>
                 </div>
                 <div class="form-group">
                     <label for="lastName">Last Name</label>
                     <input type="text" id="lastName" name="Surname" value="@Model.Surname" placeholder="Enter last name">
-                    <div class="error-message" id="lastNameError">Please enter a last name</div>
                 </div>
             </div>
         </div>
@@ -109,12 +106,10 @@
                 <div class="form-group">
                     <label for="phone">Phone Number <span class="required">*</span></label>
                     <input type="tel" id="phone" name="TelNo" value="@Model.TelNo" required placeholder="+90 (555) 123-4567">
-                    <div class="error-message" id="phoneError">Please enter a valid phone number</div>
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="Email" value="" placeholder="your.email@@example.com">
-                    <div class="error-message" id="emailError">Please enter a valid email address</div>
+                    <input type="email" id="email" name="Email" value="@Model.Email" placeholder="your.email@@example.com">
                 </div>
             </div>
         </div>
@@ -134,7 +129,6 @@
                         <input type="number" id="guestNumber" name="GuestNumber" value="@Model.GuestNumber"
                                min="1" max="10" required>
                     }
-                    <div class="error-message" id="guestError">Please enter a valid number of guests</div>
                 </div>
                 <div class="form-group">
                     <label for="tableId">Table Number</label>
@@ -166,33 +160,13 @@
                         <input type="date" id="reservationDate" name="ReservationDate"
                                value="@Model.ReservationDate.ToString("yyyy-MM-dd")" required>
                     }
-                    <div class="error-message" id="dateError">Please select a valid date</div>
                 </div>
                 <div class="form-group">
                     <label for="reservationTime">Reservation Time <span class="required">*</span></label>
                     @if (Model.ReservationStatus != "active")
                     {
                         <select id="reservationTime" name="ReservationHour" required disabled class="readonly-field">
-                            @if (Model.ReservationHour == "14:00")
-                            {
-                                <option value="14:00" selected>14:00</option>
-                            }
-                            else if (Model.ReservationHour == "16:00")
-                            {
-                                <option value="16:00" selected>16:00</option>
-                            }
-                            else if (Model.ReservationHour == "18:00")
-                            {
-                                <option value="18:00" selected>18:00</option>
-                            }
-                            else if (Model.ReservationHour == "20:00")
-                            {
-                                <option value="20:00" selected>20:00</option>
-                            }
-                            else if (Model.ReservationHour == "22:00")
-                            {
-                                <option value="22:00" selected>22:00</option>
-                            }
+                            <option value="@Model.ReservationHour" selected>@Model.ReservationHour</option>
                         </select>
                     }
                     else
@@ -244,7 +218,6 @@
                             }
                         </select>
                     }
-                    <div class="error-message" id="timeError">Please select a time</div>
                 </div>
             </div>
         </div>
@@ -263,153 +236,40 @@
             <div class="section-title">Additional Information</div>
             <div class="form-group">
                 <label for="specialRequests">Special Requests or Notes</label>
-                <textarea id="specialRequests" name="SpecialRequests"
-                          placeholder="Any special requests, dietary requirements, or notes..."></textarea>
+                <textarea id="specialRequests" name="SpecialRequests" placeholder="Any special requests, dietary requirements, or notes...">@Model.SpecialRequests</textarea>
             </div>
         </div>
 
         <div class="button-group">
-
             <button type="submit" class="btn btn-primary">
                 Save Changes
             </button>
-
-            <a href="@Url.Action("Staff", "Home")" class="btn btn-secondary">
-                Cancel
-            </a>
+            
+            @if (admin == "true")
+            {
+                <a href="@Url.Action("Admin", "Home")" class="btn btn-secondary">
+                    Cancel
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("Staff", "Home")" class="btn btn-secondary">
+                    Cancel
+                </a>
+            }
 
             @if (Model.ReservationStatus == "active")
             {
-                <button type="button" class="btn btn-danger" onclick="">
+                <a href="@Url.Action("Delete", "Home", new { id = Model.ReservationId })" 
+                   class="btn btn-danger">
                     Delete Reservation
-                </button>
+                </a>
             }
         </div>
     </form>
 </div>
 
 <script>
-    // Check for mobile and apply mobile class
-    function checkMobile() {
-        if (window.innerWidth <= 768) {
-            document.body.classList.add('mobile');
-        } else {
-            document.body.classList.remove('mobile');
-        }
-    }
-
-    window.addEventListener('load', checkMobile);
-    window.addEventListener('resize', checkMobile);
-
-    // Form validation
-    document.getElementById('editForm').addEventListener('submit', function(e) {
-        let isValid = true;
-
-        // Clear previous errors
-        document.querySelectorAll('.error-message').forEach(error => {
-            error.style.display = 'none';
-        });
-
-        // Validate first name
-        const firstName = document.getElementById('firstName').value.trim();
-        if (!firstName) {
-            document.getElementById('firstNameError').style.display = 'block';
-            isValid = false;
-        }
-
-        // Validate phone
-        const phone = document.getElementById('phone').value.trim();
-        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
-        if (!phone || !phoneRegex.test(phone)) {
-            document.getElementById('phoneError').style.display = 'block';
-            isValid = false;
-        }
-
-        // Validate email if provided
-        const email = document.getElementById('email').value.trim();
-        if (email) {
-            const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
-            if (!emailRegex.test(email)) {
-                document.getElementById('emailError').style.display = 'block';
-                isValid = false;
-            }
-        }
-
-        // Validate guest number
-        const guests = parseInt(document.getElementById('guestNumber').value);
-        if (!guests || guests < 1 || guests > 10) {
-            document.getElementById('guestError').style.display = 'block';
-            isValid = false;
-        }
-
-        if (!isValid) {
-            e.preventDefault();
-            const firstError = document.querySelector('.error-message[style*="block"]');
-            if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-    });
-
-    // Phone number formatting
-    document.getElementById('phone').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.startsWith('90')) {
-            value = '+' + value;
-        } else if (value.startsWith('0')) {
-            value = '+90' + value.substring(1);
-        } else if (!value.startsWith('+')) {
-            value = '+90' + value;
-        }
-        e.target.value = value;
-    });
-
-    // Status change functions
-    async function changeStatus(newStatus) {
-
-
-        try {
-            const response = await fetch('/Home/UpdateReservationStatus', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    reservationId: @Model.ReservationId,
-                    status: newStatus
-                })
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                alert(`Reservation ${statusText} successfully!`);
-                window.location.href = '@Url.Action("Staff", "Home")';
-            } else {
-                alert('Error: ' + result.message);
-            }
-        } catch (error) {
-            alert('An error occurred. Please try again.');
-        }
-    
-
-    }
-
-    // Real-time validation feedback
-    document.querySelectorAll('input[required]').forEach(input => {
-        input.addEventListener('blur', function() {
-            const errorElement = document.getElementById(this.id + 'Error');
-            if (errorElement && !this.readOnly) {
-                if (this.value.trim() === '') {
-                    errorElement.style.display = 'block';
-                    this.style.borderColor = '#ff6b6b';
-                } else {
-                    errorElement.style.display = 'none';
-                    this.style.borderColor = '';
-                }
-            }
-        });
-    });
-
     // Auto-hide alerts
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');

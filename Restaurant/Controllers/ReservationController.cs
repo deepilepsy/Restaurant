@@ -121,8 +121,6 @@ namespace Restaurant.Controllers
         {
             try
             {
-                _logger.LogInformation("Reservation Create POST called for table {TableId}", model.TableId);
-
                 // Remove validation for optional fields
                 ModelState.Remove("Email");
                 ModelState.Remove("SpecialRequests");
@@ -271,13 +269,6 @@ namespace Restaurant.Controllers
                 _logger.LogError(ex, "Error checking table availability for table {TableId}", tableId);
                 return Json(new { available = false, message = "Error checking availability" });
             }
-        }
-
-        // Test action to verify controller is working
-        [HttpGet]
-        public IActionResult Test()
-        {
-            return Content("Reservation Controller is working!");
         }
     }
 }

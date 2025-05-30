@@ -175,14 +175,15 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(45deg, #28a745, #20c997);
+    background: linear-gradient(45deg, #d99a4e, #FF9F33);
     color: white;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 4px 15px rgba(167, 108, 40, 0.3);
 }
 
 .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    transform: scale(1.05);
+    color: #2d2d2d;
+    box-shadow: 0 8px 25px rgba(167, 97, 40, 0.4);
 }
 
 .btn-secondary {
@@ -192,8 +193,9 @@ body {
 }
 
 .btn-secondary:hover {
+    
     background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
+    transform: scale(1.05);
 }
 
 .error-message {

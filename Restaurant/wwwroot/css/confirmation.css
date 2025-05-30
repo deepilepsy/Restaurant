@@ -37,40 +37,32 @@ body {
     left: 0;
     right: 0;
     height: 5px;
-    background: linear-gradient(90deg, #28a745, #20c997, #17a2b8);
 }
 
 .success-icon {
     width: 80px;
     height: 80px;
     margin: 0 auto 20px;
-    background: linear-gradient(135deg, #28a745, #20c997);
+    background: linear-gradient(135deg, #d99a4e, #ffbe33);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: pulse 2s infinite;
 }
 
 .success-icon::after {
     content: '✓';
-    color: white;
+    color: #2d2d2d;
     font-size: 40px;
     font-weight: bold;
 }
-
-@keyframes pulse {
-     0% { transform: scale(1); }
-     50% { transform: scale(1.05); }
-     100% { transform: scale(1); }
- }
 
 .header {
     margin-bottom: 30px;
 }
 
 .header h1 {
-    color: #28a745;
+    color: #d99a4e;
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 10px;
@@ -123,8 +115,8 @@ body {
 }
 
 .reservation-id {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
+    background: linear-gradient(135deg, #d99a4e, #FFF933);
+    color: #2d2d2d;
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -198,13 +190,15 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(45deg, #007bff, #0056b3);
+    background: linear-gradient(135deg, #d99a4e, #ffbe33);
     color: white;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    color: #2d2d2d;
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #ffbe33, #d99a4e);
+    box-shadow: 0 5px 15px rgba(255, 136, 0, 0.3);
 }
 
 .btn-secondary {
@@ -214,8 +208,8 @@ body {
 }
 
 .btn-secondary:hover {
-    background: #e9ecef;
-    transform: translateY(-2px);
+    color: #d99a4e;
+    transform: scale(1.05);
 }
 
 .print-btn {

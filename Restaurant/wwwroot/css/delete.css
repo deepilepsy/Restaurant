@@ -6,7 +6,9 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #221e1f 0%, #c82333 100%);
+    background-image: url("../images/warning.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -22,7 +24,7 @@ body {
     width: 100%;
     max-width: 600px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 0, 0, 0.2);
     text-align: center;
 }
 
