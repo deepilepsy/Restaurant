@@ -73,13 +73,6 @@ public class HomeController : Controller
         return View();
     }
 
-    [HttpPost]
-    public async Task<IActionResult> LoginLegacy(string username, string password)
-    {
-        var loginDto = new LoginDto { Username = username, Password = password };
-        return await Login(loginDto);
-    }
-
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
@@ -105,8 +98,8 @@ public class HomeController : Controller
 
         var model = new AdminPanelView
         {
-            StaffMembers = staffMembers ?? new List<Staff>(),
-            UpcomingReceipts = activeReservations ?? new List<Reservation>()
+            StaffMembers = staffMembers,
+            UpcomingReceipts = activeReservations
         };
 
         return View(model);
@@ -115,6 +108,11 @@ public class HomeController : Controller
     // Staff Panel
     public async Task<IActionResult> Staff()
     {
+        if (HttpContext.Session.GetString("staff") != "true")
+        {
+            return RedirectToAction("Login");
+        }
+        
         var activeReservations = await _context.Reservations
             .Include(r => r.Table)
             .Include(r => r.ServedBy)
@@ -131,31 +129,31 @@ public class HomeController : Controller
         return View(model);
     }
 
-    // Search for reservations
-    public async Task<IActionResult> Receipt(string receiptSearch)
-    {
-        if (string.IsNullOrWhiteSpace(receiptSearch))
-        {
-            TempData["Error"] = "Please enter a reservation ID to search.";
-            return RedirectToAction("Index");
-        }
-
-        if (int.TryParse(receiptSearch.Trim(), out int reservationId))
-        {
-            var reservation = await _context.Reservations
-                .Include(r => r.Table)
-                .Include(r => r.ServedBy)
-                .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
-
-            if (reservation != null)
-            {
-                return RedirectToAction("Confirmation", "Reservation", new { id = reservationId });
-            }
-        }
-
-        TempData["Error"] = $"No reservation found with ID: {receiptSearch}";
-        return RedirectToAction("Index");
-    }
+    // // Search for reservations
+    // public async Task<IActionResult> Receipt(string receiptSearch)
+    // {
+    //     if (string.IsNullOrWhiteSpace(receiptSearch))
+    //     {
+    //         TempData["Error"] = "Please enter a reservation ID to search.";
+    //         return RedirectToAction("Index");
+    //     }
+    //
+    //     if (int.TryParse(receiptSearch.Trim(), out int reservationId))
+    //     {
+    //         var reservation = await _context.Reservations
+    //             .Include(r => r.Table)
+    //             .Include(r => r.ServedBy)
+    //             .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
+    //
+    //         if (reservation != null)
+    //         {
+    //             return RedirectToAction("Confirmation", "Reservation", new { id = reservationId });
+    //         }
+    //     }
+    //
+    //     TempData["Error"] = $"No reservation found with ID: {receiptSearch}";
+    //     return RedirectToAction("Index");
+    // }
 
     // Edit Reservations
     [HttpGet]
@@ -163,7 +161,7 @@ public class HomeController : Controller
     {
         if (!CheckUserLoggedIn())
         {
-            return RedirectToAction("Login");
+            return RedirectToAction("Index");
         }
 
         var reservation = await _context.Reservations
@@ -197,7 +195,7 @@ public class HomeController : Controller
             return GoBackToPanel();
         }
 
-        // Update basic information
+        // Update information
         reservation.Name = model.Name;
         reservation.Surname = model.Surname;
         reservation.TelNo = model.TelNo;
@@ -216,7 +214,7 @@ public class HomeController : Controller
 
         await _context.SaveChangesAsync();
         TempData["Success"] = $"Reservation #{model.ReservationId} has been updated successfully.";
-        return RedirectToAction("Edit", new { id = model.ReservationId });
+        return GoBackToPanel();
     }
 
     // Delete Reservations
@@ -292,11 +290,6 @@ public class HomeController : Controller
     [HttpPost]
     public async Task<IActionResult> CreateStaff(Staff staff)
     {
-        if (HttpContext.Session.GetString("admin") != "true")
-        {
-            return RedirectToAction("Login");
-        }
-
         if (!ModelState.IsValid)
         {
             return View(staff);
@@ -341,7 +334,6 @@ public class HomeController : Controller
             TempData["Error"] = "Staff member not found.";
             return RedirectToAction("Admin");
         }
-
         return View(staff);
     }
 
@@ -382,35 +374,7 @@ public class HomeController : Controller
         TempData["Success"] = $"Staff member {staff.Name} {staff.Surname} has been successfully updated.";
         return RedirectToAction("Admin");
     }
-
-    [HttpGet]
-    public async Task<IActionResult> StaffDetails(int id)
-    {
-        if (HttpContext.Session.GetString("admin") != "true")
-        {
-            return RedirectToAction("Login");
-        }
-
-        var staff = await _context.Staff
-            .FirstOrDefaultAsync(s => s.StaffId == id);
-
-        if (staff == null)
-        {
-            TempData["Error"] = "Staff member not found.";
-            return RedirectToAction("Admin");
-        }
-
-        // Get recent reservations served by this staff member
-        var reservationsServed = await _context.Reservations
-            .Include(r => r.Table)
-            .Where(r => r.ServedById == id)
-            .OrderByDescending(r => r.ReservationDate)
-            .Take(10)
-            .ToListAsync();
-
-        ViewBag.ReservationsServed = reservationsServed;
-        return View(staff);
-    }
+    
 
     [HttpGet]
     public async Task<IActionResult> DeleteStaff(int id)
@@ -469,29 +433,49 @@ public class HomeController : Controller
         return RedirectToAction("Admin");
     }
 
-    // API Methods for AJAX calls
+    [HttpGet]
+    public async Task<IActionResult> CreateUser()
+    {
+        return View();
+    }
     [HttpPost]
-    public async Task<IActionResult> CreateUser(string username, string password)
+    public async Task<IActionResult> CreateUser(string username, string password, string type)
     {
         // Check if user already exists
-        var existingUser = await _context.StaffCredentials
+        var existingStaff = await _context.StaffCredentials
             .FirstOrDefaultAsync(c => c.Username == username);
+        var existingAdmin = await _context.Credentials.FirstOrDefaultAsync(c => c.Username == username);
 
-        if (existingUser != null)
+        if (existingStaff != null || existingAdmin != null)
         {
-            return Json(new { success = false, message = "User already exists" });
+            TempData["UserExists"] = "User already exists.";
+            return RedirectToAction("CreateUser");
         }
 
-        var staffCredentials = new StaffCredentials
+        if (type == "staff")
         {
-            Username = username,
-            Password = password
-        };
+            var staffCredentials = new StaffCredentials
+            {
+                Username = username,
+                Password = password
+            };
 
-        _context.StaffCredentials.Add(staffCredentials);
+            _context.StaffCredentials.Add(staffCredentials);
+        }
+        else if (type == "admin")
+        {
+            var adminCredentials = new Credentials()
+            {
+                Username = username,
+                Password = password
+            };
+
+            _context.Credentials.Add(adminCredentials);
+        }
+
         await _context.SaveChangesAsync();
 
-        return Json(new { success = true, message = "User created successfully" });
+        return RedirectToAction("Admin");
     }
 
     [HttpGet]
@@ -668,6 +652,33 @@ public class HomeController : Controller
             }
         });
     }
+    
+    // Search for reservations
+    public async Task<IActionResult> Receipt(string receiptSearch)
+    {
+        if (string.IsNullOrWhiteSpace(receiptSearch))
+        {
+            TempData["Error"] = "Please enter a reservation ID to search.";
+            return RedirectToAction("Index");
+        }
+
+        if (int.TryParse(receiptSearch.Trim(), out int reservationId))
+        {
+            var reservation = await _context.Reservations
+                .Include(r => r.Table)
+                .Include(r => r.ServedBy)
+                .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
+
+            if (reservation != null)
+            {
+                return RedirectToAction("Confirmation", "Reservation", new { id = reservationId });
+            }
+        }
+
+        TempData["Error"] = $"No reservation found with ID: {receiptSearch}";
+        return RedirectToAction("Index");
+    }
+
 
     // Helper Methods
     private bool CheckUserLoggedIn()
@@ -691,7 +702,7 @@ public class HomeController : Controller
     }
 }
 
-// Simple class for API requests
+// Class for API requests
 public class UpdateReservationStatusRequest
 {
     public int ReservationId { get; set; }

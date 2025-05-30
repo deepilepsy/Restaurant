@@ -57,7 +57,7 @@ body {
     color: #353333;
     padding: 12px 30px;
     border: none;
-    border-radius: 50px;
+    border-radius: 10px;
     text-decoration: none;
     font-size: 1.1rem;
     font-weight: 600;
@@ -72,10 +72,10 @@ body {
 }
 
 .btn-add-staff:hover {
-    background: linear-gradient(90deg, #d99a4e, #FFCE33);
+    background: linear-gradient(90deg, #d99a4e, #C89502);
     transform: scale(1.05);
     box-shadow: 0 8px 25px rgba(167, 108, 40, 0.4);
-    color: #353333;
+    color: white;
     text-decoration: none;
     opacity: 0.9;
 }
@@ -343,4 +343,32 @@ body.mobile .page-title {
     opacity: 0.8;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+.btn-create-user {
+    display: inline-block;
+    background: linear-gradient(135deg, #292929 0%, #2d2d2d 100%);
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-left: 15px;
+    transition: all 0.3s ease;
+    border: 1px solid #292929;
+}
+
+.btn-create-user:hover {
+    background: linear-gradient(135deg, #292929 0%, #2d2d2d 80%);
+    color: #d99a4e;
+    text-decoration: none;
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(53, 53, 53, 0.3);
+    border-color: #d99a4e;
+}
+
+.btn-create-user:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 8px rgba(55, 55, 53, 0.2);
 }
