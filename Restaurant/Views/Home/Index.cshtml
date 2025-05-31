@@ -1,40 +1,124 @@
-﻿@{
-    ViewData["Title"] = "Restaurant";
-}
-
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Restaurant</title>
-    <link rel="stylesheet" href="css/homepage.css">
-    <link rel="stylesheet" href="css/main.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LITES - Authentic Italian Restaurant in Adana</title>
+    <link rel="stylesheet" href="~/css/homepage.css?v=1.0.1"></link>
 </head>
 <body>
-<div class="homepage" style="display: flex; flex-direction: row; margin-top: 80px; height: auto; padding: 1rem 4rem">
-    <div class="introDiv1" style="flex: 1.5; height: 100%">
-        <img src="images/hmpgfoods.jpg" style="object-fit: contain; border-radius: 40px; margin-left: 3rem; width: 87%; height: 100%;" id="foodimage">
-    </div>
-    <div class="introDiv2" style="padding: 4rem 0;  flex: 1; height: 500px">
-        <h3 style="display: inline-block; color: #9697a8; font-size: large">Welcome to LITES</h3>
-        <h2 style="display: inline-block; color: white; margin-top: 25px; margin-bottom: 50px; font-size: xx-large">Quality Italian Food Experience in Adana Sarıçam Area</h2>
-        <a asp-controller="Home" asp-action="Booking" style="text-decoration: none; color: inherit"><button class="book-a-table">BOOK A TABLE</button></a>
-    </div>
-</div>
-<div style="display: block; position: inherit" class="text-md-center">
-    <h1 class="Bottom-text">Tradition, Untouched</h1>
-</div>
+<!-- SVG Gradient Definitions -->
+<svg class="icon-gradients">
+    <defs>
+        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#d99a4e;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8b5a2b;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+</svg>
 
-<div id="story-container">
-    <div id="story-inner">
-        <div id="story-text">
-            <h1 id="story-head">~ Our Story ~</h1>
-            <p id="story-body">Began with a family recipe in a cozy kitchen tucked away in the hills of Tuscany.
-                Inspired by the bold flavors of Italian cuisine and the warmth of shared meals,
-                we opened our doors to offer more than just food — we offer tradition.
-                From handmade pasta to slow-simmered sauces,
-                every dish tells a story. Join us, and be part of that story.</p>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-image">
+        <img src="~/images/homedisplay.jpeg" alt="Elegant Italian dining" id="foodimage">
+    </div>
+    <div class="hero-content">
+        <div class="hero-subtitle">Welcome to LITES</div>
+        <h1 class="hero-title">Authentic Italian Excellence</h1>
+        <p class="hero-description">
+            Experience the finest Italian cuisine in the heart of Adana Sarıçam.
+            From handcrafted pasta to wood-fired pizzas, every dish tells a story of tradition and passion.
+        </p>
+        <a href="#" class="cta-button">BOOK A TABLE</a>
+    </div>
+</section>
+
+<!-- Tagline Section -->
+<section class="tagline-section">
+    <h2 class="tagline">Tradition, Perfected</h2>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="fireGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#FFD700"/> <!-- yellow -->
+                            <stop offset="40%" stop-color="#FF8C00"/> <!-- orange -->
+                            <stop offset="70%" stop-color="#FF270D"/> <!-- flame red -->
+                            <stop offset="100%" stop-color="#8B0000"/> <!-- dark red -->
+                        </linearGradient>
+                    </defs>
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                              d="M15 9C15 12.866 11.866 16 8 16C4.13401 16 1 12.866 1 9C1 5.5 4 3 4 3H6V4.5C6 5.05228 6.44772 5.5 7 5.5C7.55228 5.5 8 5.05228 8 4.5V0H10C10 0 15 3 15 9ZM10 12C10 13.1046 9.10457 14 8 14C6.89543 14 6 13.1046 6 12C6 9.5 8 8 8 8C8 8 10 9.5 10 12Z"
+                              fill="url(#fireGradient)"/>
+                    </g>
+                </svg>
+            </div>
+            
+            <h3 class="feature-title">Wood-Fired Oven</h3>
+            <p class="feature-description">Authentic Neapolitan pizzas cooked at 900°F in our imported Italian wood-fired oven.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="4.096"><path d="M 716.373 954.88 c 8 1.38667 14.08 8.42667 14.08 16.7467 c 0 9.38663 -7.68 17.0667 -17.0667 17.0667 H 312.64 c -9.38663 0 -17.0667 -7.68 -17.0667 -17.0667 c 0 -8.74667 6.72 -16.1067 15.36 -16.96 l 168.853 -25.6 V 646.187 C 357.547 629.44 271.573 522.667 250.773 443.947 c -18.1333 -68.6933 67.52 -409.92 67.52 -409.92 l 194.133 0.426667 l 194.133 -0.426667 s 85.6533 341.227 67.52 409.92 c -20.6933 78.2933 -105.6 184.107 -226.773 201.92 v 282.453 l 169.067 26.56 Z" fill="#e8eff9"></path><path d="M 308.16 311.787 c -9.06667 53.3333 -14.4 100.907 -9.06667 120.747 c 18.6667 70.4 100.267 168.107 213.333 168.213 c 112.96 -0.106667 194.667 -97.8131 213.333 -168.213 c 5.22667 -19.84 0 -67.4133 -9.06667 -120.747 h -408.533 Z" fill="#d1525c"></path><path d="M 519.68 520.853 m -34.56 0 a 34.56 34.56 0 1 0 69.12 0 a 34.56 34.56 0 1 0 -69.12 0 Z" fill="#d1525c"></path><path d="M 430.507 423.68 m -27.7333 0 a 27.7333 27.7333 0 1 0 55.4667 0 a 27.7333 27.7333 0 1 0 -55.4667 0 Z" fill="#d1525c"></path><path d="M 554.24 379.52 m -26.1333 0 a 26.1333 26.1333 0 1 0 52.2667 0 a 26.1333 26.1333 0 1 0 -52.2667 0 Z" fill="#d1525c"></path><path d="M 720.96 339.2 c -1.28 -8.85333 -2.77333 -18.0267 -4.37333 -27.4133 H 308.16 c -1.6 9.38663 -3.09333 18.4533 -4.37333 27.4133 h 417.173 Z" fill="#e56575"></path></g><g id="SVGRepo_iconCarrier"><path d="M 716.373 954.88 c 8 1.38667 14.08 8.42667 14.08 16.7467 c 0 9.38663 -7.68 17.0667 -17.0667 17.0667 H 312.64 c -9.38663 0 -17.0667 -7.68 -17.0667 -17.0667 c 0 -8.74667 6.72 -16.1067 15.36 -16.96 l 168.853 -25.6 V 646.187 C 357.547 629.44 271.573 522.667 250.773 443.947 c -18.1333 -68.6933 67.52 -409.92 67.52 -409.92 l 194.133 0.426667 l 194.133 -0.426667 s 85.6533 341.227 67.52 409.92 c -20.6933 78.2933 -105.6 184.107 -226.773 201.92 v 282.453 l 169.067 26.56 Z" fill="#e8eff9"></path><path d="M 308.16 311.787 c -9.06667 53.3333 -14.4 100.907 -9.06667 120.747 c 18.6667 70.4 100.267 168.107 213.333 168.213 c 112.96 -0.106667 194.667 -97.8131 213.333 -168.213 c 5.22667 -19.84 0 -67.4133 -9.06667 -120.747 h -408.533 Z" fill="#d1525c"></path><path d="M 519.68 520.853 m -34.56 0 a 34.56 34.56 0 1 0 69.12 0 a 34.56 34.56 0 1 0 -69.12 0 Z" fill="#d1525c"></path><path d="M 430.507 423.68 m -27.7333 0 a 27.7333 27.7333 0 1 0 55.4667 0 a 27.7333 27.7333 0 1 0 -55.4667 0 Z" fill="#d1525c"></path><path d="M 554.24 379.52 m -26.1333 0 a 26.1333 26.1333 0 1 0 52.2667 0 a 26.1333 26.1333 0 1 0 -52.2667 0 Z" fill="#d1525c"></path><path d="M 720.96 339.2 c -1.28 -8.85333 -2.77333 -18.0267 -4.37333 -27.4133 H 308.16 c -1.6 9.38663 -3.09333 18.4533 -4.37333 27.4133 h 417.173 Z" fill="#e56575"></path></g></svg>
+            </div>
+            <h3 class="feature-title">Curated Wine Selection</h3>
+            <p class="feature-description">Expertly selected Italian wines to perfectly complement your dining experience.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M7 5C4.23858 5 2 7.23858 2 10C2 12.0503 3.2341 13.8124 5 14.584V17.25H19L19 14.584C20.7659 13.8124 22 12.0503 22 10C22 7.23858 19.7614 5 17 5C16.7495 5 16.5033 5.01842 16.2626 5.05399C15.6604 3.27806 13.9794 2 12 2C10.0206 2 8.33961 3.27806 7.73736 5.05399C7.49673 5.01842 7.25052 5 7 5Z" fill="#ffffff"></path> <path d="M18.9983 18.75H5.00169C5.01188 20.1469 5.08343 20.9119 5.58579 21.4142C6.17157 22 7.11438 22 9 22H15C16.8856 22 17.8284 22 18.4142 21.4142C18.9166 20.9119 18.9881 20.1469 18.9983 18.75Z" fill="#ffffff"></path> </g></svg>
+            </div>
+            <h3 class="feature-title">Master Chefs</h3>
+            <p class="feature-description">Our chefs trained in Italy bring generations of culinary expertise to every dish.</p>
         </div>
     </div>
-</div>
+</section>
 
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <span class="stat-number">15+</span>
+            <span class="stat-label">Years of Excellence</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">50,000+</span>
+            <span class="stat-label">Happy Customers</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">50+</span>
+            <span class="stat-label">Authentic Recipes</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">4.8<span style="color: #d99a4e">☆</span></span>
+            <span class="stat-label">Average Rating</span>
+        </div>
+    </div>
+</section>
+
+<!-- Story Section -->
+<section class="story-section">
+    <div class="story-container">
+        <h2 class="story-title">~ Our Story ~</h2>
+        <p class="story-content">
+            Born from a family recipe in the rolling hills of Tuscany, LITES began as a dream to share
+            authentic Italian flavors with the world. Our founder's grandmother's handwritten recipes
+            still guide our kitchen today. From slow-simmered ragù that takes 12 hours to perfect,
+            to fresh mozzarella made every morning, we honor tradition while creating new memories.
+            Every plate we serve carries the soul of Italy and the warmth of family.
+        </p>
+    </div>
+</section>
+
+<!-- Scrolling Text Section -->
 <div class="wrapper">
     <div class="stylish-text fadeout-horizontal">
         <div class="stylish-text-track">
@@ -53,4 +137,24 @@
         </div>
     </div>
 </div>
+
+
+<!-- Contact Info Section -->
+<section class="contact-info">
+    <div class="contact-grid">
+        <div class="contact-item">
+            <div class="contact-title">Location</div>
+            <div class="contact-detail">Sarıçam, Adana<br>Traditional Italian Quarter</div>
+        </div>
+        <div class="contact-item">
+            <div class="contact-title">Hours</div>
+            <div class="contact-detail">Mon-Sun: 2:00 PM - 1:00 PM</div>
+        </div>
+        <div class="contact-item">
+            <div class="contact-title">Reservations</div>
+            <div class="contact-detail">+90 232 152 6379<br>info@litesrestaurant.com</div>
+        </div>
+    </div>
+</section>
 </body>
+</html>
