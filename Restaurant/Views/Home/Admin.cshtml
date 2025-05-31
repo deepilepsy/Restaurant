@@ -148,7 +148,9 @@
                         <li data-label="Guest Name">
                             @if (receipt.Customer != null)
                             {
-                                @receipt.Customer.Name @receipt.Customer.Surname
+                                @receipt.Customer.Name 
+                                <p style="display:inline-block">&nbsp</p>
+                                @receipt.Customer.Surname
                             }
                             else
                             {
