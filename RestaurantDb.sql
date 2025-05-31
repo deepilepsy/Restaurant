@@ -22,25 +22,32 @@ CREATE TABLE dbo.restaurant_tables (
                                            REFERENCES dbo.staff(staff_id)
 );
 
+CREATE TABLE dbo.customers (
+                                       customer_id INT PRIMARY KEY IDENTITY (1, 1),
+                                       name NVARCHAR(255) NOT NULL,
+                                       surname NVARCHAR(255),
+                                       tel_no NVARCHAR(25) NOT NULL,
+                                       email NVARCHAR(255) NULL,
+);
+
 CREATE TABLE dbo.reservations (
                                   reservation_id INT PRIMARY KEY IDENTITY(600000,1),
-                                  name NVARCHAR(255) NOT NULL,
-                                  surname NVARCHAR(255),
-                                  tel_no NVARCHAR(25) NOT NULL,
+                                customer_id INT,
                                   guest_number INT NOT NULL,
                                   served_by_id INT NOT NULL,
                                   table_id INT NOT NULL,
                                   created_at DATETIME DEFAULT GETDATE(),
                                   reservation_date DATE NOT NULL,
                                   reservation_hour NVARCHAR(10) NOT NULL,
-                                    reservation_status NVARCHAR(10) NOT NULL DEFAULT 'active',
+                                  reservation_status NVARCHAR(10) NOT NULL DEFAULT 'active',
+                                  special_requests NVARCHAR(MAX) NULL,
+                                    CONSTRAINT FK_reservation_customer FOREIGN KEY (customer_id)
+                                        REFERENCES dbo.customers(customer_id),
                                   CONSTRAINT FK_reservation_table FOREIGN KEY (table_id)
                                       REFERENCES dbo.restaurant_tables(table_id),
                                   CONSTRAINT FK_reservation_staff FOREIGN KEY (served_by_id)
                                       REFERENCES dbo.staff(staff_id)
 );
-ALTER TABLE dbo.reservations ADD email NVARCHAR(255) NULL;
-ALTER TABLE dbo.reservations ADD special_requests NVARCHAR(MAX) NULL;
 
 CREATE TABLE dbo.credentials (
                                  id INT PRIMARY KEY IDENTITY(1, 1),
@@ -90,6 +97,3 @@ INSERT INTO dbo.restaurant_tables (table_id, min_capacity, max_capacity, served_
                                                                                            (18, 1, 1, 4),
                                                                                            (19, 1, 1, 4),
                                                                                            (20, 1, 1, 4);
-
-
-
