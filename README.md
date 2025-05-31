@@ -1,1 +1,1 @@
-A modern resturant website along with database functionalities written on .net core mvc 8.0
+A modern resturant website along with database functionalities written on asp .net core mvc 8.0
