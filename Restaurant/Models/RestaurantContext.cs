@@ -15,6 +15,7 @@ namespace Restaurant
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Credentials> Credentials { get; set; }
         public DbSet<StaffCredentials> StaffCredentials { get; set; }
+        public DbSet<Customer> Customers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

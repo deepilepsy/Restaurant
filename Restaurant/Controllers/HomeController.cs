@@ -80,6 +80,7 @@ public class HomeController : Controller
     }
 
     // Admin Panel
+    // Admin Panel
     public async Task<IActionResult> Admin()
     {
         if (HttpContext.Session.GetString("admin") != "true")
@@ -91,6 +92,7 @@ public class HomeController : Controller
         var activeReservations = await _context.Reservations
             .Include(r => r.ServedBy)
             .Include(r => r.Table)
+            .Include(r => r.Customer)  // Add this line
             .Where(r => r.ReservationStatus == "active" && r.ReservationDate >= DateTime.Today)
             .OrderBy(r => r.ReservationDate)
             .ThenBy(r => r.ReservationHour)
@@ -112,10 +114,11 @@ public class HomeController : Controller
         {
             return RedirectToAction("Login");
         }
-        
+    
         var activeReservations = await _context.Reservations
             .Include(r => r.Table)
             .Include(r => r.ServedBy)
+            .Include(r => r.Customer)  // Add this line
             .Where(r => r.ReservationStatus == "active" && r.ReservationDate >= DateTime.Today)
             .OrderBy(r => r.ReservationDate)
             .ThenBy(r => r.ReservationHour)
@@ -129,94 +132,162 @@ public class HomeController : Controller
         return View(model);
     }
 
-    // // Search for reservations
-    // public async Task<IActionResult> Receipt(string receiptSearch)
-    // {
-    //     if (string.IsNullOrWhiteSpace(receiptSearch))
-    //     {
-    //         TempData["Error"] = "Please enter a reservation ID to search.";
-    //         return RedirectToAction("Index");
-    //     }
-    //
-    //     if (int.TryParse(receiptSearch.Trim(), out int reservationId))
-    //     {
-    //         var reservation = await _context.Reservations
-    //             .Include(r => r.Table)
-    //             .Include(r => r.ServedBy)
-    //             .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
-    //
-    //         if (reservation != null)
-    //         {
-    //             return RedirectToAction("Confirmation", "Reservation", new { id = reservationId });
-    //         }
-    //     }
-    //
-    //     TempData["Error"] = $"No reservation found with ID: {receiptSearch}";
-    //     return RedirectToAction("Index");
-    // }
-
-    // Edit Reservations
-    [HttpGet]
-    public async Task<IActionResult> Edit(int id)
+[HttpGet]
+public async Task<IActionResult> Edit(int id)
+{
+    if (!CheckUserLoggedIn())
     {
-        if (!CheckUserLoggedIn())
-        {
-            return RedirectToAction("Index");
-        }
-
-        var reservation = await _context.Reservations
-            .Include(r => r.Table)
-            .Include(r => r.ServedBy)
-            .FirstOrDefaultAsync(r => r.ReservationId == id);
-
-        if (reservation == null)
-        {
-            TempData["Error"] = "Reservation not found.";
-            return GoBackToPanel();
-        }
-
-        return View(reservation);
+        return RedirectToAction("Index");
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Edit(Reservation model)
+    var reservation = await _context.Reservations
+        .Include(r => r.Table)
+        .Include(r => r.ServedBy)
+        .Include(r => r.Customer)  // Add this line
+        .FirstOrDefaultAsync(r => r.ReservationId == id);
+
+    if (reservation == null)
     {
-        if (!CheckUserLoggedIn())
-        {
-            return RedirectToAction("Login");
-        }
-
-        var reservation = await _context.Reservations
-            .FirstOrDefaultAsync(r => r.ReservationId == model.ReservationId);
-
-        if (reservation == null)
-        {
-            TempData["Error"] = "Reservation not found.";
-            return GoBackToPanel();
-        }
-
-        // Update information
-        reservation.Name = model.Name;
-        reservation.Surname = model.Surname;
-        reservation.TelNo = model.TelNo;
-        reservation.Email = model.Email;
-        reservation.SpecialRequests = model.SpecialRequests;
-        reservation.ServedById = model.ServedById;
-
-        // Only update date/time/table if reservation is still active
-        if (reservation.ReservationStatus == "active")
-        {
-            reservation.GuestNumber = model.GuestNumber;
-            reservation.TableId = model.TableId;
-            reservation.ReservationDate = model.ReservationDate;
-            reservation.ReservationHour = model.ReservationHour;
-        }
-
-        await _context.SaveChangesAsync();
-        TempData["Success"] = $"Reservation #{model.ReservationId} has been updated successfully.";
+        TempData["Error"] = "Reservation not found.";
         return GoBackToPanel();
     }
 
+    return View(reservation);
+}
+
+[HttpPost]
+public async Task<IActionResult> Edit(Reservation model)
+{
+    if (!CheckUserLoggedIn())
+    {
+        return RedirectToAction("Login");
+    }
+
+    // Remove validation for optional fields
+    ModelState.Remove("Customer");
+    ModelState.Remove("Table");
+    ModelState.Remove("ServedBy");
+
+    if (!ModelState.IsValid)
+    {
+        // Reload related data for the view
+        var reservationForView = await _context.Reservations
+            .Include(r => r.Customer)
+            .Include(r => r.Table)
+            .Include(r => r.ServedBy)
+            .FirstOrDefaultAsync(r => r.ReservationId == model.ReservationId);
+        
+        if (reservationForView != null)
+        {
+            // Copy form data back to the model for display
+            if (reservationForView.Customer != null)
+            {
+                reservationForView.Customer.Name = Request.Form["Customer.Name"];
+                reservationForView.Customer.Surname = Request.Form["Customer.Surname"];
+                reservationForView.Customer.TelNo = Request.Form["Customer.TelNo"];
+                reservationForView.Customer.Email = Request.Form["Customer.Email"];
+            }
+            reservationForView.SpecialRequests = model.SpecialRequests;
+            reservationForView.GuestNumber = model.GuestNumber;
+            reservationForView.TableId = model.TableId;
+            reservationForView.ReservationDate = model.ReservationDate;
+            reservationForView.ReservationHour = model.ReservationHour;
+            reservationForView.ServedById = model.ServedById;
+        }
+        
+        return View(reservationForView ?? model);
+    }
+
+    var reservation = await _context.Reservations
+        .Include(r => r.Customer)
+        .Include(r => r.Table)
+        .FirstOrDefaultAsync(r => r.ReservationId == model.ReservationId);
+
+    if (reservation == null)
+    {
+        TempData["Error"] = "Reservation not found.";
+        return GoBackToPanel();
+    }
+
+    // Update customer information
+    if (reservation.Customer != null)
+    {
+        reservation.Customer.Name = Request.Form["Customer.Name"].ToString().Trim();
+        reservation.Customer.Surname = string.IsNullOrWhiteSpace(Request.Form["Customer.Surname"]) ? 
+            null : Request.Form["Customer.Surname"].ToString().Trim();
+        reservation.Customer.TelNo = Request.Form["Customer.TelNo"].ToString().Trim();
+        reservation.Customer.Email = string.IsNullOrWhiteSpace(Request.Form["Customer.Email"]) ? 
+            null : Request.Form["Customer.Email"].ToString().Trim();
+    }
+
+    // Update reservation-specific fields
+    reservation.SpecialRequests = string.IsNullOrWhiteSpace(model.SpecialRequests) ? 
+        null : model.SpecialRequests.Trim();
+
+    // Only update reservation details if status is active
+    if (reservation.ReservationStatus == "active")
+    {
+        // Validate the selected table can accommodate the guest count
+        var selectedTable = await _context.RestaurantTables
+            .Include(t => t.ServedBy)
+            .FirstOrDefaultAsync(t => t.TableId == model.TableId);
+
+        if (selectedTable == null)
+        {
+            TempData["Error"] = "Selected table not found.";
+            return View(reservation);
+        }
+
+        if (model.GuestNumber < selectedTable.MinCapacity || model.GuestNumber > selectedTable.MaxCapacity)
+        {
+            TempData["Error"] = $"Table {model.TableId} capacity is {selectedTable.MinCapacity}-{selectedTable.MaxCapacity} people. You selected {model.GuestNumber} guests.";
+            return View(reservation);
+        }
+
+        // Check if the table is available for the selected date/time (excluding current reservation)
+        var existingReservation = await _context.Reservations
+            .Where(r => r.TableId == model.TableId && 
+                       r.ReservationDate.Date == model.ReservationDate.Date && 
+                       r.ReservationHour == model.ReservationHour &&
+                       r.ReservationStatus == "active" &&
+                       r.ReservationId != model.ReservationId)
+            .FirstOrDefaultAsync();
+
+        if (existingReservation != null)
+        {
+            TempData["Error"] = $"Table {model.TableId} is already reserved for {model.ReservationDate.ToShortDateString()} at {model.ReservationHour}.";
+            return View(reservation);
+        }
+
+        // Check if date is not in the past
+        if (model.ReservationDate.Date < DateTime.Today)
+        {
+            TempData["Error"] = "Cannot set reservation date to a past date.";
+            return View(reservation);
+        }
+
+        // Update reservation details
+        reservation.GuestNumber = model.GuestNumber;
+        reservation.TableId = model.TableId;
+        reservation.ReservationDate = model.ReservationDate;
+        reservation.ReservationHour = model.ReservationHour;
+        reservation.ServedById = selectedTable.ServedById; // Auto-assign staff based on table
+    }
+
+    try
+    {
+        await _context.SaveChangesAsync();
+        TempData["Success"] = $"Reservation #{model.ReservationId} has been updated successfully.";
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error updating reservation {ReservationId}", model.ReservationId);
+        TempData["Error"] = "An error occurred while updating the reservation. Please try again.";
+        return View(reservation);
+    }
+
+    return GoBackToPanel();
+}
     // Delete Reservations
     [HttpGet]
     public async Task<IActionResult> Delete(int id)
@@ -479,6 +550,7 @@ public class HomeController : Controller
     }
 
     [HttpGet]
+    [HttpGet]
     public async Task<IActionResult> SearchReservations(string query)
     {
         if (string.IsNullOrWhiteSpace(query) || query.Length < 3)
@@ -489,17 +561,18 @@ public class HomeController : Controller
         var reservations = await _context.Reservations
             .Include(r => r.Table)
             .Include(r => r.ServedBy)
+            .Include(r => r.Customer)  // Add this line
             .Where(r => r.ReservationId.ToString().Contains(query) ||
-                       r.Name.Contains(query) ||
-                       (r.Surname != null && r.Surname.Contains(query)) ||
-                       r.TelNo.Contains(query))
+                        (r.Customer != null && r.Customer.Name.Contains(query)) ||
+                        (r.Customer != null && r.Customer.Surname != null && r.Customer.Surname.Contains(query)) ||
+                        (r.Customer != null && r.Customer.TelNo.Contains(query)))
             .OrderByDescending(r => r.ReservationDate)
             .Take(5)
             .Select(r => new
             {
                 r.ReservationId,
-                r.Name,
-                r.Surname,
+                Name = r.Customer != null ? r.Customer.Name : "",
+                Surname = r.Customer != null ? r.Customer.Surname : "",
                 r.ReservationDate,
                 r.ReservationHour,
                 r.TableId
@@ -654,6 +727,7 @@ public class HomeController : Controller
     }
     
     // Search for reservations
+    // Search for reservations
     public async Task<IActionResult> Receipt(string receiptSearch)
     {
         if (string.IsNullOrWhiteSpace(receiptSearch))
@@ -667,6 +741,7 @@ public class HomeController : Controller
             var reservation = await _context.Reservations
                 .Include(r => r.Table)
                 .Include(r => r.ServedBy)
+                .Include(r => r.Customer)  // Add this line
                 .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
 
             if (reservation != null)

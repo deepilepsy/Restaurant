@@ -56,10 +56,10 @@
 
 <div class="add-staff-container">
     <a asp-controller="Home" asp-action="CreateStaff" class="btn-add-staff">
-         Add New Staff Member
+        Add New Staff Member
     </a>
     <a asp-controller="Home" asp-action="CreateUser" class="btn-create-user">
-         Create User Account
+        Create User Account
     </a>
 </div>
 
@@ -145,8 +145,26 @@
             <section class="row-fadeIn-wrapper">
                 <article class="row fadeIn reservation-row" id="reservation-@receipt.ReservationId">
                     <ul>
-                        <li data-label="Guest Name">@receipt.Name @receipt.Surname</li>
-                        <li data-label="Phone">@receipt.TelNo</li>
+                        <li data-label="Guest Name">
+                            @if (receipt.Customer != null)
+                            {
+                                @receipt.Customer.Name @receipt.Customer.Surname
+                            }
+                            else
+                            {
+                                <span class="text-muted">No customer data</span>
+                            }
+                        </li>
+                        <li data-label="Phone">
+                            @if (receipt.Customer != null)
+                            {
+                                @receipt.Customer.TelNo
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </li>
                         <li data-label="Guests">@receipt.GuestNumber</li>
                         <li data-label="Served By">@receipt.ServedBy?.Name @receipt.ServedBy?.Surname</li>
                         <li data-label="Table">@receipt.Table?.TableId</li>

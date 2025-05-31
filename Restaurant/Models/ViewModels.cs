@@ -3,15 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Restaurant.Models
 {
-    // Database Models (matching your SQL schema exactly)
-    
-    [Table("reservations")]
-    public class Reservation
+    [Table("customers")]
+    public class Customer
     {
         [Key]
-        [Column("reservation_id")]
-        public int ReservationId { get; set; }
-
+        [Column("customer_id")]
+        public int CustomerId { get; set; }
         [Required]
         [Column("name")]
         [StringLength(255)]
@@ -29,7 +26,19 @@ namespace Restaurant.Models
         [Column("email")]
         [StringLength(255)]
         public string? Email { get; set; }
-        
+    }
+    
+    [Table("reservations")]
+    public class Reservation
+    {
+        [Key]
+        [Column("reservation_id")]
+        public int ReservationId { get; set; }
+    
+        [Required]
+        [Column("customer_id")]
+        public int CustomerId { get; set; }
+    
         [Column("special_requests")]
         public string? SpecialRequests { get; set; }
 
@@ -63,6 +72,9 @@ namespace Restaurant.Models
         public string ReservationStatus { get; set; } = "active";
 
         // Navigation properties
+        [ForeignKey("CustomerId")]
+        public virtual Customer? Customer { get; set; }
+    
         [ForeignKey("TableId")]
         public virtual RestaurantTable? Table { get; set; }
 
@@ -162,6 +174,7 @@ namespace Restaurant.Models
     {
         // Table and reservation details (pre-populated from booking page)
         public int TableId { get; set; }
+        public int CustomerId { get; set; }
         
         [Required]
         public DateTime ReservationDate { get; set; }

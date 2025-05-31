@@ -63,7 +63,7 @@ document.getElementById('reservationForm').addEventListener('submit', function(e
     // Validate email if provided
     const email = document.getElementById('email').value.trim();
     if (email) {
-        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             document.getElementById('emailError').style.display = 'block';
             isValid = false;

@@ -5,6 +5,7 @@
     Layout = null;
     var admin = Context.Session.GetString("admin");
     var staff = Context.Session.GetString("staff");
+    var today = DateTime.Today.ToString("yyyy-MM-dd");
 }
 
 <!DOCTYPE html>
@@ -85,17 +86,20 @@ else
         <input type="hidden" name="ReservationId" value="@Model.ReservationId"/>
         <input type="hidden" name="CreatedAt" value="@Model.CreatedAt"/>
         <input type="hidden" name="ReservationStatus" value="@Model.ReservationStatus"/>
+        <input type="hidden" name="CustomerId" value="@Model.CustomerId"/>
 
         <div class="form-section">
             <div class="section-title">Personal Information</div>
             <div class="form-grid">
                 <div class="form-group">
                     <label for="firstName">First Name <span class="required">*</span></label>
-                    <input type="text" id="firstName" name="Name" value="@Model.Name" required placeholder="Enter first name">
+                    <input type="text" id="firstName" name="Customer.Name"
+                           value="@(Model.Customer?.Name ?? "")" required placeholder="Enter first name">
                 </div>
                 <div class="form-group">
                     <label for="lastName">Last Name</label>
-                    <input type="text" id="lastName" name="Surname" value="@Model.Surname" placeholder="Enter last name">
+                    <input type="text" id="lastName" name="Customer.Surname"
+                           value="@(Model.Customer?.Surname ?? "")" placeholder="Enter last name">
                 </div>
             </div>
         </div>
@@ -105,11 +109,13 @@ else
             <div class="form-grid">
                 <div class="form-group">
                     <label for="phone">Phone Number <span class="required">*</span></label>
-                    <input type="tel" id="phone" name="TelNo" value="@Model.TelNo" required placeholder="+90 (555) 123-4567">
+                    <input type="tel" id="phone" name="Customer.TelNo"
+                           value="@(Model.Customer?.TelNo ?? "")" required placeholder="+90 (555) 123-4567">
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="Email" value="@Model.Email" placeholder="your.email@@example.com">
+                    <input type="email" id="email" name="Customer.Email"
+                           value="@(Model.Customer?.Email ?? "")" placeholder="your.email@@example.com">
                 </div>
             </div>
         </div>
@@ -121,17 +127,29 @@ else
                     <label for="guestNumber">Number of Guests <span class="required">*</span></label>
                     @if (Model.ReservationStatus != "active")
                     {
-                        <input type="number" id="guestNumber" name="GuestNumber" value="@Model.GuestNumber"
-                               min="1" max="10" required readonly class="readonly-field">
+                        <select id="guestNumber" name="GuestNumber" required disabled class="readonly-field">
+                            <option value="@Model.GuestNumber" selected>@Model.GuestNumber @(Model.GuestNumber == 1 ? "Guest" : "Guests")</option>
+                        </select>
                     }
                     else
                     {
-                        <input type="number" id="guestNumber" name="GuestNumber" value="@Model.GuestNumber"
-                               min="1" max="10" required>
+                        <select id="guestNumber" name="GuestNumber" required onchange="updateAvailableTables()">
+                            @for (int i = 1; i <= 10; i++)
+                            {
+                                if (i == Model.GuestNumber)
+                                {
+                                    <option value="@i" selected>@i @(i == 1 ? "Guest" : "Guests")</option>
+                                }
+                                else
+                                {
+                                    <option value="@i">@i @(i == 1 ? "Guest" : "Guests")</option>
+                                }
+                            }
+                        </select>
                     }
                 </div>
                 <div class="form-group">
-                    <label for="tableId">Table Number</label>
+                    <label for="tableId">Table Number <span class="required">*</span></label>
                     @if (Model.ReservationStatus != "active")
                     {
                         <select id="tableId" name="TableId" disabled class="readonly-field">
@@ -140,8 +158,8 @@ else
                     }
                     else
                     {
-                        <select id="tableId" name="TableId">
-                            <option value="@Model.TableId" selected>Table @Model.TableId</option>
+                        <select id="tableId" name="TableId" required onchange="updateAssignedStaff()">
+                            <option value="">Select a table...</option>
                         </select>
                     }
                 </div>
@@ -158,7 +176,8 @@ else
                     else
                     {
                         <input type="date" id="reservationDate" name="ReservationDate"
-                               value="@Model.ReservationDate.ToString("yyyy-MM-dd")" required>
+                               value="@Model.ReservationDate.ToString("yyyy-MM-dd")" required
+                               min="@today" onchange="updateAvailableTables()">
                     }
                 </div>
                 <div class="form-group">
@@ -171,7 +190,7 @@ else
                     }
                     else
                     {
-                        <select id="reservationTime" name="ReservationHour" required>
+                        <select id="reservationTime" name="ReservationHour" required onchange="updateAvailableTables()">
                             @if (Model.ReservationHour == "14:00")
                             {
                                 <option value="14:00" selected>14:00</option>
@@ -226,9 +245,10 @@ else
             <div class="section-title">Staff Assignment</div>
             <div class="form-group">
                 <label for="servedBy">Served By</label>
-                <select id="servedBy" name="ServedById">
+                <select id="servedBy" name="ServedById" readonly style="background-color: #f5f5f5;">
                     <option value="@Model.ServedById" selected>@Model.ServedBy?.Name @Model.ServedBy?.Surname</option>
                 </select>
+                <small style="color: #d99a4e" class="form-text text-muted">Staff is automatically assigned based on the selected table.</small>
             </div>
         </div>
 
@@ -244,7 +264,7 @@ else
             <button type="submit" class="btn btn-primary">
                 Save Changes
             </button>
-            
+
             @if (admin == "true")
             {
                 <a href="@Url.Action("Admin", "Home")" class="btn btn-secondary">
@@ -260,7 +280,7 @@ else
 
             @if (Model.ReservationStatus == "active")
             {
-                <a href="@Url.Action("Delete", "Home", new { id = Model.ReservationId })" 
+                <a href="@Url.Action("Delete", "Home", new { id = Model.ReservationId })"
                    class="btn btn-danger">
                     Delete Reservation
                 </a>
@@ -270,6 +290,140 @@ else
 </div>
 
 <script>
+    const currentReservationId = @Model.ReservationId;
+    let allTables = [];
+    let allStaff = [];
+
+    // Load initial data
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTableCapacities();
+        loadStaffMembers();
+
+        // Initialize tables for current guest count
+        setTimeout(() => {
+            updateAvailableTables();
+        }, 500);
+    });
+
+    async function loadTableCapacities() {
+        try {
+            const response = await fetch('/Home/GetTableCapacities');
+            const data = await response.json();
+            if (data.success) {
+                allTables = data.tableCapacities;
+            }
+        } catch (error) {
+            console.error('Error loading table capacities:', error);
+        }
+    }
+
+    async function loadStaffMembers() {
+        try {
+            const response = await fetch('/Home/GetStaffMembers');
+            const data = await response.json();
+            if (data.success) {
+                allStaff = data.staff;
+            }
+        } catch (error) {
+            console.error('Error loading staff members:', error);
+        }
+    }
+
+    async function updateAvailableTables() {
+        const guestNumber = parseInt(document.getElementById('guestNumber').value);
+        const date = document.getElementById('reservationDate').value;
+        const time = document.getElementById('reservationTime').value;
+        const tableSelect = document.getElementById('tableId');
+        const currentTableId = @Model.TableId;
+
+        if (!guestNumber || !date || !time) {
+            return;
+        }
+
+        try {
+            // Get available tables for the selected date/time
+            const response = await fetch(`/Home/GetAvailableTables?date=${date}&time=${time}&currentReservationId=${currentReservationId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                // Filter tables by guest capacity
+                const suitableTables = data.tables.filter(table =>
+                    table.minCapacity <= guestNumber && table.maxCapacity >= guestNumber
+                );
+
+                // Clear current options
+                tableSelect.innerHTML = '<option value="">Select a table...</option>';
+
+                // Add suitable tables
+                suitableTables.forEach(table => {
+                    const option = document.createElement('option');
+                    option.value = table.tableId;
+                    option.textContent = `Table ${table.tableId} (${table.minCapacity}-${table.maxCapacity} people) - ${table.serverName}`;
+
+                    // Select current table if it's still suitable
+                    if (table.tableId === currentTableId) {
+                        option.selected = true;
+                    }
+
+                    tableSelect.appendChild(option);
+                });
+
+                // If current table is no longer suitable, clear selection and staff
+                if (!suitableTables.find(t => t.tableId === currentTableId)) {
+                    document.getElementById('servedBy').innerHTML = '<option value="">Please select a table first</option>';
+                } else {
+                    // Update staff for current table
+                    updateAssignedStaff();
+                }
+
+                // Show message if no suitable tables
+                if (suitableTables.length === 0) {
+                    tableSelect.innerHTML = '<option value="">No tables available for selected criteria</option>';
+                    document.getElementById('servedBy').innerHTML = '<option value="">No staff assigned</option>';
+                }
+            }
+        } catch (error) {
+            console.error('Error updating available tables:', error);
+            tableSelect.innerHTML = '<option value="">Error loading tables</option>';
+        }
+    }
+
+    function updateAssignedStaff() {
+        const tableId = parseInt(document.getElementById('tableId').value);
+        const servedBySelect = document.getElementById('servedBy');
+
+        if (!tableId) {
+            servedBySelect.innerHTML = '<option value="">Please select a table first</option>';
+            return;
+        }
+
+        // Find the table data
+        const selectedTable = allTables.find(t => t.tableId === tableId);
+        if (!selectedTable) {
+            servedBySelect.innerHTML = '<option value="">Table information not found</option>';
+            return;
+        }
+
+        // Find the staff member assigned to this table
+        const tableSelect = document.getElementById('tableId');
+        const selectedOption = tableSelect.options[tableSelect.selectedIndex];
+
+        if (selectedOption && selectedOption.value) {
+            // Extract server name from the option text
+            const optionText = selectedOption.textContent;
+            const serverName = optionText.split(' - ')[1];
+
+            // Find the staff ID based on the server name
+            const staffMember = allStaff.find(s => s.name === serverName);
+
+            if (staffMember) {
+                servedBySelect.innerHTML = `<option value="${staffMember.staffId}" selected>${staffMember.name}</option>`;
+            } else {
+                servedBySelect.innerHTML = `<option value="" selected>${serverName || 'Unknown Staff'}</option>`;
+            }
+        }
+    }
+
     // Auto-hide alerts
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
