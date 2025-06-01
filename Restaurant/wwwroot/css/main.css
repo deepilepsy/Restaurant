@@ -274,6 +274,7 @@ header {
 }
 
 #receiptsvg {
+    display: inline-block;
     margin-left: 1rem;
     color: #d99a4e;
     cursor: pointer;
@@ -285,6 +286,7 @@ header {
 }
 
 #adminsvg {
+    display: inline-block;
     margin-left: 0.5rem;
     color: #d99a4e;
     cursor: pointer;
