@@ -1,0 +1,442 @@
+@model Restaurant.Models.OrderManagementViewModel
+@{
+    ViewData["Title"] = "Order Management";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Management</title>
+    <link rel="stylesheet" href="~/css/tables.css?v=1.0.2" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/ordermanagement.css?v=1.0.1" asp-append-version="true"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="header-section">
+    <a asp-controller="Home" asp-action="Staff" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Staff Panel
+    </a>
+    <h1 class="page-title">
+        Order Management
+    </h1>
+</div>
+
+<!-- Reservation Info Card -->
+<div class="reservation-info-card">
+    <div class="info-row">
+        <div class="info-item">
+            <strong>Table:</strong> @Model.Reservation.Table?.TableId
+        </div>
+        <div class="info-item">
+            <strong>Customer:</strong>
+            @if (Model.Reservation.Customer != null)
+            {
+                @($"{Model.Reservation.Customer.Name} {Model.Reservation.Customer.Surname}")
+            }
+            else
+            {
+                <span class="text-muted">Walk-in Customer</span>
+            }
+        </div>
+        <div class="info-item">
+            <strong>Guests:</strong> @Model.Reservation.GuestNumber
+        </div>
+        <div class="info-item">
+            <strong>Server:</strong> @Model.Reservation.ServedBy?.Name @Model.Reservation.ServedBy?.Surname
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div class="message-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <strong>Success!</strong> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error!</strong> @TempData["Error"]
+        </div>
+    }
+</div>
+
+<div class="order-container">
+    <!-- Menu Section -->
+    <div class="menu-section">
+        <h2>Menu</h2>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <button class="tab-button active" onclick="showCategory('DRINKS')">Drinks</button>
+            <button class="tab-button" onclick="showCategory('STARTERS')">Starters</button>
+            <button class="tab-button" onclick="showCategory('SALADS')">Salads</button>
+            <button class="tab-button" onclick="showCategory('MAIN')">Main Courses</button>
+            <button class="tab-button" onclick="showCategory('SIDES')">Sides</button>
+            <button class="tab-button" onclick="showCategory('DESSERTS')">Desserts</button>
+        </div>
+
+        <!-- Menu Items by Category -->
+        @foreach (var category in Model.MenuItems.GroupBy(m => m.Category))
+        {
+            <div class="category-section" id="category-@category.Key" style="@(category.Key == "DRINKS" ? "" : "display: none;")">
+                <h3>@category.Key</h3>
+
+                @foreach (var subcategory in category.GroupBy(m => m.Subcategory ?? "Other"))
+                {
+                    <div class="subcategory-section">
+                        <h4>@subcategory.Key</h4>
+                        <div class="menu-grid">
+                            @foreach (var item in subcategory)
+                            {
+                                <div class="menu-item" data-item-id="@item.ItemId">
+                                    <div class="item-header">
+                                        <h5>@item.ItemName</h5>
+                                        <span class="price">@item.Price</span>
+                                    </div>
+                                    @if (item.Calories.HasValue)
+                                    {
+                                        <div class="calories">@item.Calories cal</div>
+                                    }
+                                    <button class="add-button" onclick="addToOrder(@item.ItemId, '@item.ItemName', '@item.Price', @(item.Calories ?? 0))">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Order Summary Section -->
+    <div class="order-summary">
+        <h2>
+            @if (Model.ExistingReceipt != null)
+            {
+                <span>Updated Order</span>
+            }
+            else
+            {
+                <span>Current Order</span>
+            }
+        </h2>
+        
+        <div class="order-items" id="orderItems">
+            <!-- Order items will be populated by JavaScript -->
+        </div>
+
+        <div class="order-total">
+            <div class="total-row">
+                <strong>Total: <span id="orderTotal">0.00 TL</span></strong>
+            </div>
+        </div>
+
+        <div class="order-actions">
+            <button class="btn-primary" onclick="confirmOrder()" id="confirmButton" disabled>
+                <i class="fas fa-check"></i> 
+                @if (Model.ExistingReceipt != null)
+                {
+                    <span>Update Order</span>
+                }
+                else
+                {
+                    <span>Confirm Order</span>
+                }
+            </button>
+            <button class="btn-secondary" onclick="clearOrder()">
+                <i class="fas fa-trash"></i> Clear Order
+            </button>
+        </div>
+
+        <!-- Special Notes -->
+        <div class="special-notes">
+            <label for="specialNotes">Special Notes:</label>
+            <textarea id="specialNotes" placeholder="Any special requests or modifications...">@(Model.ExistingReceipt?.ReceiptItems?.FirstOrDefault()?.SpecialNotes ?? "")</textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentOrder = [];
+    let orderTotal = 0;
+    let isUpdate = @(Model.ExistingReceipt != null ? "true" : "false");
+    let existingReceiptData = null;
+
+    @if (Model.ExistingReceipt != null)
+    {
+        <text>
+        // Load existing receipt data
+        existingReceiptData = {
+            receiptId: @Model.ExistingReceipt.ReceiptId,
+            items: [
+                @foreach (var item in Model.ExistingReceipt.ReceiptItems)
+                {
+                    <text>,
+                    {
+                        itemId: @item.ItemId,
+                        itemName: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.MenuItem?.ItemName ?? "Unknown Item")),
+                        unitPrice: @item.UnitPrice.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+                        quantity: @item.Quantity,
+                        totalPrice: @item.TotalPrice.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+                        calories: @(item.MenuItem?.Calories ?? 0)
+                    }@(item != Model.ExistingReceipt.ReceiptItems.Last() ? "," : "")
+                    </text>
+                }
+            ]
+        };
+        console.log('Existing receipt data loaded:', existingReceiptData);
+        </text>
+    }
+
+    function showCategory(categoryName) {
+        // Hide all categories
+        document.querySelectorAll('.category-section').forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Show selected category
+        document.getElementById('category-' + categoryName).style.display = 'block';
+
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    }
+
+    function loadExistingOrder() {
+        if (existingReceiptData && existingReceiptData.items && existingReceiptData.items.length > 0) {
+            console.log('Loading existing order:', existingReceiptData.items);
+            
+            // Clear current order first
+            currentOrder = [];
+            
+            // Convert existing receipt items to order format
+            existingReceiptData.items.forEach(item => {
+                currentOrder.push({
+                    itemId: parseInt(item.itemId),
+                    itemName: item.itemName,
+                    unitPrice: parseFloat(item.unitPrice),
+                    quantity: parseInt(item.quantity),
+                    totalPrice: parseFloat(item.totalPrice),
+                    calories: parseInt(item.calories || 0)
+                });
+            });
+            
+            console.log('Current order after loading:', currentOrder);
+            updateOrderDisplay();
+            
+            // Show success message
+            alert('Previous order loaded successfully!');
+        } else {
+            console.log('No existing receipt data found');
+            alert('No previous order found to load.');
+        }
+    }
+
+    function addToOrder(itemId, itemName, price, calories) {
+        // Parse price (remove " TL" and convert to number)
+        const numericPrice = parseFloat(price.replace(' TL', ''));
+
+        // Check if item already exists in order
+        const existingItem = currentOrder.find(item => item.itemId === itemId);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+            existingItem.totalPrice = existingItem.quantity * existingItem.unitPrice;
+        } else {
+            currentOrder.push({
+                itemId: itemId,
+                itemName: itemName,
+                unitPrice: numericPrice,
+                quantity: 1,
+                totalPrice: numericPrice,
+                calories: calories
+            });
+        }
+
+        updateOrderDisplay();
+    }
+
+    function removeFromOrder(itemId) {
+        const itemIndex = currentOrder.findIndex(item => item.itemId === itemId);
+        if (itemIndex > -1) {
+            if (currentOrder[itemIndex].quantity > 1) {
+                currentOrder[itemIndex].quantity -= 1;
+                currentOrder[itemIndex].totalPrice = currentOrder[itemIndex].quantity * currentOrder[itemIndex].unitPrice;
+            } else {
+                currentOrder.splice(itemIndex, 1);
+            }
+        }
+        updateOrderDisplay();
+    }
+
+    function updateOrderDisplay() {
+        const orderItemsContainer = document.getElementById('orderItems');
+        const orderTotalElement = document.getElementById('orderTotal');
+        const confirmButton = document.getElementById('confirmButton');
+
+        // Clear current display
+        orderItemsContainer.innerHTML = '';
+        orderTotal = 0;
+
+        // Populate order items
+        currentOrder.forEach(item => {
+            orderTotal += item.totalPrice;
+
+            const orderItemElement = document.createElement('div');
+            orderItemElement.className = 'order-item';
+            orderItemElement.innerHTML = `
+                <div class="item-details">
+                    <div class="item-name">${item.itemName}</div>
+                    <div class="item-price">${item.unitPrice.toFixed(2)} TL each</div>
+                </div>
+                <div class="quantity-controls">
+                    <button class="qty-btn" onclick="removeFromOrder(${item.itemId})">-</button>
+                    <span class="quantity">${item.quantity}</span>
+                    <button class="qty-btn" onclick="addToOrder(${item.itemId}, '${item.itemName}', '${item.unitPrice.toFixed(2)} TL', ${item.calories})">+</button>
+                </div>
+                <div class="item-total">${item.totalPrice.toFixed(2)} TL</div>
+            `;
+            orderItemsContainer.appendChild(orderItemElement);
+        });
+
+        // Update total
+        orderTotalElement.textContent = orderTotal.toFixed(2) + ' TL';
+
+        // Enable/disable confirm button
+        confirmButton.disabled = currentOrder.length === 0;
+    }
+
+    function clearOrder() {
+        currentOrder = [];
+        updateOrderDisplay();
+    }
+
+    function confirmOrder() {
+        if (currentOrder.length === 0) {
+            alert('Please add items to the order before confirming.');
+            return;
+        }
+
+        const specialNotes = document.getElementById('specialNotes').value;
+        const actionText = isUpdate ? 'updating' : 'confirming';
+        const successText = isUpdate ? 'updated' : 'confirmed';
+
+        const orderData = {
+            reservationId: @Model.Reservation.ReservationId,
+            tableId: @Model.Reservation.TableId,
+            customerId: @(Model.Reservation.CustomerId),
+            staffId: @Model.Reservation.ServedById,
+            totalAmount: orderTotal,
+            items: currentOrder,
+            specialNotes: specialNotes
+        };
+
+        // Show loading state
+        const confirmBtn = document.getElementById('confirmButton');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        confirmBtn.disabled = true;
+
+        // Send order to server
+        fetch('@Url.Action("ProcessOrder", "Home")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            },
+            body: JSON.stringify(orderData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Order ${successText} successfully!`);
+                    window.location.href = '@Url.Action("Staff", "Home")';
+                } else {
+                    alert(`Error ${actionText} order: ` + data.message);
+                    // Restore button state
+                    confirmBtn.innerHTML = originalText;
+                    confirmBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`An error occurred while ${actionText} the order.`);
+                // Restore button state
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            });
+    }
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded, isUpdate:', isUpdate);
+        console.log('Existing receipt data:', existingReceiptData);
+        
+        updateOrderDisplay();
+        
+        // Auto-load existing order if this is an update and we have data
+        if (isUpdate && existingReceiptData && existingReceiptData.items && existingReceiptData.items.length > 0) {
+            console.log('Auto-loading existing order...');
+            setTimeout(() => {
+                loadExistingOrder();
+            }, 1000); // Give time for page to fully load
+        }
+    });
+</script>
+
+<style>
+    .update-badge {
+        background-color: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        margin-left: 10px;
+    }
+    
+    .existing-order-info {
+        background-color: #e8f5e8;
+        border: 1px solid #28a745;
+        border-radius: 5px;
+        padding: 10px;
+        margin-top: 10px;
+    }
+    
+    .existing-items-header {
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    
+    .btn-load-existing {
+        background-color: #17a2b8;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+    
+    .btn-load-existing:hover {
+        background-color: #138496;
+    }
+    
+    .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+    
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+@Html.AntiForgeryToken()
+</body>
+</html>

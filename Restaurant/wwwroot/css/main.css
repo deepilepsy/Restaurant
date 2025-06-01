@@ -273,3 +273,24 @@ header {
     color: #ff7171;
 }
 
+#receiptsvg {
+    margin-left: 1rem;
+    color: #d99a4e;
+    cursor: pointer;
+    height: 30px;
+    transition: all 0.4s ease-in-out;
+}
+#receiptsvg:hover {
+    fill: white;
+}
+
+#adminsvg {
+    margin-left: 0.5rem;
+    color: #d99a4e;
+    cursor: pointer;
+    height: 40px;
+    transition: all 0.4s ease-in-out;
+}
+#adminsvg:hover {
+    fill: white;
+}

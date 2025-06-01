@@ -9,6 +9,7 @@ namespace Restaurant.Models
         [Key]
         [Column("customer_id")]
         public int CustomerId { get; set; }
+        
         [Required]
         [Column("name")]
         [StringLength(255)]
@@ -26,6 +27,10 @@ namespace Restaurant.Models
         [Column("email")]
         [StringLength(255)]
         public string? Email { get; set; }
+
+        // Navigation properties - Remove these to avoid EF confusion
+        // public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        // public virtual ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
     }
     
     [Table("reservations")]
@@ -71,7 +76,7 @@ namespace Restaurant.Models
         [StringLength(10)]
         public string ReservationStatus { get; set; } = "active";
 
-        // Navigation properties
+        // Navigation properties with explicit foreign key specification
         [ForeignKey("CustomerId")]
         public virtual Customer? Customer { get; set; }
     
@@ -80,6 +85,9 @@ namespace Restaurant.Models
 
         [ForeignKey("ServedById")]
         public virtual Staff? ServedBy { get; set; }
+
+        // Remove this to avoid circular reference issues
+        // public virtual Receipt? Receipt { get; set; }
     }
 
     [Table("restaurant_tables")]
@@ -104,7 +112,10 @@ namespace Restaurant.Models
         // Navigation properties
         [ForeignKey("ServedById")]
         public virtual Staff? ServedBy { get; set; }
-        public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        
+        // Remove collections to avoid EF confusion
+        // public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        // public virtual ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
     }
 
     [Table("staff")]
@@ -131,9 +142,10 @@ namespace Restaurant.Models
         [StringLength(25)]
         public string? TelNo { get; set; }
 
-        // Navigation properties
-        public virtual ICollection<RestaurantTable> Tables { get; set; } = new List<RestaurantTable>();
-        public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        // Remove navigation collections to avoid EF confusion
+        // public virtual ICollection<RestaurantTable> Tables { get; set; } = new List<RestaurantTable>();
+        // public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        // public virtual ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
     }
 
     [Table("credentials")]
@@ -168,8 +180,123 @@ namespace Restaurant.Models
         public string? Password { get; set; }
     }
 
-    // View Models for the reservation system
+    // New models for order management
+    [Table("menu_items")]
+    public class MenuItem
+    {
+        [Key]
+        [Column("item_id")]
+        public int ItemId { get; set; }
 
+        [Required]
+        [Column("item_name")]
+        [StringLength(255)]
+        public string ItemName { get; set; } = string.Empty;
+
+        [Required]
+        [Column("category")]
+        [StringLength(50)]
+        public string Category { get; set; } = string.Empty;
+
+        [Column("subcategory")]
+        [StringLength(50)]
+        public string? Subcategory { get; set; }
+
+        [Required]
+        [Column("price")]
+        [StringLength(20)]
+        public string Price { get; set; } = string.Empty;
+
+        [Column("calories")]
+        public int? Calories { get; set; }
+
+        // Remove navigation collection to avoid EF confusion
+        // public virtual ICollection<ReceiptItem> ReceiptItems { get; set; } = new List<ReceiptItem>();
+    }
+
+    [Table("receipts")]
+    public class Receipt
+    {
+        [Key]
+        [Column("receipt_id")]
+        public int ReceiptId { get; set; }
+
+        [Required]
+        [Column("reservation_id")]
+        public int ReservationId { get; set; }
+
+        [Column("table_id")]
+        public int? TableId { get; set; }
+
+        [Column("customer_id")]
+        public int? CustomerId { get; set; }
+
+        [Required]
+        [Column("staff_id")]
+        public int StaffId { get; set; }
+
+        [Required]
+        [Column("total_amount")]
+        public decimal TotalAmount { get; set; }
+
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Navigation properties with explicit foreign key specification
+        [ForeignKey("ReservationId")]
+        public virtual Reservation? Reservation { get; set; }
+
+        [ForeignKey("TableId")]
+        public virtual RestaurantTable? Table { get; set; }
+
+        [ForeignKey("CustomerId")]
+        public virtual Customer? Customer { get; set; }
+
+        [ForeignKey("StaffId")]
+        public virtual Staff? Staff { get; set; }
+
+        public virtual ICollection<ReceiptItem> ReceiptItems { get; set; } = new List<ReceiptItem>();
+    }
+
+    [Table("receipt_items")]
+    public class ReceiptItem
+    {
+        [Key]
+        [Column("receipt_item_id")]
+        public int ReceiptItemId { get; set; }
+
+        [Required]
+        [Column("receipt_id")]
+        public int ReceiptId { get; set; }
+
+        [Required]
+        [Column("item_id")]
+        public int ItemId { get; set; }
+
+        [Required]
+        [Column("quantity")]
+        public int Quantity { get; set; }
+
+        [Required]
+        [Column("unit_price")]
+        public decimal UnitPrice { get; set; }
+
+        [Required]
+        [Column("total_price")]
+        public decimal TotalPrice { get; set; }
+
+        [Column("special_notes")]
+        public string? SpecialNotes { get; set; }
+
+        // Navigation properties with explicit foreign key specification
+        [ForeignKey("ReceiptId")]
+        public virtual Receipt? Receipt { get; set; }
+
+        [ForeignKey("ItemId")]
+        public virtual MenuItem? MenuItem { get; set; }
+    }
+
+    // View Models for the reservation system
     public class ReservationCreateViewModel
     {
         // Table and reservation details (pre-populated from booking page)
@@ -244,5 +371,34 @@ namespace Restaurant.Models
     {
         public int ReservationId { get; set; }
         public string Status { get; set; } = string.Empty;
+    }
+    
+    // ViewModels for Order Management
+    public class OrderManagementViewModel
+    {
+        public Reservation Reservation { get; set; } = new Reservation();
+        public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
+        public Receipt? ExistingReceipt { get; set; } // Added for handling existing receipts
+    }
+
+    public class OrderRequest
+    {
+        public int ReservationId { get; set; }
+        public int TableId { get; set; }
+        public int? CustomerId { get; set; }
+        public int StaffId { get; set; }
+        public decimal TotalAmount { get; set; }
+        public List<OrderItem> Items { get; set; } = new List<OrderItem>();
+        public string? SpecialNotes { get; set; }
+    }
+
+    public class OrderItem
+    {
+        public int ItemId { get; set; }
+        public string ItemName { get; set; } = string.Empty;
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+        public int? Calories { get; set; }
     }
 }
