@@ -60,15 +60,15 @@ document.getElementById('reservationForm').addEventListener('submit', function(e
         isValid = false;
     }
 
-    // Validate email if provided
-    const email = document.getElementById('email').value.trim();
-    if (email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            document.getElementById('emailError').style.display = 'block';
-            isValid = false;
-        }
-    }
+    // // Validate email if provided
+    // const email = document.getElementById('email').value.trim();
+    // if (email) {
+    //     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //     if (!emailRegex.test(email)) {
+    //         document.getElementById('emailError').style.display = 'block';
+    //         isValid = false;
+    //     }
+    // }
 
     if (!isValid) {
         e.preventDefault();
@@ -109,21 +109,21 @@ document.querySelectorAll('input[required]').forEach(input => {
     });
 });
 
-// Email validation on blur
-document.getElementById('email').addEventListener('blur', function() {
-    const email = this.value.trim();
-    const errorElement = document.getElementById('emailError');
-    if (email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            errorElement.style.display = 'block';
-            this.style.borderColor = '#ff6b6b';
-        } else {
-            errorElement.style.display = 'none';
-            this.style.borderColor = '';
-        }
-    } else {
-        errorElement.style.display = 'none';
-        this.style.borderColor = '';
-    }
-});
+// // Email validation on blur
+// document.getElementById('email').addEventListener('blur', function() {
+//     const email = this.value.trim();
+//     const errorElement = document.getElementById('emailError');
+//     if (email) {
+//         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//         if (!emailRegex.test(email)) {
+//             errorElement.style.display = 'block';
+//             this.style.borderColor = '#ff6b6b';
+//         } else {
+//             errorElement.style.display = 'none';
+//             this.style.borderColor = '';
+//         }
+//     } else {
+//         errorElement.style.display = 'none';
+//         this.style.borderColor = '';
+//     }
+//});

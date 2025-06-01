@@ -192,8 +192,7 @@ public async Task<IActionResult> Create(int? tableId, int customerId, string? da
                 // Create new reservation
                 // Check if customer already exists by phone or email
                 var existingCustomer = await _context.Customers
-                    .FirstOrDefaultAsync(c => c.TelNo == model.TelNo.Trim() || 
-                                              (model.Email != null && c.Email == model.Email.Trim()));
+                    .FirstOrDefaultAsync(c => c.TelNo == model.TelNo.Trim());
 
                 Customer customer;
                 if (existingCustomer != null)
