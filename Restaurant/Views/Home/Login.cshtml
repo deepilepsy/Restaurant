@@ -6,7 +6,7 @@
 <head>
     <title>Login</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="~/css/login.css?v=1.0.1">
+    <link rel="stylesheet" href="~/css/login.css?v=1.0.2">
 </head>
 <body>
 @if (ViewBag.Error != null)
@@ -15,8 +15,12 @@
         @ViewBag.Error
     </div>
 }
+
 <div class="section">
     <div class="container">
+        <a href="@Url.Action("Index", "Home")" class="back-link">
+            ← Homepage
+        </a>
         <div class="row full-height justify-content-center">
             <div class="col-12 text-center align-self-center py-5">
                 <div class="section pb-5 pt-5 pt-sm-2 text-center">
@@ -37,18 +41,15 @@
                                                 viewBox="0 0 24 24"
                                                 fill="none"
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                class="input-icon"
-                                            >
+                                                class="input-icon">
                                                 <path
                                                     fill-rule="evenodd"
                                                     clip-rule="evenodd"
                                                     d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7ZM14 7C14 8.10457 13.1046 9 12 9C10.8954 9 10 8.10457 10 7C10 5.89543 10.8954 5 12 5C13.1046 5 14 5.89543 14 7Z"
-                                                    fill="currentColor"
-                                                />
+                                                    fill="currentColor"/>
                                                 <path
                                                     d="M16 15C16 14.4477 15.5523 14 15 14H9C8.44772 14 8 14.4477 8 15V21H6V15C6 13.3431 7.34315 12 9 12H15C16.6569 12 18 13.3431 18 15V21H16V15Z"
-                                                    fill="currentColor"
-                                                />
+                                                    fill="currentColor"/>
                                             </svg>
                                         </div>
 
@@ -61,20 +62,17 @@
                                                 viewBox="0 0 24 24"
                                                 fill="none"
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                class="input-icon"
-                                            >
+                                                class="input-icon">
                                                 <path
                                                     fill-rule="evenodd"
                                                     clip-rule="evenodd"
                                                     d="M13 12.8293C14.1652 12.4175 15 11.3062 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.3062 9.83481 12.4175 11 12.8293V16C11 16.5523 11.4477 17 12 17C12.5523 17 13 16.5523 13 16V12.8293ZM11 10C11 10.5523 11.4477 11 12 11C12.5523 11 13 10.5523 13 10C13 9.44772 12.5523 9 12 9C11.4477 9 11 9.44772 11 10Z"
-                                                    fill="currentColor"
-                                                />
+                                                    fill="currentColor"/>
                                                 <path
                                                     fill-rule="evenodd"
                                                     clip-rule="evenodd"
                                                     d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12Z"
-                                                    fill="currentColor"
-                                                />
+                                                    fill="currentColor"/>
                                             </svg>
                                         </div>
 

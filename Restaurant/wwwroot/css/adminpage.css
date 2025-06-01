@@ -2,9 +2,10 @@
     color: white;
 }
 body {
-    background-image: url("../images/tablestaff.jpg");
+    background-image: url("../images/litesback.jpg");
     background-repeat: repeat;
     background-position: center;
+    background-size: cover;
     margin: 0;
     padding: 0;
 }

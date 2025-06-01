@@ -19,13 +19,13 @@
 @if (staff == "true")
 {
     <a href="@Url.Action("Staff", "Home")" class="back-link">
-        ← Back to Staff Panel
+        ← Staff Panel
     </a>
 }
 else
 {
     <a href="@Url.Action("Admin", "Home")" class="back-link">
-        ← Back to Admin Panel
+        ← Admin Panel
     </a>
 }
 
@@ -99,7 +99,7 @@ else
                 <div class="form-group">
                     <label for="lastName">Last Name</label>
                     <input type="text" id="lastName" name="Customer.Surname"
-                           value="@(Model.Customer?.Surname ?? "")" placeholder="Enter last name">
+                           value="@(Model.Customer?.Surname ?? "")" required placeholder="Enter last name">
                 </div>
             </div>
         </div>
@@ -109,13 +109,13 @@ else
             <div class="form-grid">
                 <div class="form-group">
                     <label for="phone">Phone Number <span class="required">*</span></label>
-                    <input type="tel" id="phone" name="Customer.TelNo"
+                    <input type="tel" id="phone" maxlength="13" name="Customer.TelNo"
                            value="@(Model.Customer?.TelNo ?? "")" required placeholder="+90 (555) 123-4567">
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" name="Customer.Email"
-                           value="@(Model.Customer?.Email ?? "")" placeholder="your.email@@example.com">
+                           value="@(Model.Customer?.Email ?? "")" placeholder="your.email@example.com">
                 </div>
             </div>
         </div>
@@ -289,6 +289,7 @@ else
     </form>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8/inputmask.min.js"></script>
 <script>
     const currentReservationId = @Model.ReservationId;
     let allTables = [];
@@ -433,6 +434,7 @@ else
             setTimeout(() => alert.remove(), 500);
         });
     }, 5000);
+    
 </script>
 </body>
 </html>

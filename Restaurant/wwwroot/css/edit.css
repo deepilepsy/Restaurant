@@ -275,6 +275,7 @@ body {
 .back-link:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateX(-5px);
+    color: #d99a4e;
 }
 
 .alert {

@@ -114,7 +114,7 @@ document.getElementById('email').addEventListener('blur', function() {
     const email = this.value.trim();
     const errorElement = document.getElementById('emailError');
     if (email) {
-        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             errorElement.style.display = 'block';
             this.style.borderColor = '#ff6b6b';

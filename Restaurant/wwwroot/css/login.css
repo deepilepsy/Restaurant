@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800,900');
 
 body{
-    background-image: url("../images/login1.jpg");
+    background-image: url("../images/login.jpg");
     background-size: cover;      /* Fill the screen */
     background-repeat: no-repeat;
     background-position: center;
@@ -182,12 +182,7 @@ h6 span{
     display: -ms-inline-flexbox;
     display: inline-flex;
     -webkit-align-items: center;
-    -moz-align-items: center;
-    -ms-align-items: center;
     align-items: center;
-    -webkit-justify-content: center;
-    -moz-justify-content: center;
-    -ms-justify-content: center;
     justify-content: center;
     -ms-flex-pack: center;
     text-align: center;
@@ -212,4 +207,26 @@ h6 span{
     background-color: #d99a4e;
     opacity: 0.8;
     color: white;
+}
+
+.back-link {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.back-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-5px);
+    color: #d99a4e;
 }

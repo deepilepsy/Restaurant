@@ -127,7 +127,10 @@ body {
 .tagline-section {
     text-align: center;
     padding: 4rem 0;
-    background: rgba(0, 0, 0, 0.3);
+    background-image: url("../images/litesback.jpg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
 }
 
 .tagline {
@@ -178,7 +181,6 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    box-shadow: 0 10px 25px rgba(217, 154, 78, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -239,7 +241,10 @@ body {
 /* Stats Section */
 .stats-section {
     padding: 4rem;
-    background: rgba(0, 0, 0, 0.4);
+    background-image: url("../images/litesback.jpg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
 }
 
 .stats-grid {

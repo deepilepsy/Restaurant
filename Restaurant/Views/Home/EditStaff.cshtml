@@ -9,13 +9,13 @@
 <html>
 <head>
     <title>Edit Staff Member</title>
-    <link rel="stylesheet" href="~/css/staff_edit.css?v=1.0.1"></link>
+    <link rel="stylesheet" href="~/css/staff_edit.css?v=1.0.2"></link>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 </head>
 <body>
     <a href="@Url.Action("Admin")" class="back-link">
-        ← Back to Admin Panel
+        ← Admin Panel
     </a>
 
     <div class="container">
@@ -91,7 +91,7 @@
 
                 <div class="form-group">
                     <label for="TelNo">Phone Number <span class="required">*</span></label>
-                    <input asp-for="TelNo" type="tel" id="TelNo" required placeholder="+90 (555) 123-4567">
+                    <input asp-for="TelNo" type="tel" id="TelNo" maxlength="13" required placeholder="+90 (555) 123-4567">
                     <span asp-validation-for="TelNo" class="error-message"></span>
                 </div>
             </div>
@@ -108,7 +108,6 @@
         </form>
     </div>
 
-    <script src="~/js/editstaff.js">
-    </script>
+<script src="~/js/editstaff.js"></script>
 </body>
 </html>

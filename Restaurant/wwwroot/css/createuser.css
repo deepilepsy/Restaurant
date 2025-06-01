@@ -1,5 +1,5 @@
 body {
-    background-image: url("../images/register1.jpg");
+    background-image: url("../images/litesback.jpg");
     background-repeat: no-repeat;
     background-size: cover;
     min-height: 100vh;
@@ -172,6 +172,10 @@ body {
     margin-top: 25px;
     padding-top: 25px;
     border-top: 1px solid #e9ecef;
+}
+.back-link:hover {
+    color: #d99a4e;
+    transform: scale(1.05);
 }
 
 .user-type-info {
