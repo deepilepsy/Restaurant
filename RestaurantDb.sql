@@ -8,9 +8,9 @@ GO
 CREATE TABLE dbo.staff (
                            staff_id INT PRIMARY KEY IDENTITY(1,1),
                            name NVARCHAR(255) NOT NULL,
-                           surname NVARCHAR(255),
-                           job NVARCHAR(25),
-                           tel_no NVARCHAR(25)
+                           surname NVARCHAR(255) NOT NULL,
+                           job NVARCHAR(25) NOT NULL,
+                           tel_no NVARCHAR(25) NOT NULL
 );
 
 CREATE TABLE dbo.restaurant_tables (
@@ -25,7 +25,7 @@ CREATE TABLE dbo.restaurant_tables (
 CREATE TABLE dbo.customers (
                                        customer_id INT PRIMARY KEY IDENTITY (1, 1),
                                        name NVARCHAR(255) NOT NULL,
-                                       surname NVARCHAR(255),
+                                       surname NVARCHAR(255) NOT NULL,
                                        tel_no NVARCHAR(25) NOT NULL,
                                        email NVARCHAR(255) NULL,
 );
@@ -65,16 +65,16 @@ INSERT INTO dbo.credentials (username, password) VALUES ('root', 'root');
 INSERT INTO dbo.staff_credentials (username, password) VALUES ('staff', 'staff');
 
 INSERT INTO dbo.staff (name, surname, job, tel_no) VALUES
-                                                       (N'Ali', N'Yılmaz', 'waiter', N'05001112233'),
-                                                       (N'Ayşe', N'Demir', 'waiter', N'05002223344'),
-                                                       (N'Mehmet', N'Kara', 'waiter', N'05003334455'),
-                                                       (N'Zeynep', N'Çelik', 'waiter', N'05004445566'),
-                                                       (N'Ahmet', N'Şahin', 'chef', N'05005556677'),
-                                                       (N'Elif', N'Koç', 'chef', N'05006667788'),
-                                                       (N'Mert', N'Aydın', 'cleaner', N'05007778899'),
-                                                       (N'Seda', N'Öztürk', 'cleaner', N'05008889900'),
-                                                       (N'Can', N'Güneş', 'dishwasher', N'05009990011'),
-                                                       (N'Esra', N'Bozkurt', 'dishwasher', N'05001001002');
+                                                       (N'Ali', N'Yılmaz', 'waiter', N'+905001112233'),
+                                                       (N'Ayşe', N'Demir', 'waiter', N'+9005002223344'),
+                                                       (N'Mehmet', N'Kara', 'waiter', N'+9005003334455'),
+                                                       (N'Zeynep', N'Çelik', 'waiter', N'+9005004445566'),
+                                                       (N'Ahmet', N'Şahin', 'chef', N'+9005005556677'),
+                                                       (N'Elif', N'Koç', 'chef', N'+9005006667788'),
+                                                       (N'Mert', N'Aydın', 'cleaner', N'+9005007778899'),
+                                                       (N'Seda', N'Öztürk', 'cleaner', N'+9005008889900'),
+                                                       (N'Can', N'Güneş', 'dishwasher', N'+9005009990011'),
+                                                       (N'Esra', N'Bozkurt', 'dishwasher', N'+9005001001002');
 
 INSERT INTO dbo.restaurant_tables (table_id, min_capacity, max_capacity, served_by_id) VALUES
                                                                                            (1, 5, 10, 1),
