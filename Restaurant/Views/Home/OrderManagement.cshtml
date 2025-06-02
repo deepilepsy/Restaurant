@@ -70,18 +70,19 @@
 
         <!-- Category Tabs -->
         <div class="category-tabs">
-            <button class="tab-button active" onclick="showCategory('DRINKS')">Drinks</button>
-            <button class="tab-button" onclick="showCategory('STARTERS')">Starters</button>
+            
+            <button class="tab-button active" onclick="showCategory('STARTERS')">Starters</button>
             <button class="tab-button" onclick="showCategory('SALADS')">Salads</button>
             <button class="tab-button" onclick="showCategory('MAIN')">Main Courses</button>
             <button class="tab-button" onclick="showCategory('SIDES')">Sides</button>
             <button class="tab-button" onclick="showCategory('DESSERTS')">Desserts</button>
+            <button class="tab-button" onclick="showCategory('DRINKS')">Drinks</button>
         </div>
 
         <!-- Menu Items by Category -->
         @foreach (var category in Model.MenuItems.GroupBy(m => m.Category))
         {
-            <div class="category-section" id="category-@category.Key" style="@(category.Key == "DRINKS" ? "" : "display: none;")">
+            <div class="category-section" id="category-@category.Key" style="@(category.Key == "STARTERS" ? "" : "display: none;")">
                 <h3>@category.Key</h3>
 
                 @foreach (var subcategory in category.GroupBy(m => m.Subcategory ?? "Other"))
