@@ -47,7 +47,7 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
     const email = document.getElementById('email').value.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email || !emailRegex.test(email)) {
+    if (!emailRegex.test(email) && email.length !== 0) {
         document.getElementById('emailError').style.display = 'block';
         isValid = false;
     } else {
@@ -103,7 +103,7 @@ document.getElementById('email').addEventListener('blur', function() {
     const errorElement = document.getElementById('emailError');
     if (email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (!emailRegex.test(email) || !email) {
             errorElement.style.display = 'block';
             this.style.borderColor = '#ff6b6b';
         } else {

@@ -78,7 +78,7 @@ document.getElementById('reservationForm').addEventListener('submit', function(e
     const email = document.getElementById('email').value.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email || !emailRegex.test(email)) {
+    if (!emailRegex.test(email) && email.length !== 0) {
         document.getElementById('emailError').style.display = 'block';
         isValid = false;
     } else {
@@ -127,13 +127,52 @@ document.querySelectorAll('input[required]').forEach(input => {
     });
 });
 
+// Real time validation for phone number
+document.getElementById('phone').addEventListener('blur', function(e) {
+    const phone = document.getElementById('phone').value.trim();
+    const phoneDigitsOnly = phone.replace(/\D/g, ''); // Remove all non-digits
+
+    // Check if it's a valid phone format
+    const isValidPhone = (
+        phoneDigitsOnly.length === 10 || // 10 digits 
+        (phone.startsWith('+90') && phoneDigitsOnly.length === 12) // +90 prefix with 12 total digits
+    );
+
+    if (!isValidPhone) {
+        document.getElementById('phoneError').style.display = 'block';
+    } else {
+        document.getElementById('phoneError').style.display = 'none';
+    }
+})
+
+// Real time validation for first name
+document.getElementById('firstName').addEventListener('blur', function(e) {
+    const firstName = document.getElementById('firstName').value.trim();
+    const onlyLettersRegex = /^[a-zA-Z]+$/;
+    if (!onlyLettersRegex.test(firstName)) {
+        document.getElementById('firstNameError').style.display = 'block';
+    } else {
+        document.getElementById('firstNameError').style.display = 'none';
+    }
+})
+
+// Real time validation for second name
+document.getElementById('lastName').addEventListener('blur', function(e) {
+    const lastName = document.getElementById('lastName').value.trim();
+    const onlyLettersRegex = /^[a-zA-Z]+$/;
+    if (!onlyLettersRegex.test(lastName)) {
+        document.getElementById('lastNameError').style.display = 'block';
+    } else {
+        document.getElementById('lastNameError').style.display = 'none';
+    }
+})
 // Email validation on blur
 document.getElementById('email').addEventListener('blur', function() {
     const email = this.value.trim();
     const errorElement = document.getElementById('emailError');
     if (email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (!emailRegex.test(email) || !email) {
             errorElement.style.display = 'block';
             this.style.borderColor = '#ff6b6b';
         } else {
