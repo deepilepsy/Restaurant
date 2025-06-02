@@ -271,3 +271,10 @@ body {
         max-width: 250px;
     }
 }
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    display: none;
+}

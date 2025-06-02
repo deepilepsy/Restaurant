@@ -10,10 +10,10 @@ public class RestaurantContext : DbContext
     // DbSets for all entities
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<ReservationDetail> ReservationDetails { get; set; }
     public DbSet<RestaurantTable> RestaurantTables { get; set; }
     public DbSet<Staff> Staff { get; set; }
-    public DbSet<Credentials> Credentials { get; set; }
-    public DbSet<StaffCredentials> StaffCredentials { get; set; }
+    public DbSet<UserCredential> UserCredentials { get; set; }
     public DbSet<MenuItem> MenuItems { get; set; }
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<ReceiptItem> ReceiptItems { get; set; }
@@ -36,9 +36,9 @@ public class RestaurantContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Reservation>()
-            .HasOne(r => r.ServedBy)
+            .HasOne(r => r.ReservationDetail)
             .WithMany()
-            .HasForeignKey(r => r.ServedById)
+            .HasForeignKey(r => r.ResDetailsId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Configure RestaurantTable relationships
@@ -51,20 +51,8 @@ public class RestaurantContext : DbContext
         // Configure Receipt relationships
         modelBuilder.Entity<Receipt>()
             .HasOne(r => r.Reservation)
-            .WithOne()
-            .HasForeignKey<Receipt>(r => r.ReservationId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<Receipt>()
-            .HasOne(r => r.Table)
             .WithMany()
-            .HasForeignKey(r => r.TableId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<Receipt>()
-            .HasOne(r => r.Customer)
-            .WithMany()
-            .HasForeignKey(r => r.CustomerId)
+            .HasForeignKey(r => r.ReservationId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Receipt>()
@@ -86,25 +74,28 @@ public class RestaurantContext : DbContext
             .HasForeignKey(ri => ri.ItemId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Configure decimal precision for monetary values
+        // Configure string-based monetary values (as per your SQL schema)
+        modelBuilder.Entity<MenuItem>()
+            .Property(m => m.Price)
+            .HasMaxLength(20);
+
         modelBuilder.Entity<Receipt>()
             .Property(r => r.TotalAmount)
-            .HasColumnType("decimal(10,2)");
+            .HasMaxLength(20);
 
         modelBuilder.Entity<ReceiptItem>()
             .Property(ri => ri.UnitPrice)
-            .HasColumnType("decimal(10,2)");
+            .HasMaxLength(20);
 
-        modelBuilder.Entity<ReceiptItem>()
-            .Property(ri => ri.TotalPrice)
-            .HasColumnType("decimal(10,2)");
-
-        // Ensure proper table naming and column mapping
+        // Configure table naming to match SQL schema
         modelBuilder.Entity<Customer>()
             .ToTable("customers");
 
         modelBuilder.Entity<Reservation>()
             .ToTable("reservations");
+
+        modelBuilder.Entity<ReservationDetail>()
+            .ToTable("reservation_details");
 
         modelBuilder.Entity<RestaurantTable>()
             .ToTable("restaurant_tables");
@@ -112,11 +103,8 @@ public class RestaurantContext : DbContext
         modelBuilder.Entity<Staff>()
             .ToTable("staff");
 
-        modelBuilder.Entity<Credentials>()
-            .ToTable("credentials");
-
-        modelBuilder.Entity<StaffCredentials>()
-            .ToTable("staff_credentials");
+        modelBuilder.Entity<UserCredential>()
+            .ToTable("user_credentials");
 
         modelBuilder.Entity<MenuItem>()
             .ToTable("menu_items");
@@ -126,5 +114,10 @@ public class RestaurantContext : DbContext
 
         modelBuilder.Entity<ReceiptItem>()
             .ToTable("receipt_items");
+
+        // Configure identity columns
+        modelBuilder.Entity<Reservation>()
+            .Property(r => r.ReservationId)
+            .UseIdentityColumn(600000, 1);
     }
 }

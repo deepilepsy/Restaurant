@@ -62,21 +62,37 @@ else
             </div>
             <div class="info-item">
                 <div class="info-label">Created On</div>
-                <div class="info-value">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                <div class="info-value">
+                    @if (Model.ReservationDetail != null)
+                    {
+                        @Model.ReservationDetail.CreatedAt.ToString("MMM dd, yyyy")
+                    }
+                    else
+                    {
+                        <span class="text-muted">-</span>
+                    }
+                </div>
             </div>
             <div class="info-item">
                 <div class="info-label">Current Status</div>
                 <div class="info-value">
-                    <span class="status-badge status-@Model.ReservationStatus.Replace("-", "")">
-                        @Model.ReservationStatus
-                    </span>
+                    @if (Model.ReservationDetail != null)
+                    {
+                        <span class="status-badge status-@Model.ReservationDetail.ReservationStatus.Replace("-", "")">
+                            @Model.ReservationDetail.ReservationStatus
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">-</span>
+                    }
                 </div>
             </div>
         </div>
-        @if (Model.ReservationStatus != "active")
+        @if (Model.ReservationDetail?.ReservationStatus != "active")
         {
             <div class="modification-note">
-                <strong>⚠️ Note:</strong> This reservation is currently @Model.ReservationStatus.ToUpper().
+                <strong>⚠️ Note:</strong> This reservation is currently @Model.ReservationDetail?.ReservationStatus?.ToUpper().
                 Some fields may be restricted for modification.
             </div>
         }
@@ -84,9 +100,10 @@ else
 
     <form asp-action="Edit" asp-controller="Home" method="post" id="editForm">
         <input type="hidden" name="ReservationId" value="@Model.ReservationId"/>
-        <input type="hidden" name="CreatedAt" value="@Model.CreatedAt"/>
-        <input type="hidden" name="ReservationStatus" value="@Model.ReservationStatus"/>
+        <input type="hidden" name="ResDetailsId" value="@Model.ResDetailsId"/>
         <input type="hidden" name="CustomerId" value="@Model.CustomerId"/>
+        <!-- Always include current TableId as a fallback -->
+        <input type="hidden" name="CurrentTableId" value="@Model.TableId"/>
 
         <div class="form-section">
             <div class="section-title">Personal Information</div>
@@ -129,18 +146,18 @@ else
             <div class="form-grid">
                 <div class="form-group">
                     <label for="guestNumber">Number of Guests <span class="required">*</span></label>
-                    @if (Model.ReservationStatus != "active")
+                    @if (Model.ReservationDetail?.ReservationStatus != "active")
                     {
-                        <select id="guestNumber" name="GuestNumber" required disabled class="readonly-field">
-                            <option value="@Model.GuestNumber" selected>@Model.GuestNumber @(Model.GuestNumber == 1 ? "Guest" : "Guests")</option>
+                        <select id="guestNumber" name="ReservationDetail.GuestNumber" required disabled class="readonly-field">
+                            <option value="@(Model.ReservationDetail?.GuestNumber ?? 1)" selected>@(Model.ReservationDetail?.GuestNumber ?? 1) @((Model.ReservationDetail?.GuestNumber ?? 1) == 1 ? "Guest" : "Guests")</option>
                         </select>
                     }
                     else
                     {
-                        <select id="guestNumber" name="GuestNumber" required onchange="updateAvailableTables()">
+                        <select id="guestNumber" name="ReservationDetail.GuestNumber" required onchange="updateAvailableTables()">
                             @for (int i = 1; i <= 10; i++)
                             {
-                                if (i == Model.GuestNumber)
+                                if (i == (Model.ReservationDetail?.GuestNumber ?? 1))
                                 {
                                     <option value="@i" selected>@i @(i == 1 ? "Guest" : "Guests")</option>
                                 }
@@ -154,9 +171,11 @@ else
                 </div>
                 <div class="form-group">
                     <label for="tableId">Table Number <span class="required">*</span></label>
-                    @if (Model.ReservationStatus != "active")
+                    @if (Model.ReservationDetail?.ReservationStatus != "active")
                     {
-                        <select id="tableId" name="TableId" disabled class="readonly-field">
+                        <!-- Hidden field to ensure value is submitted even when select is disabled -->
+                        <input type="hidden" name="TableId" value="@Model.TableId" />
+                        <select id="tableId" disabled class="readonly-field">
                             <option value="@Model.TableId" selected>Table @Model.TableId</option>
                         </select>
                     }
@@ -171,73 +190,44 @@ else
             <div class="form-grid">
                 <div class="form-group">
                     <label for="reservationDate">Reservation Date <span class="required">*</span></label>
-                    @if (Model.ReservationStatus != "active")
+                    @if (Model.ReservationDetail?.ReservationStatus != "active")
                     {
-                        <input type="date" id="reservationDate" name="ReservationDate"
-                               value="@Model.ReservationDate.ToString("yyyy-MM-dd")" required
+                        <input type="date" id="reservationDate" name="ReservationDetail.ReservationDate"
+                               value="@(Model.ReservationDetail?.ReservationDate.ToString("yyyy-MM-dd") ?? today)" required
                                readonly class="readonly-field">
                     }
                     else
                     {
-                        <input type="date" id="reservationDate" name="ReservationDate"
-                               value="@Model.ReservationDate.ToString("yyyy-MM-dd")" required
+                        <input type="date" id="reservationDate" name="ReservationDetail.ReservationDate"
+                               value="@(Model.ReservationDetail?.ReservationDate.ToString("yyyy-MM-dd") ?? today)" required
                                min="@today" onchange="updateAvailableTables()">
                     }
                 </div>
                 <div class="form-group">
                     <label for="reservationTime">Reservation Time <span class="required">*</span></label>
-                    @if (Model.ReservationStatus != "active")
+                    @if (Model.ReservationDetail?.ReservationStatus != "active")
                     {
-                        <select id="reservationTime" name="ReservationHour" required disabled class="readonly-field">
-                            <option value="@Model.ReservationHour" selected>@Model.ReservationHour</option>
+                        <select id="reservationTime" name="ReservationDetail.ReservationHour" required disabled class="readonly-field">
+                            <option value="@(Model.ReservationDetail?.ReservationHour ?? "14:00")" selected>@(Model.ReservationDetail?.ReservationHour ?? "14:00")</option>
                         </select>
                     }
                     else
                     {
-                        <select id="reservationTime" name="ReservationHour" required onchange="updateAvailableTables()">
-                            @if (Model.ReservationHour == "14:00")
-                            {
-                                <option value="14:00" selected>14:00</option>
+                        <select id="reservationTime" name="ReservationDetail.ReservationHour" required onchange="updateAvailableTables()">
+                            @{
+                                var currentHour = Model.ReservationDetail?.ReservationHour ?? "14:00";
+                                var timeSlots = new[] { "14:00", "16:00", "18:00", "20:00", "22:00" };
                             }
-                            else
+                            @foreach (var timeSlot in timeSlots)
                             {
-                                <option value="14:00">14:00</option>
-                            }
-
-                            @if (Model.ReservationHour == "16:00")
-                            {
-                                <option value="16:00" selected>16:00</option>
-                            }
-                            else
-                            {
-                                <option value="16:00">16:00</option>
-                            }
-
-                            @if (Model.ReservationHour == "18:00")
-                            {
-                                <option value="18:00" selected>18:00</option>
-                            }
-                            else
-                            {
-                                <option value="18:00">18:00</option>
-                            }
-
-                            @if (Model.ReservationHour == "20:00")
-                            {
-                                <option value="20:00" selected>20:00</option>
-                            }
-                            else
-                            {
-                                <option value="20:00">20:00</option>
-                            }
-
-                            @if (Model.ReservationHour == "22:00")
-                            {
-                                <option value="22:00" selected>22:00</option>
-                            }
-                            else
-                            {
-                                <option value="22:00">22:00</option>
+                                if (timeSlot == currentHour)
+                                {
+                                    <option value="@timeSlot" selected>@timeSlot</option>
+                                }
+                                else
+                                {
+                                    <option value="@timeSlot">@timeSlot</option>
+                                }
                             }
                         </select>
                     }
@@ -250,7 +240,14 @@ else
             <div class="form-group">
                 <label for="servedBy">Served By</label>
                 <select id="servedBy" name="ServedById" readonly style="background-color: #f5f5f5;">
-                    <option value="@Model.ServedById" selected>@Model.ServedBy?.Name @Model.ServedBy?.Surname</option>
+                    @if (Model.Table?.ServedBy != null)
+                    {
+                        <option value="@Model.Table.ServedBy.StaffId" selected>@Model.Table.ServedBy.Name @Model.Table.ServedBy.Surname</option>
+                    }
+                    else
+                    {
+                        <option value="" selected>Staff will be assigned based on table selection</option>
+                    }
                 </select>
                 <small style="color: #d99a4e" class="form-text text-muted">Staff is automatically assigned based on the selected table.</small>
             </div>
@@ -260,7 +257,7 @@ else
             <div class="section-title">Additional Information</div>
             <div class="form-group">
                 <label for="specialRequests">Special Requests or Notes</label>
-                <textarea id="specialRequests" name="SpecialRequests" placeholder="Any special requests, dietary requirements, or notes...">@Model.SpecialRequests</textarea>
+                <textarea id="specialRequests" name="ReservationDetail.SpecialRequests" placeholder="Any special requests, dietary requirements, or notes...">@(Model.ReservationDetail?.SpecialRequests ?? "")</textarea>
             </div>
         </div>
 
@@ -431,8 +428,6 @@ else
             setTimeout(() => alert.remove(), 500);
         });
     }, 5000);
-    
-
 </script>
 </body>
 </html>

@@ -18,117 +18,119 @@ namespace Restaurant.Controllers
 
         // GET: Display reservation form with pre-populated data
         [HttpGet]
-public async Task<IActionResult> Create(int? tableId, int customerId, string? date, string? time, int? guests)
-{
-    try
-    {
-        _logger.LogInformation("Reservation Create GET called with: tableId={TableId}, date={Date}, time={Time}, guests={Guests}", 
-            tableId, date, time, guests);
-
-        // Validate that we have the required parameters
-        if (!tableId.HasValue || string.IsNullOrEmpty(date) || string.IsNullOrEmpty(time) || !guests.HasValue)
+        public async Task<IActionResult> Create(int? tableId, int customerId, string? date, string? time, int? guests)
         {
-            _logger.LogWarning("Missing required parameters for reservation");
-            TempData["Error"] = "Missing reservation details. Please select a table first.";
-            return RedirectToAction("Booking", "Home");
-        }
-
-        // Verify table exists and get its details
-        var table = await _context.RestaurantTables
-            .Include(t => t.ServedBy)
-            .FirstOrDefaultAsync(t => t.TableId == tableId.Value);
-
-        if (table == null)
-        {
-            _logger.LogWarning("Table {TableId} not found", tableId.Value);
-            TempData["Error"] = "Selected table not found.";
-            return RedirectToAction("Booking", "Home");
-        }
-
-        // Parse and validate date
-        if (!DateTime.TryParse(date, out DateTime reservationDate))
-        {
-            _logger.LogWarning("Invalid date format: {Date}", date);
-            TempData["Error"] = "Invalid date format.";
-            return RedirectToAction("Booking", "Home");
-        }
-
-        // Check if the date is not in the past
-        if (reservationDate.Date < DateTime.Today)
-        {
-            _logger.LogWarning("Reservation date {Date} is in the past", reservationDate);
-            TempData["Error"] = "Cannot make reservations for past dates.";
-            return RedirectToAction("Booking", "Home");
-        }
-
-        // Check if the table is available at the selected time
-        var existingReservation = await _context.Reservations
-            .Where(r => r.TableId == tableId.Value && 
-                       r.ReservationDate.Date == reservationDate.Date && 
-                       r.ReservationHour == time &&
-                       r.ReservationStatus == "active")
-            .FirstOrDefaultAsync();
-
-        if (existingReservation != null)
-        {
-            _logger.LogWarning("Table {TableId} already reserved for {Date} at {Time}", 
-                tableId.Value, reservationDate, time);
-            TempData["Error"] = "This table is already reserved for the selected time.";
-            return RedirectToAction("Booking", "Home");
-        }
-
-        // Check table capacity
-        if (guests.Value < table.MinCapacity || guests.Value > table.MaxCapacity)
-        {
-            _logger.LogWarning("Guest count {Guests} outside table {TableId} capacity {MinCap}-{MaxCap}", 
-                guests.Value, tableId.Value, table.MinCapacity, table.MaxCapacity);
-            TempData["Error"] = $"Table {tableId} capacity is {table.MinCapacity}-{table.MaxCapacity} people. You selected {guests} guests.";
-            return RedirectToAction("Booking", "Home");
-        }
-
-        // Create view model with the reservation details
-        var viewModel = new ReservationCreateViewModel
-        {
-            TableId = tableId.Value,
-            CustomerId = customerId,  // Fixed: comma instead of semicolon
-            ReservationDate = reservationDate,
-            ReservationHour = time,
-            GuestNumber = guests.Value,
-            Table = table,
-            // Initialize empty strings to avoid null reference errors
-            Name = string.Empty,
-            Surname = string.Empty,
-            TelNo = string.Empty,
-            Email = string.Empty,
-            SpecialRequests = string.Empty
-        };
-
-        // Pre-populate customer data if customerId is provided and valid
-        if (customerId > 0)
-        {
-            var existingCustomer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
-            
-            if (existingCustomer != null)
+            try
             {
-                viewModel.Name = existingCustomer.Name;
-                viewModel.Surname = existingCustomer.Surname ?? string.Empty;
-                viewModel.TelNo = existingCustomer.TelNo;
-                viewModel.Email = existingCustomer.Email ?? string.Empty;
+                _logger.LogInformation("Reservation Create GET called with: tableId={TableId}, date={Date}, time={Time}, guests={Guests}", 
+                    tableId, date, time, guests);
+
+                // Validate that we have the required parameters
+                if (!tableId.HasValue || string.IsNullOrEmpty(date) || string.IsNullOrEmpty(time) || !guests.HasValue)
+                {
+                    _logger.LogWarning("Missing required parameters for reservation");
+                    TempData["Error"] = "Missing reservation details. Please select a table first.";
+                    return RedirectToAction("Booking", "Home");
+                }
+
+                // Verify table exists and get its details
+                var table = await _context.RestaurantTables
+                    .Include(t => t.ServedBy)
+                    .FirstOrDefaultAsync(t => t.TableId == tableId.Value);
+
+                if (table == null)
+                {
+                    _logger.LogWarning("Table {TableId} not found", tableId.Value);
+                    TempData["Error"] = "Selected table not found.";
+                    return RedirectToAction("Booking", "Home");
+                }
+
+                // Parse and validate date
+                if (!DateTime.TryParse(date, out DateTime reservationDate))
+                {
+                    _logger.LogWarning("Invalid date format: {Date}", date);
+                    TempData["Error"] = "Invalid date format.";
+                    return RedirectToAction("Booking", "Home");
+                }
+
+                // Check if the date is not in the past
+                if (reservationDate.Date < DateTime.Today)
+                {
+                    _logger.LogWarning("Reservation date {Date} is in the past", reservationDate);
+                    TempData["Error"] = "Cannot make reservations for past dates.";
+                    return RedirectToAction("Booking", "Home");
+                }
+
+                // Check if the table is available at the selected time
+                var existingReservation = await _context.Reservations
+                    .Include(r => r.ReservationDetail)
+                    .Where(r => r.TableId == tableId.Value && 
+                               r.ReservationDetail!.ReservationDate.Date == reservationDate.Date && 
+                               r.ReservationDetail.ReservationHour == time &&
+                               r.ReservationDetail.ReservationStatus == "active")
+                    .FirstOrDefaultAsync();
+
+                if (existingReservation != null)
+                {
+                    _logger.LogWarning("Table {TableId} already reserved for {Date} at {Time}", 
+                        tableId.Value, reservationDate, time);
+                    TempData["Error"] = "This table is already reserved for the selected time.";
+                    return RedirectToAction("Booking", "Home");
+                }
+
+                // Check table capacity
+                if (guests.Value < table.MinCapacity || guests.Value > table.MaxCapacity)
+                {
+                    _logger.LogWarning("Guest count {Guests} outside table {TableId} capacity {MinCap}-{MaxCap}", 
+                        guests.Value, tableId.Value, table.MinCapacity, table.MaxCapacity);
+                    TempData["Error"] = $"Table {tableId} capacity is {table.MinCapacity}-{table.MaxCapacity} people. You selected {guests} guests.";
+                    return RedirectToAction("Booking", "Home");
+                }
+
+                // Create view model with the reservation details
+                var viewModel = new ReservationCreateViewModel
+                {
+                    TableId = tableId.Value,
+                    CustomerId = customerId,
+                    ReservationDate = reservationDate,
+                    ReservationHour = time,
+                    GuestNumber = guests.Value,
+                    Table = table,
+                    // Initialize empty strings to avoid null reference errors
+                    Name = string.Empty,
+                    Surname = string.Empty,
+                    TelNo = string.Empty,
+                    Email = string.Empty,
+                    SpecialRequests = string.Empty
+                };
+
+                // Pre-populate customer data if customerId is provided and valid
+                if (customerId > 0)
+                {
+                    var existingCustomer = await _context.Customers
+                        .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+                    
+                    if (existingCustomer != null)
+                    {
+                        viewModel.Name = existingCustomer.Name;
+                        viewModel.Surname = existingCustomer.Surname;
+                        viewModel.TelNo = existingCustomer.TelNo;
+                        viewModel.Email = existingCustomer.Email ?? string.Empty;
+                    }
+                }
+
+                _logger.LogInformation("Successfully loaded reservation form for table {TableId}", tableId.Value);
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading reservation form for tableId={TableId}, date={Date}, time={Time}, guests={Guests}", 
+                    tableId, date, time, guests);
+                TempData["Error"] = "An error occurred while loading the reservation form. Please try again.";
+                return RedirectToAction("Booking", "Home");
             }
         }
 
-        _logger.LogInformation("Successfully loaded reservation form for table {TableId}", tableId.Value);
-        return View(viewModel);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error loading reservation form for tableId={TableId}, date={Date}, time={Time}, guests={Guests}", 
-            tableId, date, time, guests);
-        TempData["Error"] = "An error occurred while loading the reservation form. Please try again.";
-        return RedirectToAction("Booking", "Home");
-    }
-}
         // POST: Handle reservation creation
         [HttpPost]
         public async Task<IActionResult> Create(ReservationCreateViewModel model)
@@ -139,7 +141,6 @@ public async Task<IActionResult> Create(int? tableId, int customerId, string? da
                 ModelState.Remove("Email");
                 ModelState.Remove("SpecialRequests");
                 ModelState.Remove("Table");
-                ModelState.Remove("Surname");
 
                 if (!ModelState.IsValid)
                 {
@@ -161,10 +162,11 @@ public async Task<IActionResult> Create(int? tableId, int customerId, string? da
 
                 // Double-check table availability
                 var existingReservation = await _context.Reservations
+                    .Include(r => r.ReservationDetail)
                     .Where(r => r.TableId == model.TableId && 
-                               r.ReservationDate.Date == model.ReservationDate.Date && 
-                               r.ReservationHour == model.ReservationHour &&
-                               r.ReservationStatus == "active")
+                               r.ReservationDetail!.ReservationDate.Date == model.ReservationDate.Date && 
+                               r.ReservationDetail.ReservationHour == model.ReservationHour &&
+                               r.ReservationDetail.ReservationStatus == "active")
                     .FirstOrDefaultAsync();
 
                 if (existingReservation != null)
@@ -188,56 +190,77 @@ public async Task<IActionResult> Create(int? tableId, int customerId, string? da
                     return View(model);
                 }
 
-                // Create new reservation
-                // Check if customer already exists by phone or email
-                var existingCustomer = await _context.Customers
-                    .FirstOrDefaultAsync(c => c.TelNo == model.TelNo.Trim());
+                using var transaction = await _context.Database.BeginTransactionAsync();
 
-                Customer customer;
-                if (existingCustomer != null)
+                try
                 {
-                    // Update existing customer info if needed
-                    existingCustomer.Name = model.Name?.Trim() ?? string.Empty;
-                    existingCustomer.Surname = model.Surname?.Trim();
-                    existingCustomer.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
-                    customer = existingCustomer;
-                }
-                else
-                {
-                    // Create new customer
-                    customer = new Customer
+                    // Check if customer already exists by phone number
+                    var existingCustomer = await _context.Customers
+                        .FirstOrDefaultAsync(c => c.TelNo == model.TelNo.Trim());
+
+                    Customer customer;
+                    if (existingCustomer != null)
                     {
-                        Name = model.Name?.Trim() ?? string.Empty,
-                        Surname = model.Surname?.Trim(),
-                        TelNo = model.TelNo?.Trim() ?? string.Empty,
-                        Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim()
+                        // Update existing customer info if needed
+                        existingCustomer.Name = model.Name?.Trim() ?? string.Empty;
+                        existingCustomer.Surname = model.Surname?.Trim() ?? string.Empty;
+                        existingCustomer.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
+                        customer = existingCustomer;
+                    }
+                    else
+                    {
+                        // Create new customer
+                        customer = new Customer
+                        {
+                            Name = model.Name?.Trim() ?? string.Empty,
+                            Surname = model.Surname?.Trim() ?? string.Empty,
+                            TelNo = model.TelNo?.Trim() ?? string.Empty,
+                            Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim()
+                        };
+                        _context.Customers.Add(customer);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    // Create reservation details first
+                    var reservationDetail = new ReservationDetail
+                    {
+                        GuestNumber = model.GuestNumber,
+                        CreatedAt = DateTime.Now,
+                        ReservationDate = model.ReservationDate,
+                        ReservationHour = model.ReservationHour,
+                        ReservationStatus = "active",
+                        SpecialRequests = string.IsNullOrWhiteSpace(model.SpecialRequests) ? null : model.SpecialRequests.Trim()
                     };
-                    _context.Customers.Add(customer);
+
+                    _context.ReservationDetails.Add(reservationDetail);
+                    await _context.SaveChangesAsync();
+
+                    // Create reservation
+                    var reservation = new Reservation
+                    {
+                        ResDetailsId = reservationDetail.ResDetailsId,
+                        CustomerId = customer.CustomerId,
+                        TableId = model.TableId
+                    };
+
+                    _context.Reservations.Add(reservation);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation("Reservation {ReservationId} created successfully for {Name} {Surname} on {Date} at {Time}", 
+                        reservation.ReservationId, model.Name, model.Surname, model.ReservationDate.ToShortDateString(), model.ReservationHour);
+
+                    TempData["Success"] = $"Your reservation has been confirmed! Reservation ID: {reservation.ReservationId}";
+                    return RedirectToAction("Confirmation", new { id = reservation.ReservationId });
                 }
-
-                await _context.SaveChangesAsync();
-
-// Create reservation
-                var reservation = new Reservation
+                catch (Exception ex)
                 {
-                    CustomerId = customer.CustomerId,
-                    SpecialRequests = string.IsNullOrWhiteSpace(model.SpecialRequests) ? null : model.SpecialRequests.Trim(),
-                    GuestNumber = model.GuestNumber,
-                    TableId = model.TableId,
-                    ServedById = table.ServedById,
-                    ReservationDate = model.ReservationDate,
-                    ReservationHour = model.ReservationHour,
-                    ReservationStatus = "active",
-                    CreatedAt = DateTime.Now
-                };
-                _context.Reservations.Add(reservation);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Reservation {ReservationId} created successfully for {Name} {Surname} on {Date} at {Time}", 
-                    reservation.ReservationId, model.Name, model.Surname, model.ReservationDate.ToShortDateString(), model.ReservationHour);
-
-                TempData["Success"] = $"Your reservation has been confirmed! Reservation ID: {reservation.ReservationId}";
-                return RedirectToAction("Confirmation", new { id = reservation.ReservationId });
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Error in transaction during reservation creation for table {TableId}", model.TableId);
+                    throw;
+                }
             }
             catch (Exception ex)
             {
@@ -260,7 +283,9 @@ public async Task<IActionResult> Create(int? tableId, int customerId, string? da
             {
                 var reservation = await _context.Reservations
                     .Include(r => r.Table)
-                    .Include(r => r.ServedBy)
+                    .ThenInclude(t => t.ServedBy)
+                    .Include(r => r.Customer)
+                    .Include(r => r.ReservationDetail)
                     .FirstOrDefaultAsync(r => r.ReservationId == id);
 
                 if (reservation == null)
@@ -292,10 +317,11 @@ public async Task<IActionResult> Create(int? tableId, int customerId, string? da
                 }
 
                 var existingReservation = await _context.Reservations
+                    .Include(r => r.ReservationDetail)
                     .Where(r => r.TableId == tableId && 
-                               r.ReservationDate.Date == reservationDate.Date && 
-                               r.ReservationHour == time &&
-                               r.ReservationStatus == "active")
+                               r.ReservationDetail!.ReservationDate.Date == reservationDate.Date && 
+                               r.ReservationDetail.ReservationHour == time &&
+                               r.ReservationDetail.ReservationStatus == "active")
                     .FirstOrDefaultAsync();
 
                 var available = existingReservation == null;

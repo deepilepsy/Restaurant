@@ -10,7 +10,7 @@
 <head>
     <title>Add New Staff Member</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/createstaff.css?v=1.0.3"></link>
+    <link rel="stylesheet" href="~/css/createstaff.css?v=1.0.4"></link>
 </head>
 <body>
 <a href="@Url.Action("Admin")" class="back-link">
@@ -39,14 +39,16 @@
     <form asp-action="CreateStaff" method="post" id="staffForm">
         <div class="form-grid">
             <div class="form-group">
-                <label for="Name">First Name <span class="required">*</span></label>
-                <input asp-for="Name" type="text" id="Name" required placeholder="Enter first name">
+                <label for="firstName">First Name <span class="required">*</span></label>
+                <input asp-for="Name" type="text" id="firstName" required placeholder="Enter first name">
+                <div class="error-message" id="firstNameError">Please enter your first name properly</div>
                 <span asp-validation-for="Name" class="error-message"></span>
             </div>
 
             <div class="form-group">
-                <label for="Surname">Last Name <span class="required">*</span></label>
-                <input asp-for="Surname" type="text" id="Surname" required placeholder="Enter last name">
+                <label for="lastName">Last Name <span class="required">*</span></label>
+                <input asp-for="Surname" type="text" id="lastName" required placeholder="Enter last name">
+                <div class="error-message" id="lastNameError">Please enter your last name properly</div>
                 <span asp-validation-for="Surname" class="error-message"></span>
             </div>
 
@@ -65,8 +67,9 @@
             </div>
 
             <div class="form-group">
-                <label for="TelNo">Phone Number <span class="required">*</span></label>
-                <input asp-for="TelNo" type="tel" id="TelNo" maxlength="13" required placeholder="+90 (555) 123-4567">
+                <label for="phone">Phone Number <span class="required">*</span></label>
+                <input asp-for="TelNo" type="tel" id="phone" maxlength="13" required placeholder="+90 (555) 123-4567">
+                <div class="error-message" id="phoneError">Please enter your number properly</div>
                 <span asp-validation-for="TelNo" class="error-message"></span>
             </div>
         </div>
@@ -82,6 +85,6 @@
     </form>
 </div>
 
-<script src="~/js/createstaff.js"></script>
+<script src="~/js/createstaff.js?v=1.0.1"></script>
 </body>
 </html>

@@ -15,9 +15,10 @@ namespace Restaurant.Models
         [StringLength(255)]
         public string Name { get; set; } = string.Empty;
 
+        [Required]
         [Column("surname")]
         [StringLength(255)]
-        public string? Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Required]
         [Column("tel_no")]
@@ -27,37 +28,18 @@ namespace Restaurant.Models
         [Column("email")]
         [StringLength(255)]
         public string? Email { get; set; }
-
-        // Navigation properties - Remove these to avoid EF confusion
-        // public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-        // public virtual ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
     }
-    
-    [Table("reservations")]
-    public class Reservation
+
+    [Table("reservation_details")]
+    public class ReservationDetail
     {
         [Key]
-        [Column("reservation_id")]
-        public int ReservationId { get; set; }
-    
-        [Required]
-        [Column("customer_id")]
-        public int CustomerId { get; set; }
-    
-        [Column("special_requests")]
-        public string? SpecialRequests { get; set; }
+        [Column("res_details_id")]
+        public int ResDetailsId { get; set; }
 
         [Required]
         [Column("guest_number")]
         public int GuestNumber { get; set; }
-
-        [Required]
-        [Column("served_by_id")]
-        public int ServedById { get; set; }
-
-        [Required]
-        [Column("table_id")]
-        public int TableId { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -76,18 +58,38 @@ namespace Restaurant.Models
         [StringLength(10)]
         public string ReservationStatus { get; set; } = "active";
 
-        // Navigation properties with explicit foreign key specification
+        [Column("special_requests")]
+        public string? SpecialRequests { get; set; }
+    }
+    
+    [Table("reservations")]
+    public class Reservation
+    {
+        [Key]
+        [Column("reservation_id")]
+        public int ReservationId { get; set; }
+    
+        [Required]
+        [Column("res_details_id")]
+        public int ResDetailsId { get; set; }
+
+        [Required]
+        [Column("customer_id")]
+        public int CustomerId { get; set; }
+
+        [Required]
+        [Column("table_id")]
+        public int TableId { get; set; }
+
+        // Navigation properties
         [ForeignKey("CustomerId")]
         public virtual Customer? Customer { get; set; }
     
         [ForeignKey("TableId")]
         public virtual RestaurantTable? Table { get; set; }
 
-        [ForeignKey("ServedById")]
-        public virtual Staff? ServedBy { get; set; }
-
-        // Remove this to avoid circular reference issues
-        // public virtual Receipt? Receipt { get; set; }
+        [ForeignKey("ResDetailsId")]
+        public virtual ReservationDetail? ReservationDetail { get; set; }
     }
 
     [Table("restaurant_tables")]
@@ -112,10 +114,6 @@ namespace Restaurant.Models
         // Navigation properties
         [ForeignKey("ServedById")]
         public virtual Staff? ServedBy { get; set; }
-        
-        // Remove collections to avoid EF confusion
-        // public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-        // public virtual ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
     }
 
     [Table("staff")]
@@ -130,57 +128,45 @@ namespace Restaurant.Models
         [StringLength(255)]
         public string Name { get; set; } = string.Empty;
 
+        [Required]
         [Column("surname")]
         [StringLength(255)]
-        public string? Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
+        [Required]
         [Column("job")]
         [StringLength(25)]
-        public string? Job { get; set; }
+        public string Job { get; set; } = string.Empty;
 
+        [Required]
         [Column("tel_no")]
         [StringLength(25)]
-        public string? TelNo { get; set; }
-
-        // Remove navigation collections to avoid EF confusion
-        // public virtual ICollection<RestaurantTable> Tables { get; set; } = new List<RestaurantTable>();
-        // public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-        // public virtual ICollection<Receipt> Receipts { get; set; } = new List<Receipt>();
+        public string TelNo { get; set; } = string.Empty;
     }
 
-    [Table("credentials")]
-    public class Credentials
+    [Table("user_credentials")]
+    public class UserCredential
     {
         [Key]
         [Column("id")]
         public int Id { get; set; }
 
+        [Required]
         [Column("username")]
         [StringLength(16)]
-        public string? Username { get; set; }
+        public string Username { get; set; } = string.Empty;
 
+        [Required]
         [Column("password")]
         [StringLength(16)]
-        public string? Password { get; set; }
+        public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [Column("user_type")]
+        [StringLength(10)]
+        public string UserType { get; set; } = string.Empty;
     }
 
-    [Table("staff_credentials")]
-    public class StaffCredentials
-    {
-        [Key]
-        [Column("id")]
-        public int Id { get; set; }
-
-        [Column("username")]
-        [StringLength(16)]
-        public string? Username { get; set; }
-
-        [Column("password")]
-        [StringLength(16)]
-        public string? Password { get; set; }
-    }
-
-    // New models for order management
     [Table("menu_items")]
     public class MenuItem
     {
@@ -209,9 +195,6 @@ namespace Restaurant.Models
 
         [Column("calories")]
         public int? Calories { get; set; }
-
-        // Remove navigation collection to avoid EF confusion
-        // public virtual ICollection<ReceiptItem> ReceiptItems { get; set; } = new List<ReceiptItem>();
     }
 
     [Table("receipts")]
@@ -225,32 +208,21 @@ namespace Restaurant.Models
         [Column("reservation_id")]
         public int ReservationId { get; set; }
 
-        [Column("table_id")]
-        public int? TableId { get; set; }
-
-        [Column("customer_id")]
-        public int? CustomerId { get; set; }
-
         [Required]
         [Column("staff_id")]
         public int StaffId { get; set; }
 
         [Required]
         [Column("total_amount")]
-        public decimal TotalAmount { get; set; }
+        [StringLength(20)]
+        public string TotalAmount { get; set; } = string.Empty;
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        // Navigation properties with explicit foreign key specification
+        // Navigation properties
         [ForeignKey("ReservationId")]
         public virtual Reservation? Reservation { get; set; }
-
-        [ForeignKey("TableId")]
-        public virtual RestaurantTable? Table { get; set; }
-
-        [ForeignKey("CustomerId")]
-        public virtual Customer? Customer { get; set; }
 
         [ForeignKey("StaffId")]
         public virtual Staff? Staff { get; set; }
@@ -279,16 +251,13 @@ namespace Restaurant.Models
 
         [Required]
         [Column("unit_price")]
-        public decimal UnitPrice { get; set; }
-
-        [Required]
-        [Column("total_price")]
-        public decimal TotalPrice { get; set; }
+        [StringLength(20)]
+        public string UnitPrice { get; set; } = string.Empty;
 
         [Column("special_notes")]
         public string? SpecialNotes { get; set; }
 
-        // Navigation properties with explicit foreign key specification
+        // Navigation properties
         [ForeignKey("ReceiptId")]
         public virtual Receipt? Receipt { get; set; }
 
@@ -299,7 +268,6 @@ namespace Restaurant.Models
     // View Models for the reservation system
     public class ReservationCreateViewModel
     {
-        // Table and reservation details (pre-populated from booking page)
         public int TableId { get; set; }
         public int CustomerId { get; set; }
         
@@ -313,13 +281,13 @@ namespace Restaurant.Models
         [Range(1, 10, ErrorMessage = "Number of guests must be between 1 and 10")]
         public int GuestNumber { get; set; }
 
-        // Customer information (to be filled in the form)
         [Required(ErrorMessage = "First name is required")]
         [StringLength(255, ErrorMessage = "First name cannot exceed 255 characters")]
         public string Name { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Last name is required")]
         [StringLength(255, ErrorMessage = "Last name cannot exceed 255 characters")]
-        public string? Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Phone number is required")]
         [StringLength(25, ErrorMessage = "Phone number cannot exceed 25 characters")]
@@ -331,14 +299,13 @@ namespace Restaurant.Models
 
         public string? SpecialRequests { get; set; }
 
-        // Navigation property for table information
         public virtual RestaurantTable? Table { get; set; }
     }
 
     public class AdminPanelView
     {
         public List<Staff> StaffMembers { get; set; } = new List<Staff>();
-        public List<Reservation> UpcomingReceipts { get; set; } = new List<Reservation>();
+        public List<Reservation> UpcomingReservations { get; set; } = new List<Reservation>();
     }
 
     public class LoginDto
@@ -350,7 +317,6 @@ namespace Restaurant.Models
         public string Password { get; set; } = string.Empty;
     }
 
-    // For table availability checking
     public class TableAvailabilityDto
     {
         public int TableId { get; set; }
@@ -359,35 +325,30 @@ namespace Restaurant.Models
         public bool IsAvailable { get; set; }
     }
 
-    // For booking page
     public class BookingViewModel
     {
         public List<RestaurantTable> AvailableTables { get; set; } = new List<RestaurantTable>();
         public Dictionary<string, List<int>> OccupiedTablesByHour { get; set; } = new Dictionary<string, List<int>>();
     }
 
-    // DTO for updating reservation status
     public class UpdateReservationStatusRequest
     {
         public int ReservationId { get; set; }
         public string Status { get; set; } = string.Empty;
     }
     
-    // ViewModels for Order Management
     public class OrderManagementViewModel
     {
         public Reservation Reservation { get; set; } = new Reservation();
         public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
-        public Receipt? ExistingReceipt { get; set; } // For handling existing receipts
+        public Receipt? ExistingReceipt { get; set; }
     }
 
     public class OrderRequest
     {
         public int ReservationId { get; set; }
-        public int TableId { get; set; }
-        public int? CustomerId { get; set; }
         public int StaffId { get; set; }
-        public decimal TotalAmount { get; set; }
+        public string TotalAmount { get; set; } = string.Empty; // Changed to string to match DB schema
         public List<OrderItem> Items { get; set; } = new List<OrderItem>();
         public string? SpecialNotes { get; set; }
     }
@@ -396,9 +357,8 @@ namespace Restaurant.Models
     {
         public int ItemId { get; set; }
         public string ItemName { get; set; } = string.Empty;
-        public decimal UnitPrice { get; set; }
+        public string UnitPrice { get; set; } = string.Empty; // Changed to string to match DB schema
         public int Quantity { get; set; }
-        public decimal TotalPrice { get; set; }
         public int? Calories { get; set; }
     }
 }

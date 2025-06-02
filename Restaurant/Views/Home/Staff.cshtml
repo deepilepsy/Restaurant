@@ -32,9 +32,10 @@
         </div>
     }
 </div>
+
 <h1 class="page-title">Staff Panel</h1>
 <div class="stat-card">
-    <div class="stat-number">@Model.UpcomingReceipts.Count()</div>
+    <div class="stat-number">@Model.UpcomingReservations.Count()</div>
     <div class="stat-label">Active Reservations</div>
 </div>
 
@@ -54,17 +55,17 @@
         </ul>
     </main>
     <!-- Data Rows -->
-    @if (Model.UpcomingReceipts.Any())
+    @if (Model.UpcomingReservations.Any())
     {
-        @foreach (var receipt in Model.UpcomingReceipts)
+        @foreach (var reservation in Model.UpcomingReservations)
         {
             <section class="row-fadeIn-wrapper">
-                <article class="row fadeIn reservation-row" id="reservation-@receipt.ReservationId">
+                <article class="row fadeIn reservation-row" id="reservation-@reservation.ReservationId">
                     <ul>
                         <li data-label="Name">
-                            @if (receipt.Customer != null)
+                            @if (reservation.Customer != null)
                             {
-                                @($"{receipt.Customer.Name} {receipt.Customer.Surname}")
+                                @($"{reservation.Customer.Name} {reservation.Customer.Surname}")
                             }
                             else
                             {
@@ -72,35 +73,71 @@
                             }
                         </li>
                         <li data-label="Phone">
-                            @if (receipt.Customer != null)
+                            @if (reservation.Customer != null)
                             {
-                                @receipt.Customer.TelNo
+                                @reservation.Customer.TelNo
                             }
                             else
                             {
                                 <span class="text-muted">-</span>
                             }
                         </li>
-                        <li data-label="Guests">@receipt.GuestNumber</li>
-                        <li data-label="Served By">@receipt.ServedBy?.Name @receipt.ServedBy?.Surname</li>
-                        <li data-label="Table">@receipt.Table?.TableId</li>
-                        <li data-label="Date">@receipt.ReservationDate.ToShortDateString()</li>
-                        <li data-label="Time">@receipt.ReservationHour</li>
+                        <li data-label="Guests">
+                            @if (reservation.ReservationDetail != null)
+                            {
+                                @reservation.ReservationDetail.GuestNumber
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </li>
+                        <li data-label="Served By">
+                            @if (reservation.Table?.ServedBy != null)
+                            {
+                                @($"{reservation.Table.ServedBy.Name} {reservation.Table.ServedBy.Surname}")
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </li>
+                        <li data-label="Table">@reservation.Table?.TableId</li>
+                        <li data-label="Date">
+                            @if (reservation.ReservationDetail != null)
+                            {
+                                @reservation.ReservationDetail.ReservationDate.ToShortDateString()
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </li>
+                        <li data-label="Time">
+                            @if (reservation.ReservationDetail != null)
+                            {
+                                @reservation.ReservationDetail.ReservationHour
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </li>
                         <li data-label="Actions">
                             <div class="action-buttons">
                                 <button type="button" class="btn-action btn-checkin"
-                                        onclick="updateReservationStatus(@receipt.ReservationId, 'checked-in')">
+                                        onclick="updateReservationStatus(@reservation.ReservationId, 'checked-in')">
                                     Check-in
                                 </button>
                                 <button type="button" class="btn-action btn-cancel"
-                                        onclick="updateReservationStatus(@receipt.ReservationId, 'cancelled')">
+                                        onclick="updateReservationStatus(@reservation.ReservationId, 'cancelled')">
                                     Cancel
                                 </button>
-                                <a href="@Url.Action("Edit", new { id = receipt.ReservationId })"
+                                <a href="@Url.Action("Edit", new { id = reservation.ReservationId })"
                                    class="btn-action btn-edit">
                                     Edit
                                 </a>
-                                <a href="@Url.Action("OrderManagement", "Home", new { reservationId = receipt.ReservationId })"
+                                <a href="@Url.Action("OrderManagement", "Home", new { reservationId = reservation.ReservationId })"
                                    class="orderbtn">
                                     Order
                                 </a>
@@ -124,8 +161,6 @@
     }
 </section>
 
-<script src="~/js/staff.js">
-
-</script>
+<script src="~/js/staff.js"></script>
 </body>
 </html>

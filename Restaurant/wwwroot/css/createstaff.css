@@ -187,3 +187,10 @@ body {
     border: 1px solid rgba(220, 53, 69, 0.3);
     color: #ff6b6b;
 }
+
+.error-message {
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    display: none;
+}

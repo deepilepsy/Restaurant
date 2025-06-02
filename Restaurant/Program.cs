@@ -1,8 +1,21 @@
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Restaurant;
 using Restaurant.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure culture settings
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en-US", "tr-TR" };
+    options.SetDefaultCulture("en-US")
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+    
+    // Use invariant culture for number parsing
+    options.DefaultRequestCulture = new RequestCulture("en-US");
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

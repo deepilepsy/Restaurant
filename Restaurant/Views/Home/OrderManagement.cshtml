@@ -39,10 +39,26 @@
             }
         </div>
         <div class="info-item">
-            <strong>Guests:</strong> @Model.Reservation.GuestNumber
+            <strong>Guests:</strong>
+            @if (Model.Reservation.ReservationDetail != null)
+            {
+                @Model.Reservation.ReservationDetail.GuestNumber
+            }
+            else
+            {
+                <span class="text-muted">-</span>
+            }
         </div>
         <div class="info-item">
-            <strong>Server:</strong> @Model.Reservation.ServedBy?.Name @Model.Reservation.ServedBy?.Surname
+            <strong>Server:</strong>
+            @if (Model.Reservation.Table?.ServedBy != null)
+            {
+                @($"{Model.Reservation.Table.ServedBy.Name} {Model.Reservation.Table.ServedBy.Surname}")
+            }
+            else
+            {
+                <span class="text-muted">-</span>
+            }
         </div>
     </div>
 </div>
@@ -70,7 +86,6 @@
 
         <!-- Category Tabs -->
         <div class="category-tabs">
-            
             <button class="tab-button active" onclick="showCategory('STARTERS')">Starters</button>
             <button class="tab-button" onclick="showCategory('SALADS')">Salads</button>
             <button class="tab-button" onclick="showCategory('MAIN')">Main Courses</button>
@@ -101,7 +116,7 @@
                                     {
                                         <div class="calories">@item.Calories cal</div>
                                     }
-                                    <button class="add-button" onclick="addToOrder(@item.ItemId, '@item.ItemName', '@item.Price', @(item.Calories ?? 0))">
+                                    <button class="add-button" onclick="addToOrder(@item.ItemId, '@Html.Raw(Html.Encode(item.ItemName))', '@item.Price', @(item.Calories ?? 0))">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
@@ -125,7 +140,7 @@
                 <span>Current Order</span>
             }
         </h2>
-        
+
         <div class="order-items" id="orderItems">
             <!-- Order items will be populated by script function -->
         </div>
@@ -138,7 +153,7 @@
 
         <div class="order-actions">
             <button class="btn-primary" onclick="confirmOrder()" id="confirmButton" disabled>
-                <i class="fas fa-check"></i> 
+                <i class="fas fa-check"></i>
                 @if (Model.ExistingReceipt != null)
                 {
                     <span>Update Order</span>
@@ -170,25 +185,27 @@
     @if (Model.ExistingReceipt != null)
     {
         <text>
-        // Load existing receipt data
-        existingReceiptData = {
-            receiptId: @Model.ExistingReceipt.ReceiptId,
-            items: [
-                @foreach (var item in Model.ExistingReceipt.ReceiptItems)
-                {
-                    <text>,
+            // Load existing receipt data
+            existingReceiptData = {
+                receiptId: @Model.ExistingReceipt.ReceiptId,
+                items: [
+                    @if (Model.ExistingReceipt.ReceiptItems != null && Model.ExistingReceipt.ReceiptItems.Any())
                     {
-                        itemId: @item.ItemId,
-                        itemName: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.MenuItem?.ItemName ?? "Unknown Item")),
-                        unitPrice: @item.UnitPrice.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
-                        quantity: @item.Quantity,
-                        totalPrice: @item.TotalPrice.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
-                        calories: @(item.MenuItem?.Calories ?? 0)
-                    }@(item != Model.ExistingReceipt.ReceiptItems.Last() ? "," : "")
-                    </text>
-                }
-            ]
-        };
+                        @foreach (var item in Model.ExistingReceipt.ReceiptItems)
+                        {
+                            <text>,
+                                {
+                                    itemId: @item.ItemId,
+                                    itemName: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.MenuItem?.ItemName ?? "Unknown Item")),
+                                    unitPrice: "@item.UnitPrice",
+                                    quantity: @item.Quantity,
+                                    calories: @(item.MenuItem?.Calories ?? 0)
+                                }@(item != Model.ExistingReceipt.ReceiptItems.Last() ? "," : "")
+                            </text>
+                        }
+                    }
+                ]
+            };
         </text>
     }
 
@@ -208,30 +225,41 @@
         event.target.classList.add('active');
     }
 
+    function parsePrice(priceString) {
+        // Handle both "145.00 TL" and "145.00" formats
+        if (typeof priceString === 'string') {
+            return parseFloat(priceString.replace(' TL', '').replace(',', '.'));
+        }
+        return parseFloat(priceString) || 0;
+    }
+
     function loadExistingOrder() {
         if (existingReceiptData && existingReceiptData.items && existingReceiptData.items.length > 0) {
             // Clear current order first
             currentOrder = [];
-            
+
             // Convert existing receipt items to order format
             existingReceiptData.items.forEach(item => {
+                const unitPrice = parsePrice(item.unitPrice);
+                const quantity = parseInt(item.quantity);
+
                 currentOrder.push({
                     itemId: parseInt(item.itemId),
                     itemName: item.itemName,
-                    unitPrice: parseFloat(item.unitPrice),
-                    quantity: parseInt(item.quantity),
-                    totalPrice: parseFloat(item.totalPrice),
+                    unitPrice: unitPrice,
+                    quantity: quantity,
+                    totalPrice: unitPrice * quantity,
                     calories: parseInt(item.calories || 0)
                 });
             });
-            
+
             updateOrderDisplay();
         }
     }
 
     function addToOrder(itemId, itemName, price, calories) {
         // Parse price (remove " TL" and convert to number)
-        const numericPrice = parseFloat(price.replace(' TL', ''));
+        const numericPrice = parsePrice(price);
 
         // Check if item already exists in order
         const existingItem = currentOrder.find(item => item.itemId === itemId);
@@ -288,7 +316,7 @@
                 <div class="quantity-controls">
                     <button class="qty-btn" onclick="removeFromOrder(${item.itemId})">-</button>
                     <span class="quantity">${item.quantity}</span>
-                    <button class="qty-btn" onclick="addToOrder(${item.itemId}, '${item.itemName}', '${item.unitPrice.toFixed(2)} TL', ${item.calories})">+</button>
+                    <button class="qty-btn" onclick="addToOrder(${item.itemId}, '${item.itemName.replace(/'/g, "\\'")}', '${item.unitPrice.toFixed(2)} TL', ${item.calories})">+</button>
                 </div>
                 <div class="item-total">${item.totalPrice.toFixed(2)} TL</div>
             `;
@@ -315,15 +343,21 @@
 
         const specialNotes = document.getElementById('specialNotes').value;
         const actionText = isUpdate ? 'updating' : 'confirming';
-        const successText = isUpdate ? 'updated' : 'confirmed';
+
+        // Convert order items to the format expected by the server (with string prices)
+        const orderItems = currentOrder.map(item => ({
+            itemId: item.itemId,
+            itemName: item.itemName,
+            unitPrice: item.unitPrice.toFixed(2) + " TL", // Convert back to string format
+            quantity: item.quantity,
+            calories: item.calories
+        }));
 
         const orderData = {
             reservationId: @Model.Reservation.ReservationId,
-            tableId: @Model.Reservation.TableId,
-            customerId: @(Model.Reservation.CustomerId),
-            staffId: @Model.Reservation.ServedById,
-            totalAmount: orderTotal,
-            items: currentOrder,
+            staffId: @(Model.Reservation.Table?.ServedBy?.StaffId ?? 1),
+            totalAmount: orderTotal.toFixed(2) + " TL", // Convert to string format
+            items: orderItems,
             specialNotes: specialNotes
         };
 
@@ -347,7 +381,7 @@
                 if (data.success) {
                     window.location.href = '@Url.Action("Staff", "Home")';
                 } else {
-                    alert(`Error ${actionText} order: ` + data.message);
+                    alert(`Error ${actionText} order: ` + (data.message || 'Unknown error'));
                     // Restore button state
                     confirmBtn.innerHTML = originalText;
                     confirmBtn.disabled = false;
@@ -365,13 +399,23 @@
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
         updateOrderDisplay();
-        
+
         // Auto-load existing order if this is an update and we have data
         if (isUpdate && existingReceiptData && existingReceiptData.items && existingReceiptData.items.length > 0) {
             setTimeout(() => {
                 loadExistingOrder();
-            }, 1000); // Give time for page to fully load
+            }, 500); // Give time for page to fully load
         }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
     });
 </script>
 </body>
