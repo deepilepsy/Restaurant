@@ -143,22 +143,6 @@ body {
     border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
-/* Mobile responsive styles */
-.mobile-responsive {
-    display: none;
-}
-
-/* Apply mobile styles when screen is small */
-body.mobile .action-buttons {
-    flex-direction: column;
-    align-items: center;
-}
-
-body.mobile .btn-action {
-    width: 100%;
-    max-width: 120px;
-    margin: 2px 0;
-}
 html, body {
     height: 100%;
     min-height: 100%;
@@ -211,4 +195,19 @@ body {
     opacity: 0.8;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+.orderbtn {
+    background: linear-gradient(45deg, #d99a4e, #8b5a2b);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 115, 0, 0.3);
+    border: 1.5px solid #d99a4e;
+    text-decoration: none;
+}
+
+.orderbtn:hover {
+    background: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 128, 0, 0.4);
+    color: #d99a4e;
 }

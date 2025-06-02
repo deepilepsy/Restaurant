@@ -8,29 +8,7 @@
 <head>
     <title>Staff Page</title>
     <link rel="stylesheet" href="~/css/tables.css?v=1.0.2" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/css/staffpage.css"></link>
-    <style>
-        .btn-order {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            margin: 2px;
-        }
-        
-        .btn-order:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-            color: white;
-            text-decoration: none;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/staffpage.css?v=1.0.1"></link>
 </head>
 <body>
 <div>
@@ -76,7 +54,7 @@
         </ul>
     </main>
     <!-- Data Rows -->
-    @if (Model.UpcomingReceipts != null && Model.UpcomingReceipts.Any())
+    @if (Model.UpcomingReceipts.Any())
     {
         @foreach (var receipt in Model.UpcomingReceipts)
         {
@@ -123,8 +101,8 @@
                                     Edit
                                 </a>
                                 <a href="@Url.Action("OrderManagement", "Home", new { reservationId = receipt.ReservationId })"
-                                   class="btn-order">
-                                    <i class="fas fa-utensils"></i> Order
+                                   class="orderbtn">
+                                    Order
                                 </a>
                             </div>
                         </li>
