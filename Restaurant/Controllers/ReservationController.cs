@@ -131,7 +131,6 @@ public async Task<IActionResult> Create(int? tableId, int customerId, string? da
 }
         // POST: Handle reservation creation
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ReservationCreateViewModel model)
         {
             try

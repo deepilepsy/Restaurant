@@ -189,7 +189,6 @@
                 }
             ]
         };
-        console.log('Existing receipt data loaded:', existingReceiptData);
         </text>
     }
 
@@ -211,8 +210,6 @@
 
     function loadExistingOrder() {
         if (existingReceiptData && existingReceiptData.items && existingReceiptData.items.length > 0) {
-            console.log('Loading existing order:', existingReceiptData.items);
-            
             // Clear current order first
             currentOrder = [];
             
@@ -228,10 +225,7 @@
                 });
             });
             
-            console.log('Current order after loading:', currentOrder);
             updateOrderDisplay();
-        } else {
-            console.log('No existing receipt data found');
         }
     }
 
@@ -370,20 +364,15 @@
 
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Page loaded, isUpdate:', isUpdate);
-        console.log('Existing receipt data:', existingReceiptData);
-        
         updateOrderDisplay();
         
         // Auto-load existing order if this is an update and we have data
         if (isUpdate && existingReceiptData && existingReceiptData.items && existingReceiptData.items.length > 0) {
-            console.log('Auto-loading existing order...');
             setTimeout(() => {
                 loadExistingOrder();
             }, 1000); // Give time for page to fully load
         }
     });
 </script>
-@Html.AntiForgeryToken()
 </body>
 </html>
