@@ -277,14 +277,6 @@ else
                     Cancel
                 </a>
             }
-
-            @if (Model.ReservationStatus == "active")
-            {
-                <a href="@Url.Action("Delete", "Home", new { id = Model.ReservationId })"
-                   class="btn btn-danger">
-                    Delete Reservation
-                </a>
-            }
         </div>
     </form>
 </div>
