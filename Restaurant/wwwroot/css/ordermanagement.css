@@ -464,3 +464,49 @@ body {
         text-align: center;
     }
 }
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+     0% { transform: rotate(0deg); }
+     100% { transform: rotate(360deg); }
+ }
+
+.update-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    margin-left: 10px;
+}
+
+.existing-order-info {
+    background-color: #e8f5e8;
+    border: 1px solid #28a745;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.existing-items-header {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.btn-load-existing {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.btn-load-existing:hover {
+    background-color: #138496;
+}
+    

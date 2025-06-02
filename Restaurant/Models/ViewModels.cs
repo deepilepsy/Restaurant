@@ -378,7 +378,7 @@ namespace Restaurant.Models
     {
         public Reservation Reservation { get; set; } = new Reservation();
         public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
-        public Receipt? ExistingReceipt { get; set; } // Added for handling existing receipts
+        public Receipt? ExistingReceipt { get; set; } // For handling existing receipts
     }
 
     public class OrderRequest

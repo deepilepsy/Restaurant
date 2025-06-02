@@ -751,8 +751,7 @@ public class HomeController : Controller
         TempData["Error"] = $"No reservation found with ID: {receiptSearch}";
         return RedirectToAction("Index");
     }
-
-    // ORDER MANAGEMENT METHODS
+// ORDER MANAGEMENT 
 public async Task<IActionResult> OrderManagement(int reservationId)
 {
     try
