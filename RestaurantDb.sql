@@ -1,3 +1,133 @@
+CREATE DATABASE RestaurantDB;
+GO
+
+USE RestaurantDB;
+GO
+
+-- Staff
+CREATE TABLE dbo.staff (
+                           staff_id INT PRIMARY KEY IDENTITY(1,1),
+                           name NVARCHAR(255) NOT NULL,
+                           surname NVARCHAR(255) NOT NULL,
+                           job NVARCHAR(25) NOT NULL,
+                           tel_no NVARCHAR(25) NOT NULL
+);
+
+-- Restaurant tables
+CREATE TABLE dbo.restaurant_tables (
+                                       table_id INT PRIMARY KEY,
+                                       min_capacity INT NOT NULL,
+                                       max_capacity INT NOT NULL,
+                                       served_by_id INT NOT NULL,
+                                       CONSTRAINT FK_table_staff FOREIGN KEY (served_by_id)
+                                           REFERENCES dbo.staff(staff_id)
+);
+
+-- Customers
+CREATE TABLE dbo.customers (
+                               customer_id INT PRIMARY KEY IDENTITY (1, 1),
+                               name NVARCHAR(255) NOT NULL,
+                               surname NVARCHAR(255) NOT NULL,
+                               tel_no NVARCHAR(25) NOT NULL,
+                               email NVARCHAR(255) NULL
+);
+
+-- Reservation details
+CREATE TABLE dbo.reservation_details (
+                                         res_details_id INT PRIMARY KEY IDENTITY (1, 1),
+                                         guest_number INT NOT NULL,
+                                         created_at DATETIME DEFAULT GETDATE(),
+                                         reservation_date DATE NOT NULL,
+                                         reservation_hour NVARCHAR(10) NOT NULL,
+                                         reservation_status NVARCHAR(10) NOT NULL DEFAULT 'active',
+                                         special_requests NVARCHAR(MAX) NULL
+);
+
+-- Reservations table
+CREATE TABLE dbo.reservations (
+                                  reservation_id INT PRIMARY KEY IDENTITY(600000,1),
+                                  res_details_id INT NOT NULL,
+                                  customer_id INT NOT NULL,
+                                  table_id INT NOT NULL,
+                                  CONSTRAINT FK_reservation_customer FOREIGN KEY (customer_id)
+                                      REFERENCES dbo.customers(customer_id),
+                                  CONSTRAINT FK_reservation_table FOREIGN KEY (table_id)
+                                      REFERENCES dbo.restaurant_tables(table_id),
+                                  CONSTRAINT FK_reservation_detail FOREIGN KEY (res_details_id)
+                                      REFERENCES dbo.reservation_details(res_details_id)
+);
+
+-- Credentials
+CREATE TABLE dbo.user_credentials (
+                                      id INT PRIMARY KEY IDENTITY(1, 1),
+                                      username NVARCHAR(16) NOT NULL UNIQUE,
+                                      password NVARCHAR(16) NOT NULL,
+                                      user_type NVARCHAR(10) NOT NULL
+);
+
+-- Menu items
+CREATE TABLE dbo.menu_items (
+                                item_id INT PRIMARY KEY IDENTITY (1,1),
+                                item_name NVARCHAR(255) NOT NULL,
+                                category NVARCHAR(50) NOT NULL,
+                                subcategory NVARCHAR(50) NULL,
+                                price NVARCHAR(20) NOT NULL,
+                                calories INT NULL
+);
+
+-- Receipts
+CREATE TABLE dbo.receipts (
+                              receipt_id INT PRIMARY KEY IDENTITY(1,1),
+                              reservation_id INT NOT NULL,
+                              staff_id INT NOT NULL,
+                              total_amount NVARCHAR(20) NOT NULL,
+                              created_at DATETIME DEFAULT GETDATE(),
+                              CONSTRAINT FK_receipt_reservation FOREIGN KEY (reservation_id)
+                                  REFERENCES dbo.reservations(reservation_id),
+                              CONSTRAINT FK_receipt_staff FOREIGN KEY (staff_id)
+                                  REFERENCES dbo.staff(staff_id)
+);
+
+-- Receipt items
+CREATE TABLE dbo.receipt_items (
+                                   receipt_item_id INT PRIMARY KEY IDENTITY(1,1),
+                                   receipt_id INT NOT NULL,
+                                   item_id INT NOT NULL,
+                                   quantity INT NOT NULL,
+                                   unit_price NVARCHAR(20) NOT NULL,
+                                   special_notes NVARCHAR(MAX) NULL,
+                                   CONSTRAINT FK_receipt_item_receipt FOREIGN KEY (receipt_id)
+                                       REFERENCES dbo.receipts(receipt_id),
+                                   CONSTRAINT FK_receipt_item_menu FOREIGN KEY (item_id)
+                                       REFERENCES dbo.menu_items(item_id)
+);
+
+
+
+-- Insert credentials
+INSERT INTO dbo.user_credentials (username, password, user_type) VALUES
+                                                                     ('root', 'root', 'admin'),
+                                                                     ('staff', 'staff', 'staff');
+
+-- Insert staff
+INSERT INTO dbo.staff (name, surname, job, tel_no) VALUES
+                                                       (N'Ali', N'Yılmaz', 'waiter', N'+905001112233'),
+                                                       (N'Ayşe', N'Demir', 'waiter', N'+905002223344'),
+                                                       (N'Mehmet', N'Kara', 'waiter', N'+905003334455'),
+                                                       (N'Zeynep', N'Çelik', 'waiter', N'+905004445566'),
+                                                       (N'Ahmet', N'Şahin', 'chef', N'+905005556677'),
+                                                       (N'Elif', N'Koç', 'chef', N'+905006667788'),
+                                                       (N'Mert', N'Aydın', 'cleaner', N'+905007778899'),
+                                                       (N'Seda', N'Öztürk', 'cleaner', N'+905008889900'),
+                                                       (N'Can', N'Güneş', 'dishwasher', N'+905009990011'),
+                                                       (N'Esra', N'Bozkurt', 'dishwasher', N'+905001001002');
+
+-- Insert tables
+INSERT INTO dbo.restaurant_tables (table_id, min_capacity, max_capacity, served_by_id) VALUES
+                                                                                           (1, 5, 10, 1), (2, 5, 10, 1), (3, 3, 4, 1), (4, 3, 4, 1), (5, 3, 4, 1),
+                                                                                           (6, 3, 4, 2), (7, 3, 4, 2), (8, 3, 4, 2), (9, 3, 4, 2), (10, 3, 4, 2),
+                                                                                           (11, 2, 2, 3), (12, 2, 2, 3), (13, 2, 2, 3), (14, 2, 2, 3), (15, 2, 2, 3),
+                                                                                           (16, 1, 1, 4), (17, 1, 1, 4), (18, 1, 1, 4), (19, 1, 1, 4), (20, 1, 1, 4);
 
 -- DRINKS - Coffees
 INSERT INTO dbo.menu_items (item_name, category, subcategory, price, calories) VALUES
