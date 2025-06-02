@@ -95,11 +95,13 @@ else
                     <label for="firstName">First Name <span class="required">*</span></label>
                     <input type="text" id="firstName" name="Customer.Name"
                            value="@(Model.Customer?.Name ?? "")" required placeholder="Enter first name">
+                    <div class="error-message" id="firstNameError">Please enter your first name properly</div>
                 </div>
                 <div class="form-group">
                     <label for="lastName">Last Name</label>
                     <input type="text" id="lastName" name="Customer.Surname"
                            value="@(Model.Customer?.Surname ?? "")" required placeholder="Enter last name">
+                    <div class="error-message" id="lastNameError">Please enter your last name properly</div>
                 </div>
             </div>
         </div>
@@ -111,11 +113,13 @@ else
                     <label for="phone">Phone Number <span class="required">*</span></label>
                     <input type="tel" id="phone" maxlength="13" name="Customer.TelNo"
                            value="@(Model.Customer?.TelNo ?? "")" required placeholder="+90 (555) 123-4567">
+                    <div class="error-message" id="phoneError">Please enter your a valid phone number</div>
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" name="Customer.Email"
                            value="@(Model.Customer?.Email ?? "")" placeholder="your.email@example.com">
+                    <div class="error-message" id="emailError">Please enter a valid email address</div>
                 </div>
             </div>
         </div>
@@ -281,6 +285,7 @@ else
     </form>
 </div>
 
+<script src="~/js/edit.js?v=1.0.1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8/inputmask.min.js"></script>
 <script>
     const currentReservationId = @Model.ReservationId;
@@ -427,6 +432,7 @@ else
         });
     }, 5000);
     
+
 </script>
 </body>
 </html>

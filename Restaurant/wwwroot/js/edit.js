@@ -1,36 +1,5 @@
-// Get URL parameters
-const urlParams = new URLSearchParams(window.location.search);
-const tableId = urlParams.get('tableId');
-const date = urlParams.get('date');
-const time = urlParams.get('time');
-const guests = urlParams.get('guests');
-
-// Display reservation details
-if (tableId) {
-    document.getElementById('tableNumber').textContent = tableId;
-    document.getElementById('hiddenTableId').value = tableId;
-}
-if (date) {
-    const formattedDate = new Date(date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    document.getElementById('reservationDate').textContent = formattedDate;
-    document.getElementById('hiddenDate').value = date;
-}
-if (time) {
-    document.getElementById('reservationTime').textContent = time;
-    document.getElementById('hiddenTime').value = time;
-}
-if (guests) {
-    document.getElementById('guestCount').textContent = guests + (guests === '1' ? ' Guest' : ' Guests');
-    document.getElementById('hiddenGuests').value = guests;
-}
-
 // Form validation
-document.getElementById('reservationForm').addEventListener('submit', function(e) {
+document.getElementById('editForm').addEventListener('submit', function(e) {
     let isValid = true;
 
     // Clear previous errors
@@ -126,6 +95,7 @@ document.querySelectorAll('input[required]').forEach(input => {
         }
     });
 });
+
 
 // Email validation on blur
 document.getElementById('email').addEventListener('blur', function() {
