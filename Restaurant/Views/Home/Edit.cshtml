@@ -102,7 +102,6 @@ else
         <input type="hidden" name="ReservationId" value="@Model.ReservationId"/>
         <input type="hidden" name="ResDetailsId" value="@Model.ResDetailsId"/>
         <input type="hidden" name="CustomerId" value="@Model.CustomerId"/>
-        <!-- Always include current TableId as a fallback -->
         <input type="hidden" name="CurrentTableId" value="@Model.TableId"/>
 
         <div class="form-section">
@@ -112,13 +111,11 @@ else
                     <label for="firstName">First Name <span class="required">*</span></label>
                     <input type="text" id="firstName" name="Customer.Name"
                            value="@(Model.Customer?.Name ?? "")" required placeholder="Enter first name">
-                    <div class="error-message" id="firstNameError">Please enter your first name properly</div>
                 </div>
                 <div class="form-group">
                     <label for="lastName">Last Name <span class="required">*</span></label>
                     <input type="text" id="lastName" name="Customer.Surname"
                            value="@(Model.Customer?.Surname ?? "")" required placeholder="Enter last name">
-                    <div class="error-message" id="lastNameError">Please enter your last name properly</div>
                 </div>
             </div>
         </div>
@@ -130,13 +127,11 @@ else
                     <label for="phone">Phone Number <span class="required">*</span></label>
                     <input type="tel" id="phone" maxlength="13" name="Customer.TelNo"
                            value="@(Model.Customer?.TelNo ?? "")" required placeholder="+90 (555) 123-4567">
-                    <div class="error-message" id="phoneError">Please enter your a valid phone number</div>
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" name="Customer.Email"
                            value="@(Model.Customer?.Email ?? "")" placeholder="your.email@example.com">
-                    <div class="error-message" id="emailError">Please enter a valid email address</div>
                 </div>
             </div>
         </div>
@@ -154,7 +149,7 @@ else
                     }
                     else
                     {
-                        <select id="guestNumber" name="ReservationDetail.GuestNumber" required onchange="updateAvailableTables()">
+                        <select id="guestNumber" name="ReservationDetail.GuestNumber" required onchange="updateTables()">
                             @for (int i = 1; i <= 10; i++)
                             {
                                 if (i == (Model.ReservationDetail?.GuestNumber ?? 1))
@@ -173,7 +168,6 @@ else
                     <label for="tableId">Table Number <span class="required">*</span></label>
                     @if (Model.ReservationDetail?.ReservationStatus != "active")
                     {
-                        <!-- Hidden field to ensure value is submitted even when select is disabled -->
                         <input type="hidden" name="TableId" value="@Model.TableId" />
                         <select id="tableId" disabled class="readonly-field">
                             <option value="@Model.TableId" selected>Table @Model.TableId</option>
@@ -181,7 +175,7 @@ else
                     }
                     else
                     {
-                        <select id="tableId" name="TableId" required onchange="updateAssignedStaff()">
+                        <select id="tableId" name="TableId" required onchange="updateStaff()">
                             <option value="">Select a table...</option>
                         </select>
                     }
@@ -200,7 +194,7 @@ else
                     {
                         <input type="date" id="reservationDate" name="ReservationDetail.ReservationDate"
                                value="@(Model.ReservationDetail?.ReservationDate.ToString("yyyy-MM-dd") ?? today)" required
-                               min="@today" onchange="updateAvailableTables()">
+                               min="@today" onchange="updateTables()">
                     }
                 </div>
                 <div class="form-group">
@@ -213,55 +207,15 @@ else
                     }
                     else
                     {
-                        <select id="reservationTime" name="ReservationDetail.ReservationHour" required onchange="updateAvailableTables()">
+                        <select id="reservationTime" name="ReservationDetail.ReservationHour" required onchange="updateTables()">
                             @{
                                 var currentHour = Model.ReservationDetail?.ReservationHour ?? "14:00";
-                                // Manual time slot generation instead of using array with foreach
                             }
-                            @if (currentHour == "14:00")
-                            {
-                                <option value="14:00" selected>14:00</option>
-                            }
-                            else
-                            {
-                                <option value="14:00">14:00</option>
-                            }
-
-                            @if (currentHour == "16:00")
-                            {
-                                <option value="16:00" selected>16:00</option>
-                            }
-                            else
-                            {
-                                <option value="16:00">16:00</option>
-                            }
-
-                            @if (currentHour == "18:00")
-                            {
-                                <option value="18:00" selected>18:00</option>
-                            }
-                            else
-                            {
-                                <option value="18:00">18:00</option>
-                            }
-
-                            @if (currentHour == "20:00")
-                            {
-                                <option value="20:00" selected>20:00</option>
-                            }
-                            else
-                            {
-                                <option value="20:00">20:00</option>
-                            }
-
-                            @if (currentHour == "22:00")
-                            {
-                                <option value="22:00" selected>22:00</option>
-                            }
-                            else
-                            {
-                                <option value="22:00">22:00</option>
-                            }
+                            <option value="14:00" @(currentHour == "14:00" ? "selected" : "")>14:00</option>
+                            <option value="16:00" @(currentHour == "16:00" ? "selected" : "")>16:00</option>
+                            <option value="18:00" @(currentHour == "18:00" ? "selected" : "")>18:00</option>
+                            <option value="20:00" @(currentHour == "20:00" ? "selected" : "")>20:00</option>
+                            <option value="22:00" @(currentHour == "22:00" ? "selected" : "")>22:00</option>
                         </select>
                     }
                 </div>
@@ -315,430 +269,141 @@ else
     </form>
 </div>
 
-<!-- <script src="~/js/edit.js?v=1.0.1"></script> -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8/inputmask.min.js"></script>
 <script>
     const currentReservationId = @Model.ReservationId;
     let allTables = [];
     let allStaff = [];
 
-    // Load initial data
+    // Load initial data when page loads
     document.addEventListener('DOMContentLoaded', function() {
-        loadTableCapacities();
-        loadStaffMembers();
-        setupEventListeners();
+        loadTableData();
+        loadStaffData();
 
-        // Initialize tables for current guest count
-        setTimeout(() => {
-            updateAvailableTables();
-        }, 500);
+        // Initialize tables after data loads
+        setTimeout(updateTables, 500);
     });
 
-    function setupEventListeners() {
-        // Add event listeners for form changes
-        const guestNumberInput = document.getElementById('guestNumber');
-        const reservationDateInput = document.getElementById('reservationDate');
-        const reservationTimeSelect = document.getElementById('reservationTime');
-        const tableSelect = document.getElementById('tableId');
-
-        if (guestNumberInput) {
-            guestNumberInput.addEventListener('change', updateAvailableTables);
-            guestNumberInput.addEventListener('input', debounce(updateAvailableTables, 300));
-        }
-
-        if (reservationDateInput) {
-            reservationDateInput.addEventListener('change', updateAvailableTables);
-        }
-
-        if (reservationTimeSelect) {
-            reservationTimeSelect.addEventListener('change', updateAvailableTables);
-        }
-
-        if (tableSelect) {
-            tableSelect.addEventListener('change', updateAssignedStaff);
-        }
-
-        // Add form validation before submit
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', validateForm);
-        }
+    // Load table data
+    function loadTableData() {
+        fetch('/Home/GetTableCapacities')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    allTables = data.tableCapacities;
+                }
+            })
+            .catch(error => console.error('Error loading tables:', error));
     }
 
-    // Debounce function to prevent excessive API calls
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
+    // Load staff data
+    function loadStaffData() {
+        fetch('/Home/GetStaffMembers')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    allStaff = data.staff;
+                }
+            })
+            .catch(error => console.error('Error loading staff:', error));
     }
 
-    async function loadTableCapacities() {
-        try {
-            showLoadingSpinner('Loading table information...');
-            const response = await fetch('/Home/GetTableCapacities');
-            const data = await response.json();
-            if (data.success) {
-                allTables = data.tableCapacities;
-                console.log('Loaded table capacities:', allTables.length);
-            } else {
-                showError('Failed to load table information');
-            }
-        } catch (error) {
-            console.error('Error loading table capacities:', error);
-            showError('Error loading table information');
-        } finally {
-            hideLoadingSpinner();
-        }
-    }
-
-    async function loadStaffMembers() {
-        try {
-            const response = await fetch('/Home/GetStaffMembers');
-            const data = await response.json();
-            if (data.success) {
-                allStaff = data.staff;
-                console.log('Loaded staff members:', allStaff.length);
-            } else {
-                showError('Failed to load staff information');
-            }
-        } catch (error) {
-            console.error('Error loading staff members:', error);
-            showError('Error loading staff information');
-        }
-    }
-
-    async function updateAvailableTables() {
+    // Update available tables based on current selections
+    function updateTables() {
         const guestNumber = parseInt(document.getElementById('guestNumber').value);
         const date = document.getElementById('reservationDate').value;
         const time = document.getElementById('reservationTime').value;
         const tableSelect = document.getElementById('tableId');
         const currentTableId = @Model.TableId;
 
-        // Clear any previous error messages
-        clearError();
-
-        if (!guestNumber || !date || !time) {
-            if (tableSelect) {
-                tableSelect.innerHTML = '<option value="">Please fill in guest number, date, and time first</option>';
-            }
+        if (!guestNumber || !date || !time || !tableSelect) {
             return;
         }
 
-        // Validate guest number
-        if (guestNumber < 1 || guestNumber > 50) {
-            showError('Guest number must be between 1 and 50');
-            return;
-        }
+        // Get available tables for the selected date/time
+        const url = `/Home/GetAvailableTables?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&currentReservationId=${currentReservationId}`;
 
-        // Validate date is not in the past
-        const selectedDate = new Date(date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear current options
+                    tableSelect.innerHTML = '<option value="">Select a table...</option>';
 
-        if (selectedDate < today) {
-            showError('Reservation date cannot be in the past');
-            return;
-        }
+                    // Filter tables by guest capacity and add to select
+                    for (let i = 0; i < data.tables.length; i++) {
+                        const table = data.tables[i];
+                        if (table.minCapacity <= guestNumber && table.maxCapacity >= guestNumber) {
+                            const option = document.createElement('option');
+                            option.value = table.tableId;
+                            option.textContent = `Table ${table.tableId} (${table.minCapacity}-${table.maxCapacity} people) - ${table.serverName}`;
 
-        try {
-            showLoadingSpinner('Checking table availability...');
+                            // Select current table if it's still available
+                            if (table.tableId === currentTableId) {
+                                option.selected = true;
+                            }
 
-            // Get available tables for the selected date/time
-            const response = await fetch(`/Home/GetAvailableTables?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}&currentReservationId=${currentReservationId}`);
-            const data = await response.json();
-
-            if (data.success) {
-                // Filter tables by guest capacity
-                const suitableTables = [];
-                for (let i = 0; i < data.tables.length; i++) {
-                    const table = data.tables[i];
-                    if (table.minCapacity <= guestNumber && table.maxCapacity >= guestNumber) {
-                        suitableTables.push(table);
-                    }
-                }
-
-                // Clear current options
-                tableSelect.innerHTML = '<option value="">Select a table...</option>';
-
-                // Add suitable tables
-                for (let i = 0; i < suitableTables.length; i++) {
-                    const table = suitableTables[i];
-                    const option = document.createElement('option');
-                    option.value = table.tableId;
-                    option.textContent = `Table ${table.tableId} (${table.minCapacity}-${table.maxCapacity} people) - ${table.serverName}`;
-
-                    // Select current table if it's still suitable
-                    if (table.tableId === currentTableId) {
-                        option.selected = true;
+                            tableSelect.appendChild(option);
+                        }
                     }
 
-                    tableSelect.appendChild(option);
+                    updateStaff();
                 }
-
-                // Check if current table is still suitable
-                let currentTableStillSuitable = false;
-                for (let i = 0; i < suitableTables.length; i++) {
-                    if (suitableTables[i].tableId === currentTableId) {
-                        currentTableStillSuitable = true;
-                        break;
-                    }
-                }
-
-                // If current table is no longer suitable, clear selection and staff
-                if (!currentTableStillSuitable) {
-                    document.getElementById('servedBy').innerHTML = '<option value="">Please select a table first</option>';
-                    if (suitableTables.length > 0) {
-                        showWarning('Your current table is no longer suitable for the selected criteria. Please choose a new table.');
-                    }
-                } else {
-                    // Update staff for current table
-                    updateAssignedStaff();
-                }
-
-                // Show message if no suitable tables
-                if (suitableTables.length === 0) {
-                    tableSelect.innerHTML = '<option value="">No tables available for selected criteria</option>';
-                    document.getElementById('servedBy').innerHTML = '<option value="">No staff assigned</option>';
-                }
-            } else {
-                showError(data.message || 'Failed to load available tables');
-            }
-        } catch (error) {
-            console.error('Error updating available tables:', error);
-            tableSelect.innerHTML = '<option value="">Error loading tables</option>';
-            showError('Error checking table availability. Please try again.');
-        } finally {
-            hideLoadingSpinner();
-        }
+            })
+            .catch(error => {
+                console.error('Error updating tables:', error);
+                tableSelect.innerHTML = '<option value="">Error loading tables</option>';
+            });
     }
 
-    function updateAssignedStaff() {
+    // Update staff assignment based on selected table
+    function updateStaff() {
         const tableId = parseInt(document.getElementById('tableId').value);
         const servedBySelect = document.getElementById('servedBy');
 
-        if (!tableId) {
-            servedBySelect.innerHTML = '<option value="">Please select a table first</option>';
+        if (!tableId || !servedBySelect) {
             return;
         }
 
-        // Find the table data
-        let selectedTable = null;
-        for (let i = 0; i < allTables.length; i++) {
-            if (allTables[i].tableId === tableId) {
-                selectedTable = allTables[i];
-                break;
-            }
-        }
-
-        if (!selectedTable) {
-            servedBySelect.innerHTML = '<option value="">Table information not found</option>';
-            return;
-        }
-
-        // Find the staff member assigned to this table
+        // Find staff for selected table
         const tableSelect = document.getElementById('tableId');
         const selectedOption = tableSelect.options[tableSelect.selectedIndex];
 
         if (selectedOption && selectedOption.value) {
             // Extract server name from the option text
             const optionText = selectedOption.textContent;
-            const serverName = optionText.split(' - ')[1];
+            const parts = optionText.split(' - ');
+            if (parts.length > 1) {
+                const serverName = parts[1];
 
-            // Find the staff ID based on the server name
-            let staffMember = null;
-            for (let i = 0; i < allStaff.length; i++) {
-                if (allStaff[i].name === serverName) {
-                    staffMember = allStaff[i];
-                    break;
+                // Find matching staff member
+                for (let i = 0; i < allStaff.length; i++) {
+                    if (allStaff[i].name === serverName) {
+                        servedBySelect.innerHTML = `<option value="${allStaff[i].staffId}" selected>${allStaff[i].name}</option>`;
+                        return;
+                    }
                 }
-            }
 
-            if (staffMember) {
-                servedBySelect.innerHTML = `<option value="${staffMember.staffId}" selected>${staffMember.name}</option>`;
-            } else {
-                servedBySelect.innerHTML = `<option value="" selected>${serverName || 'Unknown Staff'}</option>`;
+                // Fallback if staff not found
+                servedBySelect.innerHTML = `<option value="" selected>${serverName}</option>`;
             }
         }
     }
 
-    function validateForm(event) {
-        const guestNumber = parseInt(document.getElementById('guestNumber').value);
-        const date = document.getElementById('reservationDate').value;
-        const time = document.getElementById('reservationTime').value;
-        const tableId = document.getElementById('tableId').value;
-
-        let isValid = true;
-        let errorMessage = '';
-
-        if (!guestNumber || guestNumber < 1) {
-            errorMessage += 'Please enter a valid guest number. ';
-            isValid = false;
-        }
-
-        if (!date) {
-            errorMessage += 'Please select a reservation date. ';
-            isValid = false;
-        }
-
-        if (!time) {
-            errorMessage += 'Please select a reservation time. ';
-            isValid = false;
-        }
-
-        if (!tableId) {
-            errorMessage += 'Please select a table. ';
-            isValid = false;
-        }
-
-        // Validate date is not in the past
-        if (date) {
-            const selectedDate = new Date(date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            if (selectedDate < today) {
-                errorMessage += 'Reservation date cannot be in the past. ';
-                isValid = false;
-            }
-        }
-
-        if (!isValid) {
-            event.preventDefault();
-            showError(errorMessage.trim());
-            return false;
-        }
-
-        // Show loading state on form submission
-        showLoadingSpinner('Updating reservation...');
-        return true;
-    }
-
-    // Utility functions for user feedback
-    function showError(message) {
-        clearMessages();
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-        alertDiv.innerHTML = `
-        <strong>Error!</strong> ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-        insertAlert(alertDiv);
-    }
-
-    function showWarning(message) {
-        clearMessages();
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'alert alert-warning alert-dismissible fade show';
-        alertDiv.innerHTML = `
-        <strong>Warning!</strong> ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-        insertAlert(alertDiv);
-    }
-
-    function showSuccess(message) {
-        clearMessages();
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'alert alert-success alert-dismissible fade show';
-        alertDiv.innerHTML = `
-        <strong>Success!</strong> ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-        insertAlert(alertDiv);
-
-        // Auto-hide success messages
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 3000);
-    }
-
-    function clearMessages() {
-        const existingAlerts = document.querySelectorAll('.alert:not(.server-alert)');
-        existingAlerts.forEach(alert => alert.remove());
-    }
-
-    function clearError() {
-        const errorAlerts = document.querySelectorAll('.alert-danger:not(.server-alert)');
-        errorAlerts.forEach(alert => alert.remove());
-    }
-
-    function insertAlert(alertDiv) {
-        const form = document.querySelector('form');
-        if (form) {
-            form.insertBefore(alertDiv, form.firstChild);
-        } else {
-            document.body.insertBefore(alertDiv, document.body.firstChild);
-        }
-    }
-
-    function showLoadingSpinner(message = 'Loading...') {
-        let spinner = document.getElementById('loadingSpinner');
-        if (!spinner) {
-            spinner = document.createElement('div');
-            spinner.id = 'loadingSpinner';
-            spinner.className = 'alert alert-info';
-            spinner.innerHTML = `
-            <div class="d-flex align-items-center">
-                <div class="spinner-border spinner-border-sm me-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <span id="loadingMessage">${message}</span>
-            </div>
-        `;
-            insertAlert(spinner);
-        } else {
-            document.getElementById('loadingMessage').textContent = message;
-            spinner.style.display = 'block';
-        }
-    }
-
-    function hideLoadingSpinner() {
-        const spinner = document.getElementById('loadingSpinner');
-        if (spinner) {
-            spinner.remove();
-        }
-    }
-
-    // Auto-hide server alerts (keeping original functionality)
+    // Auto-hide alerts after 5 seconds
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(function(alert) {
-            // Add a class to identify server-generated alerts
-            alert.classList.add('server-alert');
-            alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.5s ease';
-            setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.remove();
+        for (let i = 0; i < alerts.length; i++) {
+            alerts[i].style.opacity = '0';
+            alerts[i].style.transition = 'opacity 0.5s ease';
+        }
+        setTimeout(() => {
+            for (let i = 0; i < alerts.length; i++) {
+                if (alerts[i].parentNode) {
+                    alerts[i].remove();
                 }
-            }, 500);
-        });
-    }, 5000);
-
-    // Add keyboard shortcuts for better UX
-    document.addEventListener('keydown', function(event) {
-        // Ctrl/Cmd + S to save form
-        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-            event.preventDefault();
-            const form = document.querySelector('form');
-            if (form) {
-                form.submit();
             }
-        }
-
-        // Escape to clear messages
-        if (event.key === 'Escape') {
-            clearMessages();
-        }
-    });
+        }, 500);
+    }, 5000);
 </script>
 </body>
 </html>
