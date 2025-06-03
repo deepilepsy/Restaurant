@@ -26,7 +26,7 @@ document.getElementById('staffForm').addEventListener('submit', function(e) {
         document.getElementById('lastNameError').style.display = 'none';
     }
 
-    // Validate phone 
+    // Validate phone
     const phone = document.getElementById('phone').value.trim();
     const phoneDigitsOnly = phone.replace(/\D/g, ''); // Remove all non-digits
 

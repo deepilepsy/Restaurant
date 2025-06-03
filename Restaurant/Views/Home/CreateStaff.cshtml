@@ -28,9 +28,15 @@
         <div class="alert alert-danger">
             <strong>Please correct the following errors:</strong>
             <ul style="margin: 10px 0 0 20px;">
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    <li>@error.ErrorMessage</li>
+                @{
+                    // Manual iteration instead of LINQ SelectMany
+                    foreach (var modelState in ViewData.ModelState.Values)
+                    {
+                        foreach (var error in modelState.Errors)
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    }
                 }
             </ul>
         </div>

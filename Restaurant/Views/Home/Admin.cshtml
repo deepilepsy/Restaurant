@@ -35,19 +35,15 @@
 
 <h1 class="page-title">Admin Panel</h1>
 
-<!-- Statistics Cards -->
+<!-- Statistics Cards - Using pre-calculated values from controller -->
 <div class="stats-container">
     <div class="stat-card">
-        <div class="stat-number">@Model.StaffMembers.Count()</div>
+        <div class="stat-number">@Model.TotalStaff</div>
         <div class="stat-label">Total Staff</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number">@Model.StaffMembers.Count(s => s.Job == "waiter")</div>
+        <div class="stat-number">@Model.TotalWaiters</div>
         <div class="stat-label">Waiters</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-number">@Model.UpcomingReservations.Count()</div>
-        <div class="stat-label">Active Reservations</div>
     </div>
 </div>
 
@@ -76,7 +72,7 @@
     </main>
 
     <!-- Staff Data Rows -->
-    @if (Model.StaffMembers != null && Model.StaffMembers.Any())
+    @if (Model.StaffMembers != null && Model.StaffMembers.Count > 0)
     {
         @foreach (var staff in Model.StaffMembers)
         {
@@ -113,127 +109,6 @@
                 <div class="no-data-message">
                     <span class="no-data-icon"></span>
                     No staff members found. Click "Add New Staff Member" to get started.
-                </div>
-            </article>
-        </section>
-    }
-</section>
-
-<!-- Reservations Section -->
-<h2 class="section-title">Active Reservations</h2>
-
-<section class="wrapper">
-    <!-- Reservations Title Row -->
-    <main class="row title">
-        <ul>
-            <li>Guest Name</li>
-            <li>Phone</li>
-            <li>Guests</li>
-            <li>Served By</li>
-            <li>Table</li>
-            <li>Date</li>
-            <li>Time</li>
-            <li>Actions</li>
-        </ul>
-    </main>
-
-    <!-- Reservations Data Rows -->
-    @if (Model.UpcomingReservations.Any())
-    {
-        @foreach (var reservation in Model.UpcomingReservations)
-        {
-            <section class="row-fadeIn-wrapper">
-                <article class="row fadeIn reservation-row" id="reservation-@reservation.ReservationId">
-                    <ul>
-                        <li data-label="Guest Name" style="">
-                            @if (reservation.Customer != null)
-                            {
-                                @($"{reservation.Customer.Name} {reservation.Customer.Surname}")
-                            }
-                            else
-                            {
-                                <span class="text-muted">No customer data</span>
-                            }
-                        </li>
-                        <li data-label="Phone">
-                            @if (reservation.Customer != null)
-                            {
-                                @reservation.Customer.TelNo
-                            }
-                            else
-                            {
-                                <span class="text-muted">-</span>
-                            }
-                        </li>
-                        <li data-label="Guests">
-                            @if (reservation.ReservationDetail != null)
-                            {
-                                @reservation.ReservationDetail.GuestNumber
-                            }
-                            else
-                            {
-                                <span class="text-muted">-</span>
-                            }
-                        </li>
-                        <li data-label="Served By">
-                            @if (reservation.Table?.ServedBy != null)
-                            {
-                                @($"{reservation.Table.ServedBy.Name} {reservation.Table.ServedBy.Surname}")
-                            }
-                            else
-                            {
-                                <span class="text-muted">-</span>
-                            }
-                        </li>
-                        <li data-label="Table">@reservation.Table?.TableId</li>
-                        <li data-label="Date">
-                            @if (reservation.ReservationDetail != null)
-                            {
-                                @reservation.ReservationDetail.ReservationDate.ToShortDateString()
-                            }
-                            else
-                            {
-                                <span class="text-muted">-</span>
-                            }
-                        </li>
-                        <li data-label="Time">
-                            @if (reservation.ReservationDetail != null)
-                            {
-                                @reservation.ReservationDetail.ReservationHour
-                            }
-                            else
-                            {
-                                <span class="text-muted">-</span>
-                            }
-                        </li>
-                        <li data-label="Actions">
-                            <div class="action-buttons">
-                                <button type="button" class="btn-action btn-checkin"
-                                        onclick="updateReservationStatus(@reservation.ReservationId, 'checked-in')">
-                                    Check-in
-                                </button>
-                                <button type="button" class="btn-action btn-cancel"
-                                        onclick="updateReservationStatus(@reservation.ReservationId, 'cancelled')">
-                                    Cancel
-                                </button>
-                                <a href="@Url.Action("Edit", new { id = reservation.ReservationId })"
-                                   class="btn-action btn-edit">
-                                    Edit
-                                </a>
-                            </div>
-                        </li>
-                    </ul>
-                </article>
-            </section>
-        }
-    }
-    else
-    {
-        <section class="row-fadeIn-wrapper">
-            <article class="row fadeIn">
-                <div class="no-data-message">
-                    <span class="no-data-icon"></span>
-                    No active reservations found.
                 </div>
             </article>
         </section>

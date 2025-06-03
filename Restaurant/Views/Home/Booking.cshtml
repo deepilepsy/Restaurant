@@ -52,8 +52,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-
-
         .form-input {
             appearance: none;
             -webkit-appearance: none;
@@ -74,14 +72,12 @@
             background-position: right 1rem center;
             background-repeat: no-repeat;
             background-size: 1rem;
-            
         }
 
         .form-input:focus {
             border-color: var(--primary-gold);
             box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
         }
-
 
         .form-section {
             padding: 20px;
@@ -90,10 +86,36 @@
         .section-title {
             font-size: 20px;
         }
+
+        /* Add navigation button styles */
+        .nav-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+        }
     </style>
 </head>
 
 <body>
+<!-- Add navigation back to home -->
+<a href="@Url.Action("Index", "Home")" class="nav-button">← Back to Home</a>
+
 <div class="container">
     <div id="warningModal">
         <div>
@@ -111,24 +133,70 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label for="reservation-date" class="form-label">Preferred Date</label>
-                    <input type="date" id="reservation-date" name="reservation-date" class="form-input" min="@DateTime.Today.ToString("yyyy-MM-dd")">
+                    <input type="date"
+                           id="reservation-date"
+                           name="reservation-date"
+                           class="form-input"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           value="@(Model.SelectedDate ?? "")">
                 </div>
 
                 <div class="form-group">
                     <label for="reservation-time" class="form-label">Preferred Time</label>
                     <select id="reservation-time" name="reservation-time" class="form-input">
                         <option value="">Select Time</option>
-                        <option value="14:00">2:00 PM</option>
-                        <option value="16:00">4:00 PM</option>
-                        <option value="18:00">6:00 PM</option>
-                        <option value="20:00">8:00 PM</option>
-                        <option value="22:00">10:00 PM</option>
+                        @if (Model.SelectedTime == "14:00")
+                        {
+                            <option value="14:00" selected>2:00 PM</option>
+                        }
+                        else
+                        {
+                            <option value="14:00">2:00 PM</option>
+                        }
+                        @if (Model.SelectedTime == "16:00")
+                        {
+                            <option value="16:00" selected>4:00 PM</option>
+                        }
+                        else
+                        {
+                            <option value="16:00">4:00 PM</option>
+                        }
+                        @if (Model.SelectedTime == "18:00")
+                        {
+                            <option value="18:00" selected>6:00 PM</option>
+                        }
+                        else
+                        {
+                            <option value="18:00">6:00 PM</option>
+                        }
+                        @if (Model.SelectedTime == "20:00")
+                        {
+                            <option value="20:00" selected>8:00 PM</option>
+                        }
+                        else
+                        {
+                            <option value="20:00">8:00 PM</option>
+                        }
+                        @if (Model.SelectedTime == "22:00")
+                        {
+                            <option value="22:00" selected>10:00 PM</option>
+                        }
+                        else
+                        {
+                            <option value="22:00">10:00 PM</option>
+                        }
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="people-count" class="form-label">Number of Guests</label>
-                    <input type="number" id="people-count" min="1" max="10" placeholder="How many guests? (max 10)" class="form-input">
+                    <input type="number"
+                           id="people-count"
+                           min="1"
+                           max="10"
+                           placeholder="How many guests? (max 10)"
+                           class="form-input"
+                           value="@(Model.SelectedGuests?.ToString() ?? "")">
                 </div>
             </div>
         </div>
@@ -174,6 +242,25 @@
     </div>
 </div>
 
+<!-- Pass model data to JavaScript -->
+<script>
+    // Initialize with server-side data
+    window.bookingData = {
+        selectedTableId: @(Model.SelectedTableId ?? 0),
+        selectedDate: '@(Model.SelectedDate ?? "")',
+        selectedTime: '@(Model.SelectedTime ?? "")',
+        selectedGuests: @(Model.SelectedGuests ?? 0),
+        tables: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Tables.Select(t => new {
+                    tableId = t.TableId,
+                    minCapacity = t.MinCapacity,
+                    maxCapacity = t.MaxCapacity,
+                    servedBy = new {
+                        name = t.ServedBy?.Name ?? "",
+                        surname = t.ServedBy?.Surname ?? ""
+                    }
+                })))
+    };
+</script>
 <script src="~/js/booking.js?v=1.0.2"></script>
 </body>
 </html>

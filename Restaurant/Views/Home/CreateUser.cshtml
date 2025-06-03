@@ -1,6 +1,7 @@
-@using System.Text.Json
 @{
     Layout = null;
+    // Get TempData values explicitly without any LINQ operations
+    var userExistsMessage = TempData["UserExists"]?.ToString();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -13,117 +14,118 @@
     <link rel="stylesheet" href="~/css/createuser.css?v=1.0.5"></link>
 </head>
 <body>
-    <div class="create-user-container">
-        <div class="create-user-card">
-            <div class="card-header">
-                <h3><i class="fas fa-user-plus icon"></i>Create New User</h3>
-                <div class="subtitle">Add a new admin or staff member to the system</div>
+<div class="create-user-container">
+    <div class="create-user-card">
+        <div class="card-header">
+            <h3><i class="fas fa-user-plus icon"></i>Create New User</h3>
+            <div class="subtitle">Add a new admin or staff member to the system</div>
+        </div>
+
+        <div class="card-body">
+            <!-- Error Messages -->
+            <div class="alert alert-danger d-none" id="error-alert">
+                <i class="fas fa-exclamation-triangle icon"></i>
+                <span id="error-message"></span>
             </div>
-            
-            <div class="card-body">
-                <!-- Error Messages -->
-                <div class="alert alert-danger d-none" id="error-alert">
-                    <i class="fas fa-exclamation-triangle icon"></i>
-                    <span id="error-message"></span>
-                </div>
-                
-                <!-- Success Messages -->
-                <div class="alert alert-success d-none" id="success-alert">
-                    <i class="fas fa-check-circle icon"></i>
-                    <span id="success-message"></span>
-                </div>
-                
-                <form method="post" id="createUserForm">
-                    <!-- Username Field -->
-                    <div class="form-group">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user icon"></i>Username
-                        </label>
-                        <div class="input-group">
+
+            <!-- Success Messages -->
+            <div class="alert alert-success d-none" id="success-alert">
+                <i class="fas fa-check-circle icon"></i>
+                <span id="success-message"></span>
+            </div>
+
+            <form method="post" id="createUserForm">
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user icon"></i>Username
+                    </label>
+                    <div class="input-group">
                             <span class="input-group-text">
                                 <i class="fas fa-at"></i>
                             </span>
-                            <input type="text" 
-                                   class="form-control" 
-                                   id="username" 
-                                   name="username" 
-                                   placeholder="Enter username"
-                                   required>
-                        </div>
+                        <input type="text"
+                               class="form-control"
+                               id="username"
+                               name="username"
+                               placeholder="Enter username"
+                               required>
                     </div>
-                    
-                    <!-- Password Field -->
-                    <div class="form-group">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock icon"></i>Password
-                        </label>
-                        <div class="input-group">
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock icon"></i>Password
+                    </label>
+                    <div class="input-group">
                             <span class="input-group-text">
                                 <i class="fas fa-key"></i>
                             </span>
-                            <input type="password" 
-                                   class="form-control" 
-                                   id="password" 
-                                   name="password" 
-                                   placeholder="Enter password"
-                                   required>
-                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- User Type Field -->
-                    <div class="form-group">
-                        <label for="type" class="form-label">
-                            <i class="fas fa-users-cog icon"></i>User Type
-                        </label>
-                        <select class="form-select" id="type" name="type" required>
-                            <option value="">Select user type...</option>
-                            <option value="admin">Admin User</option>
-                            <option value="staff">Staff User</option>
-                        </select>
-                        
-                        <div class="user-type-info">
-                            <div class="info-item">
-                                <strong><i class="fas fa-crown text-warning"></i> Admin:</strong> Full system access, manage staff, view all data
-                            </div>
-                            <div class="info-item">
-                                <strong><i class="fas fa-user-tie text-info"></i> Staff:</strong> Limited access, manage reservations only
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Submit Button -->
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus-circle icon"></i>Create User
+                        <input type="password"
+                               class="form-control"
+                               id="password"
+                               name="password"
+                               placeholder="Enter password"
+                               required>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                </form>
-                
-                <!-- Back Link -->
-                <div class="back-link">
-                    <a href="/Home/Admin" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left icon"></i>Back to Admin Panel
-                    </a>
                 </div>
+
+                <!-- User Type Field -->
+                <div class="form-group">
+                    <label for="type" class="form-label">
+                        <i class="fas fa-users-cog icon"></i>User Type
+                    </label>
+                    <select class="form-select" id="type" name="type" required>
+                        <option value="">Select user type...</option>
+                        <option value="admin">Admin User</option>
+                        <option value="staff">Staff User</option>
+                    </select>
+
+                    <div class="user-type-info">
+                        <div class="info-item">
+                            <strong><i class="fas fa-crown text-warning"></i> Admin:</strong> Full system access, manage staff, view all data
+                        </div>
+                        <div class="info-item">
+                            <strong><i class="fas fa-user-tie text-info"></i> Staff:</strong> Limited access, manage reservations only
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus-circle icon"></i>Create User
+                    </button>
+                </div>
+            </form>
+
+            <!-- Back Link -->
+            <div class="back-link">
+                <a href="/Home/Admin" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left icon"></i>Back to Admin Panel
+                </a>
             </div>
         </div>
     </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/createuser.js?v=1.0.1"></script>
 <script>
-    // Error check (tempdata)
+    // Error check (tempdata) - explicit value extraction without LINQ
     window.addEventListener('load', function() {
-        // These would be populated by your Razor view with TempData
-        let errorMessage = @Html.Raw(JsonSerializer.Serialize(TempData["UserExists"]));
+        // Get error message directly from server-side variable
+        var errorMessage = '@Html.Raw(userExistsMessage ?? "")';
 
         if (errorMessage && errorMessage !== '') {
             showError("User already exists");
         }
     });
+
     // Show error message
     function showError(message) {
         const errorAlert = document.getElementById('error-alert');

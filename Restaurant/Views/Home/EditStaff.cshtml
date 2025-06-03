@@ -14,102 +14,108 @@
 
 </head>
 <body>
-    <a href="@Url.Action("Admin")" class="back-link">
-        ← Admin Panel
-    </a>
+<a href="@Url.Action("Admin")" class="back-link">
+    ← Admin Panel
+</a>
 
-    <div class="container">
-        <div class="header">
-            <h1>Edit Staff Member</h1>
-            <p>Update the staff member information below</p>
-        </div>
-
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">
-                <strong>Success!</strong> @TempData["Success"]
-            </div>
-        }
-
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">
-                <strong>Error!</strong> @TempData["Error"]
-            </div>
-        }
-
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger">
-                <strong>Please correct the following errors:</strong>
-                <ul style="margin: 10px 0 0 20px;">
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        <li>@error.ErrorMessage</li>
-                    }
-                </ul>
-            </div>
-        }
-
-        <div class="staff-info">
-            <div class="staff-id">Staff ID: #@Model.StaffId</div>
-            <div>
-                Current Position: 
-                <span class="job-badge job-@Model.Job.ToLower()">@Model.Job</span>
-            </div>
-        </div>
-
-        <form asp-action="EditStaff" method="post" id="staffForm">
-            <input type="hidden" asp-for="StaffId" />
-            
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="firstName">First Name <span class="required">*</span></label>
-                    <input asp-for="Name" type="text" id="firstName" required placeholder="Enter first name">
-                    <div class="error-message" id="firstNameError">Please enter your first name properly</div>
-                    <span asp-validation-for="Name" class="error-message"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="lastName">Last Name <span class="required">*</span></label>
-                    <input asp-for="Surname" type="text" id="lastName" required placeholder="Enter last name">
-                    <div class="error-message" id="lastNameError">Please enter your last name properly</div>
-                    <span asp-validation-for="Surname" class="error-message"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="Job">Job Position <span class="required">*</span></label>
-                    <select asp-for="Job" id="Job" required>
-                        <option value="">Select Job Position</option>
-                        <option value="waiter">Waiter</option>
-                        <option value="chef">Chef</option>
-                        <option value="manager">Manager</option>
-                        <option value="cashier">Cashier</option>
-                        <option value="dishwasher">Dishwasher</option>
-                        <option value="cleaner">Cleaner</option>
-                    </select>
-                    <span asp-validation-for="Job" class="error-message"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="phone">Phone Number <span class="required">*</span></label>
-                    <input asp-for="TelNo" type="tel" id="phone" maxlength="13" required placeholder="+905551234567">
-                    <div class="error-message" id="phoneError">Please enter your number properly</div>
-                    <span asp-validation-for="TelNo" class="error-message"></span>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <button type="submit" class="btn btn-primary">
-                    Save Changes
-                </button>
-                
-                <a href="@Url.Action("Admin")" class="btn btn-secondary">
-                    Cancel
-                </a>
-            </div>
-        </form>
+<div class="container">
+    <div class="header">
+        <h1>Edit Staff Member</h1>
+        <p>Update the staff member information below</p>
     </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <strong>Success!</strong> @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error!</strong> @TempData["Error"]
+        </div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <strong>Please correct the following errors:</strong>
+            <ul style="margin: 10px 0 0 20px;">
+                @{
+                    // Manual iteration instead of LINQ SelectMany
+                    foreach (var modelState in ViewData.ModelState.Values)
+                    {
+                        foreach (var error in modelState.Errors)
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    }
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="staff-info">
+        <div class="staff-id">Staff ID: #@Model.StaffId</div>
+        <div>
+            Current Position:
+            <span class="job-badge job-@Model.Job.ToLower()">@Model.Job</span>
+        </div>
+    </div>
+
+    <form asp-action="EditStaff" method="post" id="staffForm">
+        <input type="hidden" asp-for="StaffId" />
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="firstName">First Name <span class="required">*</span></label>
+                <input asp-for="Name" type="text" id="firstName" required placeholder="Enter first name">
+                <div class="error-message" id="firstNameError">Please enter your first name properly</div>
+                <span asp-validation-for="Name" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name <span class="required">*</span></label>
+                <input asp-for="Surname" type="text" id="lastName" required placeholder="Enter last name">
+                <div class="error-message" id="lastNameError">Please enter your last name properly</div>
+                <span asp-validation-for="Surname" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Job">Job Position <span class="required">*</span></label>
+                <select asp-for="Job" id="Job" required>
+                    <option value="">Select Job Position</option>
+                    <option value="waiter">Waiter</option>
+                    <option value="chef">Chef</option>
+                    <option value="manager">Manager</option>
+                    <option value="cashier">Cashier</option>
+                    <option value="dishwasher">Dishwasher</option>
+                    <option value="cleaner">Cleaner</option>
+                </select>
+                <span asp-validation-for="Job" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number <span class="required">*</span></label>
+                <input asp-for="TelNo" type="tel" id="phone" maxlength="13" required placeholder="+905551234567">
+                <div class="error-message" id="phoneError">Please enter your number properly</div>
+                <span asp-validation-for="TelNo" class="error-message"></span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">
+                Save Changes
+            </button>
+
+            <a href="@Url.Action("Admin")" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
 
 <script src="~/js/editstaff.js?v=1.0.2"></script>
 </body>

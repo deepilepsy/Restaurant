@@ -35,7 +35,7 @@
 
 <h1 class="page-title">Staff Panel</h1>
 <div class="stat-card">
-    <div class="stat-number">@Model.UpcomingReservations.Count()</div>
+    <div class="stat-number">@Model.UpcomingReservations.Count</div>
     <div class="stat-label">Active Reservations</div>
 </div>
 
@@ -55,7 +55,7 @@
         </ul>
     </main>
     <!-- Data Rows -->
-    @if (Model.UpcomingReservations.Any())
+    @if (Model.UpcomingReservations.Count > 0)
     {
         @foreach (var reservation in Model.UpcomingReservations)
         {
@@ -161,6 +161,6 @@
     }
 </section>
 
-<script src="~/js/staff.js"></script>
+<script src="~/js/staff.js?v=1.0.1"></script>
 </body>
 </html>

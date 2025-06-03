@@ -2,6 +2,17 @@
 @{
     ViewData["Title"] = "Order Management";
     Layout = null;
+
+    // Group menu items manually without LINQ
+    var categorizedMenuItems = new Dictionary<string, List<Restaurant.Models.MenuItem>>();
+    foreach (var item in Model.MenuItems)
+    {
+        if (!categorizedMenuItems.ContainsKey(item.Category))
+        {
+            categorizedMenuItems[item.Category] = new List<Restaurant.Models.MenuItem>();
+        }
+        categorizedMenuItems[item.Category].Add(item);
+    }
 }
 <!DOCTYPE html>
 <html>
@@ -95,17 +106,37 @@
         </div>
 
         <!-- Menu Items by Category -->
-        @foreach (var category in Model.MenuItems.GroupBy(m => m.Category))
+        @foreach (var categoryPair in categorizedMenuItems)
         {
-            <div class="category-section" id="category-@category.Key" style="@(category.Key == "STARTERS" ? "" : "display: none;")">
-                <h3>@category.Key</h3>
+            var category = categoryPair.Key;
+            var categoryItems = categoryPair.Value;
 
-                @foreach (var subcategory in category.GroupBy(m => m.Subcategory ?? "Other"))
+            <div class="category-section" id="category-@category" style="@(category == "STARTERS" ? "" : "display: none;")">
+                <h3>@category</h3>
+
+                @{
+                    // Group items by subcategory manually without LINQ
+                    var subcategorizedItems = new Dictionary<string, List<Restaurant.Models.MenuItem>>();
+                    foreach (var item in categoryItems)
+                    {
+                        var subcategory = item.Subcategory ?? "Other";
+                        if (!subcategorizedItems.ContainsKey(subcategory))
+                        {
+                            subcategorizedItems[subcategory] = new List<Restaurant.Models.MenuItem>();
+                        }
+                        subcategorizedItems[subcategory].Add(item);
+                    }
+                }
+
+                @foreach (var subcategoryPair in subcategorizedItems)
                 {
+                    var subcategory = subcategoryPair.Key;
+                    var subcategoryItems = subcategoryPair.Value;
+
                     <div class="subcategory-section">
-                        <h4>@subcategory.Key</h4>
+                        <h4>@subcategory</h4>
                         <div class="menu-grid">
-                            @foreach (var item in subcategory)
+                            @foreach (var item in subcategoryItems)
                             {
                                 <div class="menu-item" data-item-id="@item.ItemId">
                                     <div class="item-header">
@@ -171,7 +202,21 @@
         <!-- Special Notes -->
         <div class="special-notes">
             <label for="specialNotes">Special Notes:</label>
-            <textarea id="specialNotes" placeholder="Any special requests or modifications...">@(Model.ExistingReceipt?.ReceiptItems?.FirstOrDefault()?.SpecialNotes ?? "")</textarea>
+            <textarea id="specialNotes" placeholder="Any special requests or modifications...">@{
+                    // Get special notes without LINQ
+                    string specialNotes = "";
+                    if (Model.ExistingReceipt?.ReceiptItems != null)
+                    {
+                        foreach (var receiptItem in Model.ExistingReceipt.ReceiptItems)
+                        {
+                            if (!string.IsNullOrEmpty(receiptItem.SpecialNotes))
+                            {
+                                specialNotes = receiptItem.SpecialNotes;
+                                break; // Get first non-empty special notes
+                            }
+                        }
+                    }
+                }@specialNotes</textarea>
         </div>
     </div>
 </div>
@@ -189,19 +234,28 @@
             existingReceiptData = {
                 receiptId: @Model.ExistingReceipt.ReceiptId,
                 items: [
-                    @if (Model.ExistingReceipt.ReceiptItems != null && Model.ExistingReceipt.ReceiptItems.Any())
+                    @if (Model.ExistingReceipt.ReceiptItems != null && Model.ExistingReceipt.ReceiptItems.Count > 0)
                     {
-                        @foreach (var item in Model.ExistingReceipt.ReceiptItems)
                         {
-                            <text>,
-                                {
-                                    itemId: @item.ItemId,
-                                    itemName: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.MenuItem?.ItemName ?? "Unknown Item")),
-                                    unitPrice: "@item.UnitPrice",
-                                    quantity: @item.Quantity,
-                                    calories: @(item.MenuItem?.Calories ?? 0)
-                                }@(item != Model.ExistingReceipt.ReceiptItems.Last() ? "," : "")
-                            </text>
+                            var receiptItemsList = new List<Restaurant.Models.ReceiptItem>();
+                            foreach (var item in Model.ExistingReceipt.ReceiptItems)
+                            {
+                                receiptItemsList.Add(item);
+                            }
+                            
+                            for (int i = 0; i < receiptItemsList.Count; i++)
+                            {
+                                var item = receiptItemsList[i];
+                                <text>,
+                                    {
+                                        itemId: @item.ItemId,
+                                        itemName: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.MenuItem?.ItemName ?? "Unknown Item")),
+                                        unitPrice: "@item.UnitPrice",
+                                        quantity: @item.Quantity,
+                                        calories: @(item.MenuItem?.Calories ?? 0)
+                                    }@(i < receiptItemsList.Count - 1 ? "," : "")
+                                </text>
+                            }
                         }
                     }
                 ]

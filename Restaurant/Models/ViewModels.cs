@@ -306,8 +306,53 @@ namespace Restaurant.Models
     {
         public List<Staff> StaffMembers { get; set; } = new List<Staff>();
         public List<Reservation> UpcomingReservations { get; set; } = new List<Reservation>();
+    
+        // Properties that match HomeController expectations
+        public int TotalStaff { get; set; }
+        public int TotalWaiters { get; set; }
+        public int ActiveReservations { get; set; }  // Changed from TotalActiveReservations to match controller
     }
 
+    public class BookingViewModel
+    {
+        public List<RestaurantTable> Tables { get; set; } = new List<RestaurantTable>();  // Changed from AvailableTables to Tables to match controller
+        public int? SelectedTableId { get; set; }
+        public string? SelectedDate { get; set; }
+        public string? SelectedTime { get; set; }
+        public int? SelectedGuests { get; set; }
+        
+        // Keep the original property as well for compatibility
+        public List<RestaurantTable> AvailableTables { get; set; } = new List<RestaurantTable>();
+        public Dictionary<string, List<int>> OccupiedTablesByHour { get; set; } = new Dictionary<string, List<int>>();
+    }
+
+    public class OrderManagementViewModel
+    {
+        public Reservation Reservation { get; set; } = new Reservation();
+        public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
+        public Receipt? ExistingReceipt { get; set; }
+    }
+
+    // Order submission models that match HomeController expectations
+    public class OrderSubmissionModel
+    {
+        public int ReservationId { get; set; }
+        public int StaffId { get; set; }
+        public string TotalAmount { get; set; } = string.Empty;
+        public List<OrderItemModel> Items { get; set; } = new List<OrderItemModel>();
+        public string? SpecialNotes { get; set; }
+    }
+
+    public class OrderItemModel
+    {
+        public int ItemId { get; set; }
+        public string ItemName { get; set; } = string.Empty;
+        public string UnitPrice { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public int Calories { get; set; }
+    }
+
+    // Additional DTOs and ViewModels
     public class LoginDto
     {
         [Required(ErrorMessage = "Username is required")]
@@ -325,30 +370,18 @@ namespace Restaurant.Models
         public bool IsAvailable { get; set; }
     }
 
-    public class BookingViewModel
-    {
-        public List<RestaurantTable> AvailableTables { get; set; } = new List<RestaurantTable>();
-        public Dictionary<string, List<int>> OccupiedTablesByHour { get; set; } = new Dictionary<string, List<int>>();
-    }
-
     public class UpdateReservationStatusRequest
     {
         public int ReservationId { get; set; }
         public string Status { get; set; } = string.Empty;
     }
     
-    public class OrderManagementViewModel
-    {
-        public Reservation Reservation { get; set; } = new Reservation();
-        public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
-        public Receipt? ExistingReceipt { get; set; }
-    }
-
+    // Legacy models for backward compatibility
     public class OrderRequest
     {
         public int ReservationId { get; set; }
         public int StaffId { get; set; }
-        public string TotalAmount { get; set; } = string.Empty; // Changed to string to match DB schema
+        public string TotalAmount { get; set; } = string.Empty;
         public List<OrderItem> Items { get; set; } = new List<OrderItem>();
         public string? SpecialNotes { get; set; }
     }
@@ -357,7 +390,7 @@ namespace Restaurant.Models
     {
         public int ItemId { get; set; }
         public string ItemName { get; set; } = string.Empty;
-        public string UnitPrice { get; set; } = string.Empty; // Changed to string to match DB schema
+        public string UnitPrice { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public int? Calories { get; set; }
     }

@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using Restaurant.Models;
-using System.Globalization;
+using System.Data;
 
 namespace Restaurant.Controllers
 {
@@ -18,76 +19,68 @@ namespace Restaurant.Controllers
 
         // GET: Display reservation form with pre-populated data
         [HttpGet]
-        public async Task<IActionResult> Create(int? tableId, int customerId, string? date, string? time, int? guests)
+        public async Task<IActionResult> Create(int? tableId, int customerId = 0, string? date = null, string? time = null, int? guests = null)
         {
             try
             {
-                _logger.LogInformation("Reservation Create GET called with: tableId={TableId}, date={Date}, time={Time}, guests={Guests}", 
-                    tableId, date, time, guests);
+                _logger.LogInformation("Starting reservation creation for table {TableId}", tableId);
 
-                // Validate that we have the required parameters
+                // Validate required parameters
                 if (!tableId.HasValue || string.IsNullOrEmpty(date) || string.IsNullOrEmpty(time) || !guests.HasValue)
                 {
-                    _logger.LogWarning("Missing required parameters for reservation");
                     TempData["Error"] = "Missing reservation details. Please select a table first.";
                     return RedirectToAction("Booking", "Home");
                 }
 
-                // Verify table exists and get its details
-                var table = await _context.RestaurantTables
-                    .Include(t => t.ServedBy)
-                    .FirstOrDefaultAsync(t => t.TableId == tableId.Value);
-
-                if (table == null)
-                {
-                    _logger.LogWarning("Table {TableId} not found", tableId.Value);
-                    TempData["Error"] = "Selected table not found.";
-                    return RedirectToAction("Booking", "Home");
-                }
-
-                // Parse and validate date
+                // Parse date
                 if (!DateTime.TryParse(date, out DateTime reservationDate))
                 {
-                    _logger.LogWarning("Invalid date format: {Date}", date);
                     TempData["Error"] = "Invalid date format.";
                     return RedirectToAction("Booking", "Home");
                 }
 
-                // Check if the date is not in the past
+                // Check date is not in past
                 if (reservationDate.Date < DateTime.Today)
                 {
-                    _logger.LogWarning("Reservation date {Date} is in the past", reservationDate);
                     TempData["Error"] = "Cannot make reservations for past dates.";
                     return RedirectToAction("Booking", "Home");
                 }
 
-                // Check if the table is available at the selected time
+                // Get table using Entity Framework (simpler approach)
+                var table = await _context.RestaurantTables
+                    .Where(t => t.TableId == tableId.Value)
+                    .Include(t => t.ServedBy)
+                    .FirstOrDefaultAsync();
+
+                if (table == null)
+                {
+                    TempData["Error"] = "Selected table not found.";
+                    return RedirectToAction("Booking", "Home");
+                }
+
+                // Check table availability using Entity Framework
                 var existingReservation = await _context.Reservations
                     .Include(r => r.ReservationDetail)
-                    .Where(r => r.TableId == tableId.Value && 
-                               r.ReservationDetail!.ReservationDate.Date == reservationDate.Date && 
-                               r.ReservationDetail.ReservationHour == time &&
-                               r.ReservationDetail.ReservationStatus == "active")
+                    .Where(r => r.TableId == tableId.Value)
+                    .Where(r => r.ReservationDetail.ReservationDate.Date == reservationDate.Date)
+                    .Where(r => r.ReservationDetail.ReservationHour == time)
+                    .Where(r => r.ReservationDetail.ReservationStatus == "active")
                     .FirstOrDefaultAsync();
 
                 if (existingReservation != null)
                 {
-                    _logger.LogWarning("Table {TableId} already reserved for {Date} at {Time}", 
-                        tableId.Value, reservationDate, time);
                     TempData["Error"] = "This table is already reserved for the selected time.";
                     return RedirectToAction("Booking", "Home");
                 }
 
-                // Check table capacity
+                // Check capacity
                 if (guests.Value < table.MinCapacity || guests.Value > table.MaxCapacity)
                 {
-                    _logger.LogWarning("Guest count {Guests} outside table {TableId} capacity {MinCap}-{MaxCap}", 
-                        guests.Value, tableId.Value, table.MinCapacity, table.MaxCapacity);
                     TempData["Error"] = $"Table {tableId} capacity is {table.MinCapacity}-{table.MaxCapacity} people. You selected {guests} guests.";
                     return RedirectToAction("Booking", "Home");
                 }
 
-                // Create view model with the reservation details
+                // Create view model
                 var viewModel = new ReservationCreateViewModel
                 {
                     TableId = tableId.Value,
@@ -96,7 +89,6 @@ namespace Restaurant.Controllers
                     ReservationHour = time,
                     GuestNumber = guests.Value,
                     Table = table,
-                    // Initialize empty strings to avoid null reference errors
                     Name = string.Empty,
                     Surname = string.Empty,
                     TelNo = string.Empty,
@@ -104,29 +96,28 @@ namespace Restaurant.Controllers
                     SpecialRequests = string.Empty
                 };
 
-                // Pre-populate customer data if customerId is provided and valid
+                // Pre-populate customer data if available
                 if (customerId > 0)
                 {
-                    var existingCustomer = await _context.Customers
-                        .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+                    var customer = await _context.Customers
+                        .Where(c => c.CustomerId == customerId)
+                        .FirstOrDefaultAsync();
                     
-                    if (existingCustomer != null)
+                    if (customer != null)
                     {
-                        viewModel.Name = existingCustomer.Name;
-                        viewModel.Surname = existingCustomer.Surname;
-                        viewModel.TelNo = existingCustomer.TelNo;
-                        viewModel.Email = existingCustomer.Email ?? string.Empty;
+                        viewModel.Name = customer.Name;
+                        viewModel.Surname = customer.Surname;
+                        viewModel.TelNo = customer.TelNo;
+                        viewModel.Email = customer.Email ?? string.Empty;
                     }
                 }
 
-                _logger.LogInformation("Successfully loaded reservation form for table {TableId}", tableId.Value);
                 return View(viewModel);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading reservation form for tableId={TableId}, date={Date}, time={Time}, guests={Guests}", 
-                    tableId, date, time, guests);
-                TempData["Error"] = "An error occurred while loading the reservation form. Please try again.";
+                _logger.LogError(ex, "Error in reservation creation GET");
+                TempData["Error"] = "An error occurred while loading the reservation form.";
                 return RedirectToAction("Booking", "Home");
             }
         }
@@ -144,49 +135,30 @@ namespace Restaurant.Controllers
 
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogWarning("Model state invalid for reservation creation");
-                    
-                    // Log validation errors
-                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        _logger.LogWarning("Validation error: {Error}", error.ErrorMessage);
-                    }
-
-                    // Reload table information for the view
+                    // Reload table for view
                     model.Table = await _context.RestaurantTables
+                        .Where(t => t.TableId == model.TableId)
                         .Include(t => t.ServedBy)
-                        .FirstOrDefaultAsync(t => t.TableId == model.TableId);
-                    
+                        .FirstOrDefaultAsync();
                     return View(model);
                 }
 
-                // Double-check table availability
+                // Check availability again
                 var existingReservation = await _context.Reservations
                     .Include(r => r.ReservationDetail)
-                    .Where(r => r.TableId == model.TableId && 
-                               r.ReservationDetail!.ReservationDate.Date == model.ReservationDate.Date && 
-                               r.ReservationDetail.ReservationHour == model.ReservationHour &&
-                               r.ReservationDetail.ReservationStatus == "active")
+                    .Where(r => r.TableId == model.TableId)
+                    .Where(r => r.ReservationDetail.ReservationDate.Date == model.ReservationDate.Date)
+                    .Where(r => r.ReservationDetail.ReservationHour == model.ReservationHour)
+                    .Where(r => r.ReservationDetail.ReservationStatus == "active")
                     .FirstOrDefaultAsync();
 
                 if (existingReservation != null)
                 {
-                    _logger.LogWarning("Table {TableId} no longer available during creation", model.TableId);
                     ModelState.AddModelError("", "This table is no longer available for the selected time.");
                     model.Table = await _context.RestaurantTables
+                        .Where(t => t.TableId == model.TableId)
                         .Include(t => t.ServedBy)
-                        .FirstOrDefaultAsync(t => t.TableId == model.TableId);
-                    return View(model);
-                }
-
-                // Get the table to find the assigned server
-                var table = await _context.RestaurantTables
-                    .FirstOrDefaultAsync(t => t.TableId == model.TableId);
-
-                if (table == null)
-                {
-                    _logger.LogError("Table {TableId} not found during reservation creation", model.TableId);
-                    ModelState.AddModelError("", "Selected table not found.");
+                        .FirstOrDefaultAsync();
                     return View(model);
                 }
 
@@ -194,14 +166,14 @@ namespace Restaurant.Controllers
 
                 try
                 {
-                    // Check if customer already exists by phone number
+                    // Get or create customer
                     var existingCustomer = await _context.Customers
-                        .FirstOrDefaultAsync(c => c.TelNo == model.TelNo.Trim());
+                        .Where(c => c.TelNo == model.TelNo.Trim())
+                        .FirstOrDefaultAsync();
 
                     Customer customer;
                     if (existingCustomer != null)
                     {
-                        // Update existing customer info if needed
                         existingCustomer.Name = model.Name?.Trim() ?? string.Empty;
                         existingCustomer.Surname = model.Surname?.Trim() ?? string.Empty;
                         existingCustomer.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
@@ -209,7 +181,6 @@ namespace Restaurant.Controllers
                     }
                     else
                     {
-                        // Create new customer
                         customer = new Customer
                         {
                             Name = model.Name?.Trim() ?? string.Empty,
@@ -222,7 +193,7 @@ namespace Restaurant.Controllers
 
                     await _context.SaveChangesAsync();
 
-                    // Create reservation details first
+                    // Create reservation details
                     var reservationDetail = new ReservationDetail
                     {
                         GuestNumber = model.GuestNumber,
@@ -249,28 +220,25 @@ namespace Restaurant.Controllers
 
                     await transaction.CommitAsync();
 
-                    _logger.LogInformation("Reservation {ReservationId} created successfully for {Name} {Surname} on {Date} at {Time}", 
-                        reservation.ReservationId, model.Name, model.Surname, model.ReservationDate.ToShortDateString(), model.ReservationHour);
-
                     TempData["Success"] = $"Your reservation has been confirmed! Reservation ID: {reservation.ReservationId}";
                     return RedirectToAction("Confirmation", new { id = reservation.ReservationId });
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError(ex, "Error in transaction during reservation creation for table {TableId}", model.TableId);
+                    _logger.LogError(ex, "Transaction error during reservation creation");
                     throw;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating reservation for table {TableId}", model.TableId);
-                ModelState.AddModelError("", "An error occurred while creating your reservation. Please try again.");
+                _logger.LogError(ex, "Error creating reservation");
+                ModelState.AddModelError("", "An error occurred while creating your reservation.");
                 
-                // Reload table information for the view
                 model.Table = await _context.RestaurantTables
+                    .Where(t => t.TableId == model.TableId)
                     .Include(t => t.ServedBy)
-                    .FirstOrDefaultAsync(t => t.TableId == model.TableId);
+                    .FirstOrDefaultAsync();
                 
                 return View(model);
             }
@@ -282,15 +250,15 @@ namespace Restaurant.Controllers
             try
             {
                 var reservation = await _context.Reservations
+                    .Where(r => r.ReservationId == id)
                     .Include(r => r.Table)
                     .ThenInclude(t => t.ServedBy)
                     .Include(r => r.Customer)
                     .Include(r => r.ReservationDetail)
-                    .FirstOrDefaultAsync(r => r.ReservationId == id);
+                    .FirstOrDefaultAsync();
 
                 if (reservation == null)
                 {
-                    _logger.LogWarning("Reservation {ReservationId} not found for confirmation", id);
                     TempData["Error"] = "Reservation not found.";
                     return RedirectToAction("Index", "Home");
                 }
@@ -299,7 +267,7 @@ namespace Restaurant.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading reservation confirmation for ID: {ReservationId}", id);
+                _logger.LogError(ex, "Error loading confirmation for reservation {Id}", id);
                 TempData["Error"] = "An error occurred while loading the confirmation.";
                 return RedirectToAction("Index", "Home");
             }
@@ -318,10 +286,10 @@ namespace Restaurant.Controllers
 
                 var existingReservation = await _context.Reservations
                     .Include(r => r.ReservationDetail)
-                    .Where(r => r.TableId == tableId && 
-                               r.ReservationDetail!.ReservationDate.Date == reservationDate.Date && 
-                               r.ReservationDetail.ReservationHour == time &&
-                               r.ReservationDetail.ReservationStatus == "active")
+                    .Where(r => r.TableId == tableId)
+                    .Where(r => r.ReservationDetail.ReservationDate.Date == reservationDate.Date)
+                    .Where(r => r.ReservationDetail.ReservationHour == time)
+                    .Where(r => r.ReservationDetail.ReservationStatus == "active")
                     .FirstOrDefaultAsync();
 
                 var available = existingReservation == null;
@@ -331,7 +299,7 @@ namespace Restaurant.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking table availability for table {TableId}", tableId);
+                _logger.LogError(ex, "Error checking availability for table {TableId}", tableId);
                 return Json(new { available = false, message = "Error checking availability" });
             }
         }
