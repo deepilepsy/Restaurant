@@ -34,18 +34,3 @@ function updateReservationStatus(reservationId, status) {
             });
     }
 }
-// Function to show dynamic messages
-function showMessage(type, message) {
-    const messageContainer = document.querySelector('.message-container');
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
-    alertDiv.innerHTML = `<strong>${type === 'success' ? 'Success!' : 'Error!'}</strong> ${message}`;
-
-    messageContainer.appendChild(alertDiv);
-
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        alertDiv.style.animation = 'slideIn 0.3s ease reverse';
-        setTimeout(() => alertDiv.remove(), 300);
-    }, 5000);
-}

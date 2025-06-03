@@ -310,7 +310,7 @@ namespace Restaurant.Models
         // Properties that match HomeController expectations
         public int TotalStaff { get; set; }
         public int TotalWaiters { get; set; }
-        public int ActiveReservations { get; set; }  // Changed from TotalActiveReservations to match controller
+        public int ActiveReservations { get; set; } 
     }
 
     public class BookingViewModel

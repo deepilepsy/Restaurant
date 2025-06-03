@@ -282,32 +282,32 @@ namespace Restaurant.Controllers
                 return RedirectToAction("Staff");
             }
 
-            // Get all menu items
-            string menuSql = "SELECT * FROM [menu_items]";
+            // Get all menu items with SQL sorting instead of LINQ
+            string menuSql = @"
+        SELECT * FROM [menu_items] 
+        ORDER BY [category], 
+                 ISNULL([subcategory], '') ASC, 
+                 [item_name]";
             var menuItems = await _context.MenuItems.FromSqlRaw(menuSql).ToListAsync();
-            menuItems = menuItems
-                .OrderBy(m => m.Category)
-                .ThenBy(m => m.Subcategory ?? "")
-                .ThenBy(m => m.ItemName)
-                .ToList();
 
             // Check for existing receipt
-            string receiptSql = "SELECT * FROM [receipts] WHERE [reservation_id] = {0}";
+            string receiptSql = "SELECT TOP 1 * FROM [receipts] WHERE [reservation_id] = {0}";
             var existingReceipts = await _context.Receipts.FromSqlRaw(receiptSql, reservationId).ToListAsync();
             var existingReceipt = existingReceipts.FirstOrDefault();
 
             // Load receipt items if receipt exists
             if (existingReceipt != null)
             {
+                // Get receipt items using separate SQL queries (no reader needed)
                 string receiptItemsSql = "SELECT * FROM [receipt_items] WHERE [receipt_id] = {0}";
                 var receiptItems = await _context.ReceiptItems.FromSqlRaw(receiptItemsSql, existingReceipt.ReceiptId).ToListAsync();
 
-                // Load menu items for each receipt item
+                // Load menu items for each receipt item using SQL
                 foreach (var item in receiptItems)
                 {
-                    string menuItemSql = "SELECT * FROM [menu_items] WHERE [item_id] = {0}";
+                    string menuItemSql = "SELECT TOP 1 * FROM [menu_items] WHERE [item_id] = {0}";
                     var menuItemList = await _context.MenuItems.FromSqlRaw(menuItemSql, item.ItemId).ToListAsync();
-                    item.MenuItem = menuItemList.FirstOrDefault();
+                    item.MenuItem = menuItemList.Count > 0 ? menuItemList[0] : null;
                 }
 
                 existingReceipt.ReceiptItems = receiptItems;
