@@ -505,9 +505,6 @@ else
                 if (suitableTables.length === 0) {
                     tableSelect.innerHTML = '<option value="">No tables available for selected criteria</option>';
                     document.getElementById('servedBy').innerHTML = '<option value="">No staff assigned</option>';
-                    showWarning('No tables are available for the selected guest count, date, and time.');
-                } else {
-                    showSuccess(`Found ${suitableTables.length} suitable table(s) for your selection.`);
                 }
             } else {
                 showError(data.message || 'Failed to load available tables');

@@ -17,6 +17,33 @@ namespace Restaurant.Controllers
             _context = context;
         }
 
+        // Simple test method to verify database connectivity
+        [HttpGet]
+        public async Task<IActionResult> TestConnection()
+        {
+            try
+            {
+                // Test basic database connection using Entity Framework
+                var tableCount = await _context.RestaurantTables.CountAsync();
+                var staffCount = await _context.Staff.CountAsync();
+
+                return Json(new { 
+                    success = true, 
+                    message = $"Database connected. Tables: {tableCount}, Staff: {staffCount}",
+                    tableCount = tableCount,
+                    staffCount = staffCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { 
+                    success = false, 
+                    message = ex.Message, 
+                    innerException = ex.InnerException?.Message
+                });
+            }
+        }
+
         // GET: Display reservation form with pre-populated data
         [HttpGet]
         public async Task<IActionResult> Create(int? tableId, int customerId = 0, string? date = null, string? time = null, int? guests = null)
@@ -46,10 +73,9 @@ namespace Restaurant.Controllers
                     return RedirectToAction("Booking", "Home");
                 }
 
-                // Get table using Entity Framework (simpler approach)
+                // Load table using Entity Framework without raw SQL first
                 var table = await _context.RestaurantTables
                     .Where(t => t.TableId == tableId.Value)
-                    .Include(t => t.ServedBy)
                     .FirstOrDefaultAsync();
 
                 if (table == null)
@@ -58,16 +84,26 @@ namespace Restaurant.Controllers
                     return RedirectToAction("Booking", "Home");
                 }
 
-                // Check table availability using Entity Framework
-                var existingReservation = await _context.Reservations
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.TableId == tableId.Value)
-                    .Where(r => r.ReservationDetail.ReservationDate.Date == reservationDate.Date)
-                    .Where(r => r.ReservationDetail.ReservationHour == time)
-                    .Where(r => r.ReservationDetail.ReservationStatus == "active")
+                // Load server separately
+                var server = await _context.Staff
+                    .Where(s => s.StaffId == table.ServedById)
                     .FirstOrDefaultAsync();
 
-                if (existingReservation != null)
+                table.ServedBy = server;
+
+                // Check table availability using Entity Framework instead of raw SQL
+                var existingReservationsCount = await _context.Reservations
+                    .Join(_context.ReservationDetails,
+                        r => r.ResDetailsId,
+                        rd => rd.ResDetailsId,
+                        (r, rd) => new { r, rd })
+                    .Where(x => x.r.TableId == tableId.Value &&
+                               x.rd.ReservationDate.Date == reservationDate.Date &&
+                               x.rd.ReservationHour == time &&
+                               x.rd.ReservationStatus == "active")
+                    .CountAsync();
+
+                if (existingReservationsCount > 0)
                 {
                     TempData["Error"] = "This table is already reserved for the selected time.";
                     return RedirectToAction("Booking", "Home");
@@ -117,7 +153,7 @@ namespace Restaurant.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in reservation creation GET");
-                TempData["Error"] = "An error occurred while loading the reservation form.";
+                TempData["Error"] = "An error occurred while loading the reservation form: " + ex.Message;
                 return RedirectToAction("Booking", "Home");
             }
         }
@@ -136,29 +172,52 @@ namespace Restaurant.Controllers
                 if (!ModelState.IsValid)
                 {
                     // Reload table for view
-                    model.Table = await _context.RestaurantTables
+                    var table = await _context.RestaurantTables
                         .Where(t => t.TableId == model.TableId)
-                        .Include(t => t.ServedBy)
                         .FirstOrDefaultAsync();
+
+                    if (table != null)
+                    {
+                        var server = await _context.Staff
+                            .Where(s => s.StaffId == table.ServedById)
+                            .FirstOrDefaultAsync();
+                        table.ServedBy = server;
+                    }
+
+                    model.Table = table;
                     return View(model);
                 }
 
-                // Check availability again
-                var existingReservation = await _context.Reservations
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.TableId == model.TableId)
-                    .Where(r => r.ReservationDetail.ReservationDate.Date == model.ReservationDate.Date)
-                    .Where(r => r.ReservationDetail.ReservationHour == model.ReservationHour)
-                    .Where(r => r.ReservationDetail.ReservationStatus == "active")
-                    .FirstOrDefaultAsync();
+                // Check availability again using Entity Framework
+                var existingReservationsCount = await _context.Reservations
+                    .Join(_context.ReservationDetails,
+                        r => r.ResDetailsId,
+                        rd => rd.ResDetailsId,
+                        (r, rd) => new { r, rd })
+                    .Where(x => x.r.TableId == model.TableId &&
+                               x.rd.ReservationDate.Date == model.ReservationDate.Date &&
+                               x.rd.ReservationHour == model.ReservationHour &&
+                               x.rd.ReservationStatus == "active")
+                    .CountAsync();
 
-                if (existingReservation != null)
+                if (existingReservationsCount > 0)
                 {
                     ModelState.AddModelError("", "This table is no longer available for the selected time.");
-                    model.Table = await _context.RestaurantTables
+                    
+                    // Reload table for view
+                    var table = await _context.RestaurantTables
                         .Where(t => t.TableId == model.TableId)
-                        .Include(t => t.ServedBy)
                         .FirstOrDefaultAsync();
+
+                    if (table != null)
+                    {
+                        var server = await _context.Staff
+                            .Where(s => s.StaffId == table.ServedById)
+                            .FirstOrDefaultAsync();
+                        table.ServedBy = server;
+                    }
+
+                    model.Table = table;
                     return View(model);
                 }
 
@@ -171,27 +230,32 @@ namespace Restaurant.Controllers
                         .Where(c => c.TelNo == model.TelNo.Trim())
                         .FirstOrDefaultAsync();
 
-                    Customer customer;
+                    int customerId;
                     if (existingCustomer != null)
                     {
+                        // Update existing customer
                         existingCustomer.Name = model.Name?.Trim() ?? string.Empty;
                         existingCustomer.Surname = model.Surname?.Trim() ?? string.Empty;
                         existingCustomer.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
-                        customer = existingCustomer;
+                        
+                        await _context.SaveChangesAsync();
+                        customerId = existingCustomer.CustomerId;
                     }
                     else
                     {
-                        customer = new Customer
+                        // Create new customer
+                        var newCustomer = new Customer
                         {
                             Name = model.Name?.Trim() ?? string.Empty,
                             Surname = model.Surname?.Trim() ?? string.Empty,
                             TelNo = model.TelNo?.Trim() ?? string.Empty,
                             Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim()
                         };
-                        _context.Customers.Add(customer);
-                    }
 
-                    await _context.SaveChangesAsync();
+                        _context.Customers.Add(newCustomer);
+                        await _context.SaveChangesAsync();
+                        customerId = newCustomer.CustomerId;
+                    }
 
                     // Create reservation details
                     var reservationDetail = new ReservationDetail
@@ -211,7 +275,7 @@ namespace Restaurant.Controllers
                     var reservation = new Reservation
                     {
                         ResDetailsId = reservationDetail.ResDetailsId,
-                        CustomerId = customer.CustomerId,
+                        CustomerId = customerId,
                         TableId = model.TableId
                     };
 
@@ -233,13 +297,22 @@ namespace Restaurant.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating reservation");
-                ModelState.AddModelError("", "An error occurred while creating your reservation.");
+                ModelState.AddModelError("", "An error occurred while creating your reservation: " + ex.Message);
                 
-                model.Table = await _context.RestaurantTables
+                // Reload table for view
+                var table = await _context.RestaurantTables
                     .Where(t => t.TableId == model.TableId)
-                    .Include(t => t.ServedBy)
                     .FirstOrDefaultAsync();
-                
+
+                if (table != null)
+                {
+                    var server = await _context.Staff
+                        .Where(s => s.StaffId == table.ServedById)
+                        .FirstOrDefaultAsync();
+                    table.ServedBy = server;
+                }
+
+                model.Table = table;
                 return View(model);
             }
         }
@@ -249,18 +322,35 @@ namespace Restaurant.Controllers
         {
             try
             {
+                // Load reservation using standard EF queries
                 var reservation = await _context.Reservations
                     .Where(r => r.ReservationId == id)
-                    .Include(r => r.Table)
-                    .ThenInclude(t => t.ServedBy)
-                    .Include(r => r.Customer)
-                    .Include(r => r.ReservationDetail)
                     .FirstOrDefaultAsync();
-
+                
                 if (reservation == null)
                 {
                     TempData["Error"] = "Reservation not found.";
                     return RedirectToAction("Index", "Home");
+                }
+
+                // Load related entities separately
+                reservation.Customer = await _context.Customers
+                    .Where(c => c.CustomerId == reservation.CustomerId)
+                    .FirstOrDefaultAsync();
+
+                reservation.ReservationDetail = await _context.ReservationDetails
+                    .Where(rd => rd.ResDetailsId == reservation.ResDetailsId)
+                    .FirstOrDefaultAsync();
+
+                reservation.Table = await _context.RestaurantTables
+                    .Where(t => t.TableId == reservation.TableId)
+                    .FirstOrDefaultAsync();
+
+                if (reservation.Table != null)
+                {
+                    reservation.Table.ServedBy = await _context.Staff
+                        .Where(s => s.StaffId == reservation.Table.ServedById)
+                        .FirstOrDefaultAsync();
                 }
 
                 return View(reservation);
@@ -268,7 +358,7 @@ namespace Restaurant.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading confirmation for reservation {Id}", id);
-                TempData["Error"] = "An error occurred while loading the confirmation.";
+                TempData["Error"] = "An error occurred while loading the confirmation: " + ex.Message;
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -284,15 +374,18 @@ namespace Restaurant.Controllers
                     return Json(new { available = false, message = "Invalid date format" });
                 }
 
-                var existingReservation = await _context.Reservations
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.TableId == tableId)
-                    .Where(r => r.ReservationDetail.ReservationDate.Date == reservationDate.Date)
-                    .Where(r => r.ReservationDetail.ReservationHour == time)
-                    .Where(r => r.ReservationDetail.ReservationStatus == "active")
-                    .FirstOrDefaultAsync();
+                var existingReservationsCount = await _context.Reservations
+                    .Join(_context.ReservationDetails,
+                        r => r.ResDetailsId,
+                        rd => rd.ResDetailsId,
+                        (r, rd) => new { r, rd })
+                    .Where(x => x.r.TableId == tableId &&
+                               x.rd.ReservationDate.Date == reservationDate.Date &&
+                               x.rd.ReservationHour == time &&
+                               x.rd.ReservationStatus == "active")
+                    .CountAsync();
 
-                var available = existingReservation == null;
+                var available = existingReservationsCount == 0;
                 var message = available ? "Table is available" : "Table is already reserved";
 
                 return Json(new { available, message });

@@ -119,5 +119,72 @@ public class RestaurantContext : DbContext
         modelBuilder.Entity<Reservation>()
             .Property(r => r.ReservationId)
             .UseIdentityColumn(600000, 1);
+
+        // Configure keyless entities for raw SQL queries if needed
+        // These can be used for complex queries that don't map to a single entity
+        
+        // Example: For complex aggregation queries
+        modelBuilder.Entity<ReservationSummary>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView(null); // This will be used for raw SQL queries only
+        });
+
+        modelBuilder.Entity<TableAvailabilitySummary>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView(null);
+        });
     }
+
+    // Helper methods for common raw SQL operations
+    public async Task<List<T>> ExecuteRawSqlQueryAsync<T>(string sql, params object[] parameters) where T : class
+    {
+        return await Set<T>().FromSqlRaw(sql, parameters).ToListAsync();
+    }
+
+    public async Task<int> ExecuteRawSqlCommandAsync(string sql, params object[] parameters)
+    {
+        return await Database.ExecuteSqlRawAsync(sql, parameters);
+    }
+
+    public async Task<List<T>> ExecuteRawSqlScalarQueryAsync<T>(string sql, params object[] parameters)
+    {
+        return await Database.SqlQueryRaw<T>(sql, parameters).ToListAsync();
+    }
+}
+
+// Additional DTOs for complex raw SQL queries
+public class ReservationSummary
+{
+    public int ReservationId { get; set; }
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerSurname { get; set; } = string.Empty;
+    public string CustomerPhone { get; set; } = string.Empty;
+    public int TableId { get; set; }
+    public string ServerName { get; set; } = string.Empty;
+    public DateTime ReservationDate { get; set; }
+    public string ReservationHour { get; set; } = string.Empty;
+    public int GuestNumber { get; set; }
+    public string ReservationStatus { get; set; } = string.Empty;
+    public string? SpecialRequests { get; set; }
+}
+
+public class TableAvailabilitySummary
+{
+    public int TableId { get; set; }
+    public int MinCapacity { get; set; }
+    public int MaxCapacity { get; set; }
+    public string ServerName { get; set; } = string.Empty;
+    public bool IsAvailable { get; set; }
+}
+
+public class StaffPerformanceSummary
+{
+    public int StaffId { get; set; }
+    public string StaffName { get; set; } = string.Empty;
+    public string Job { get; set; } = string.Empty;
+    public int ActiveReservations { get; set; }
+    public int CompletedReservations { get; set; }
+    public decimal TotalRevenue { get; set; }
 }

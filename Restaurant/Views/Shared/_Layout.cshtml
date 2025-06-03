@@ -53,8 +53,12 @@
                     <div class="search-bar">
                         <form id="search-form" asp-controller="Home" asp-action="Receipt" method="get">
                             <i id="search-icon" class="fa-solid fa-magnifying-glass"></i>
-                            <input id="receipt-search" name="receiptSearch" type="text" maxlength="12" placeholder="Reservation ID" autocomplete="off"></input>
-                            <div id="sbmt-div"><button type="submit" id="submit-btn"><i id="arrw-rght" class="fa-solid fa-arrow-right"></i></button></div>
+                            <input id="receipt-search" name="receiptSearch" type="text" maxlength="12" placeholder="Reservation ID" autocomplete="off">
+                            <div id="sbmt-div">
+                                <button type="submit" id="submit-btn">
+                                    <i id="arrw-rght" class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
                         </form>
                     </div>
                 }

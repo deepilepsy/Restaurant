@@ -11,12 +11,19 @@ namespace Restaurant.Controllers
     public class HomeController : Controller
     {
         private readonly RestaurantContext _context;
+        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(RestaurantContext context)
+        public HomeController(RestaurantContext context, ILogger<HomeController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
+        public IActionResult Menu()
+        {
+            return View();
+        }
+            
         public IActionResult Index()
         {
             return View();
@@ -32,10 +39,15 @@ namespace Restaurant.Controllers
         {
             try
             {
-                // Use Entity Framework instead of raw SQL to avoid connection issues
-                var user = await _context.UserCredentials
-                    .Where(u => u.Username == username && u.Password == password)
-                    .FirstOrDefaultAsync();
+                // Use raw SQL instead of LINQ
+                string sql = @"SELECT * FROM [user_credentials] 
+                              WHERE [username] = {0} AND [password] = {1}";
+                
+                var users = await _context.UserCredentials
+                    .FromSqlRaw(sql, username, password)
+                    .ToListAsync();
+                
+                var user = users.FirstOrDefault();
 
                 if (user != null)
                 {
@@ -71,16 +83,33 @@ namespace Restaurant.Controllers
 
             try
             {
-                // Get staff members using Entity Framework
-                var staffMembers = await _context.Staff.ToListAsync();
-                
+                // Get staff members using raw SQL
+                string staffSql = @"SELECT * FROM [staff]";
+                var staffMembers = await _context.Staff
+                    .FromSqlRaw(staffSql)
+                    .ToListAsync();
 
+                // Calculate statistics using raw SQL - avoid SqlQueryRaw<int> with COUNT
+                // Get total staff count
+                string totalStaffSql = @"SELECT [staff_id] FROM [staff]";
+                var allStaffIds = await _context.Database
+                    .SqlQueryRaw<int>(totalStaffSql)
+                    .ToListAsync();
+                var totalStaff = allStaffIds.Count;
 
+                // Get waiter count
+                string waitersSql = @"SELECT [staff_id] FROM [staff] WHERE LOWER([job]) = 'waiter'";
+                var waiterIds = await _context.Database
+                    .SqlQueryRaw<int>(waitersSql)
+                    .ToListAsync();
+                var totalWaiters = waiterIds.Count;
 
-                // Calculate statistics using Entity Framework
-                var totalStaff = await _context.Staff.CountAsync();
-                var totalWaiters = await _context.Staff.Where(s => s.Job.ToLower() == "waiter").CountAsync();
-                var activeReservations = await _context.ReservationDetails.Where(rd => rd.ReservationStatus == "active").CountAsync();
+                // Get active reservations count
+                string activeReservationsSql = @"SELECT [res_details_id] FROM [reservation_details] WHERE [reservation_status] = 'active'";
+                var activeReservationIds = await _context.Database
+                    .SqlQueryRaw<int>(activeReservationsSql)
+                    .ToListAsync();
+                var activeReservations = activeReservationIds.Count;
 
                 var viewModel = new AdminPanelView
                 {
@@ -91,21 +120,62 @@ namespace Restaurant.Controllers
                     UpcomingReservations = new List<Reservation>()
                 };
 
-                // Get active reservations using Entity Framework
+                // Get active reservations using separate loading approach
                 var today = DateTime.Today;
+                string reservationsSql = @"
+                    SELECT * FROM [reservations] r
+                    WHERE EXISTS (
+                        SELECT 1 FROM [reservation_details] rd 
+                        WHERE rd.res_details_id = r.res_details_id 
+                        AND rd.reservation_status = 'active' 
+                        AND rd.reservation_date >= {0}
+                    )";
+
                 var activeReservationsList = await _context.Reservations
-                    .Include(r => r.Table)
-                    .ThenInclude(t => t.ServedBy)
-                    .Include(r => r.Customer)
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.ReservationDetail.ReservationStatus == "active" && r.ReservationDetail.ReservationDate >= today)
+                    .FromSqlRaw(reservationsSql, today)
                     .ToListAsync();
-                    
+
+                // Load related data for each reservation
+                foreach (var reservation in activeReservationsList)
+                {
+                    // Load customer
+                    string customerSql = @"SELECT * FROM [customers] WHERE [customer_id] = {0}";
+                    var customers = await _context.Customers
+                        .FromSqlRaw(customerSql, reservation.CustomerId)
+                        .ToListAsync();
+                    reservation.Customer = customers.FirstOrDefault();
+
+                    // Load reservation details
+                    string detailsSql = @"SELECT * FROM [reservation_details] WHERE [res_details_id] = {0}";
+                    var details = await _context.ReservationDetails
+                        .FromSqlRaw(detailsSql, reservation.ResDetailsId)
+                        .ToListAsync();
+                    reservation.ReservationDetail = details.FirstOrDefault();
+
+                    // Load table
+                    string tableSql = @"SELECT * FROM [restaurant_tables] WHERE [table_id] = {0}";
+                    var tables = await _context.RestaurantTables
+                        .FromSqlRaw(tableSql, reservation.TableId)
+                        .ToListAsync();
+                    reservation.Table = tables.FirstOrDefault();
+
+                    // Load server
+                    if (reservation.Table != null)
+                    {
+                        string staffSql2 = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                        var staff = await _context.Staff
+                            .FromSqlRaw(staffSql2, reservation.Table.ServedById)
+                            .ToListAsync();
+                        reservation.Table.ServedBy = staff.FirstOrDefault();
+                    }
+                }
+
                 // Sort manually after retrieval
-                activeReservationsList.Sort((r1, r2) => {
-                    int dateComparison = r1.ReservationDetail.ReservationDate.CompareTo(r2.ReservationDetail.ReservationDate);
-                    return dateComparison != 0 ? dateComparison : string.Compare(r1.ReservationDetail.ReservationHour, r2.ReservationDetail.ReservationHour, StringComparison.OrdinalIgnoreCase);
-                });
+                activeReservationsList = activeReservationsList
+                    .Where(r => r.ReservationDetail != null)
+                    .OrderBy(r => r.ReservationDetail.ReservationDate)
+                    .ThenBy(r => r.ReservationDetail.ReservationHour)
+                    .ToList();
 
                 viewModel.UpcomingReservations = activeReservationsList;
 
@@ -131,21 +201,62 @@ namespace Restaurant.Controllers
 
             try
             {
-                // Get active reservations using Entity Framework
+                // Get active reservations using separate loading approach
                 var today = DateTime.Today;
+                string reservationsSql = @"
+                    SELECT * FROM [reservations] r
+                    WHERE EXISTS (
+                        SELECT 1 FROM [reservation_details] rd 
+                        WHERE rd.res_details_id = r.res_details_id 
+                        AND rd.reservation_status = 'active' 
+                        AND rd.reservation_date >= {0}
+                    )";
+
                 var activeReservations = await _context.Reservations
-                    .Include(r => r.Table)
-                    .ThenInclude(t => t.ServedBy)
-                    .Include(r => r.Customer)
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.ReservationDetail.ReservationStatus == "active" && r.ReservationDetail.ReservationDate >= today)
+                    .FromSqlRaw(reservationsSql, today)
                     .ToListAsync();
-                    
+
+                // Load related data for each reservation
+                foreach (var reservation in activeReservations)
+                {
+                    // Load customer
+                    string customerSql = @"SELECT * FROM [customers] WHERE [customer_id] = {0}";
+                    var customers = await _context.Customers
+                        .FromSqlRaw(customerSql, reservation.CustomerId)
+                        .ToListAsync();
+                    reservation.Customer = customers.FirstOrDefault();
+
+                    // Load reservation details
+                    string detailsSql = @"SELECT * FROM [reservation_details] WHERE [res_details_id] = {0}";
+                    var details = await _context.ReservationDetails
+                        .FromSqlRaw(detailsSql, reservation.ResDetailsId)
+                        .ToListAsync();
+                    reservation.ReservationDetail = details.FirstOrDefault();
+
+                    // Load table
+                    string tableSql = @"SELECT * FROM [restaurant_tables] WHERE [table_id] = {0}";
+                    var tables = await _context.RestaurantTables
+                        .FromSqlRaw(tableSql, reservation.TableId)
+                        .ToListAsync();
+                    reservation.Table = tables.FirstOrDefault();
+
+                    // Load server
+                    if (reservation.Table != null)
+                    {
+                        string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                        var staff = await _context.Staff
+                            .FromSqlRaw(staffSql, reservation.Table.ServedById)
+                            .ToListAsync();
+                        reservation.Table.ServedBy = staff.FirstOrDefault();
+                    }
+                }
+
                 // Sort manually after retrieval
-                activeReservations.Sort((r1, r2) => {
-                    int dateComparison = r1.ReservationDetail.ReservationDate.CompareTo(r2.ReservationDetail.ReservationDate);
-                    return dateComparison != 0 ? dateComparison : string.Compare(r1.ReservationDetail.ReservationHour, r2.ReservationDetail.ReservationHour, StringComparison.OrdinalIgnoreCase);
-                });
+                activeReservations = activeReservations
+                    .Where(r => r.ReservationDetail != null)
+                    .OrderBy(r => r.ReservationDetail.ReservationDate)
+                    .ThenBy(r => r.ReservationDetail.ReservationHour)
+                    .ToList();
 
                 var viewModel = new AdminPanelView
                 {
@@ -170,13 +281,24 @@ namespace Restaurant.Controllers
         {
             try
             {
-                // Get tables using Entity Framework
+                // Load tables and staff separately for better reliability
+                string tablesSql = @"SELECT * FROM [restaurant_tables]";
                 var tables = await _context.RestaurantTables
-                    .Include(t => t.ServedBy)
+                    .FromSqlRaw(tablesSql)
                     .ToListAsync();
-                    
+
+                // Load staff for each table
+                foreach (var table in tables)
+                {
+                    string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                    var staffList = await _context.Staff
+                        .FromSqlRaw(staffSql, table.ServedById)
+                        .ToListAsync();
+                    table.ServedBy = staffList.FirstOrDefault();
+                }
+
                 // Sort manually after retrieval
-                tables.Sort((t1, t2) => t1.TableId.CompareTo(t2.TableId));
+                tables = tables.OrderBy(t => t.TableId).ToList();
 
                 var bookingViewModel = new BookingViewModel
                 {
@@ -191,6 +313,7 @@ namespace Restaurant.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error loading booking page");
                 TempData["Error"] = "Error loading booking page: " + ex.Message;
                 return View(new BookingViewModel { Tables = new List<RestaurantTable>() });
             }
@@ -217,13 +340,13 @@ namespace Restaurant.Controllers
 
                 // Update the reservation status using raw SQL
                 var updateQuery = @"
-            UPDATE reservation_details 
-            SET reservation_status = {0} 
-            WHERE res_details_id = (
-                SELECT r.res_details_id 
-                FROM reservations r 
-                WHERE r.reservation_id = {1}
-            )";
+                    UPDATE reservation_details 
+                    SET reservation_status = {0} 
+                    WHERE res_details_id = (
+                        SELECT r.res_details_id 
+                        FROM reservations r 
+                        WHERE r.reservation_id = {1}
+                    )";
 
                 var rowsAffected = await _context.Database.ExecuteSqlRawAsync(updateQuery, status, reservationId);
 
@@ -242,18 +365,18 @@ namespace Restaurant.Controllers
                 return Json(new { success = false, message = $"Error updating reservation: {ex.Message}" });
             }
         }
+
         public async Task<IActionResult> OrderManagement(int reservationId)
         {
             try
             {
-                // Get reservation with related data using Entity Framework
-                var reservation = await _context.Reservations
-                    .Include(r => r.Table)
-                    .ThenInclude(t => t.ServedBy)
-                    .Include(r => r.Customer)
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.ReservationId == reservationId)
-                    .FirstOrDefaultAsync();
+                // Load reservation using separate queries
+                string reservationSql = @"SELECT * FROM [reservations] WHERE [reservation_id] = {0}";
+                var reservations = await _context.Reservations
+                    .FromSqlRaw(reservationSql, reservationId)
+                    .ToListAsync();
+
+                var reservation = reservations.FirstOrDefault();
 
                 if (reservation == null)
                 {
@@ -261,26 +384,79 @@ namespace Restaurant.Controllers
                     return RedirectToAction("Staff");
                 }
 
-                // Get all menu items using Entity Framework
-                var menuItems = await _context.MenuItems.ToListAsync();
-                    
+                // Load related data separately
+                // Load customer
+                string customerSql = @"SELECT * FROM [customers] WHERE [customer_id] = {0}";
+                var customers = await _context.Customers
+                    .FromSqlRaw(customerSql, reservation.CustomerId)
+                    .ToListAsync();
+                reservation.Customer = customers.FirstOrDefault();
+
+                // Load reservation details
+                string detailsSql = @"SELECT * FROM [reservation_details] WHERE [res_details_id] = {0}";
+                var details = await _context.ReservationDetails
+                    .FromSqlRaw(detailsSql, reservation.ResDetailsId)
+                    .ToListAsync();
+                reservation.ReservationDetail = details.FirstOrDefault();
+
+                // Load table
+                string tableSql = @"SELECT * FROM [restaurant_tables] WHERE [table_id] = {0}";
+                var tables = await _context.RestaurantTables
+                    .FromSqlRaw(tableSql, reservation.TableId)
+                    .ToListAsync();
+                reservation.Table = tables.FirstOrDefault();
+
+                // Load server
+                if (reservation.Table != null)
+                {
+                    string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                    var staff = await _context.Staff
+                        .FromSqlRaw(staffSql, reservation.Table.ServedById)
+                        .ToListAsync();
+                    reservation.Table.ServedBy = staff.FirstOrDefault();
+                }
+
+                // Get all menu items using raw SQL
+                string menuSql = @"SELECT * FROM [menu_items]";
+                var menuItems = await _context.MenuItems
+                    .FromSqlRaw(menuSql)
+                    .ToListAsync();
+
                 // Sort manually after retrieval
-                menuItems.Sort((m1, m2) => {
-                    int categoryComparison = string.Compare(m1.Category, m2.Category, StringComparison.OrdinalIgnoreCase);
-                    if (categoryComparison != 0) return categoryComparison;
-                    
-                    int subcategoryComparison = string.Compare(m1.Subcategory ?? "", m2.Subcategory ?? "", StringComparison.OrdinalIgnoreCase);
-                    if (subcategoryComparison != 0) return subcategoryComparison;
-                    
-                    return string.Compare(m1.ItemName, m2.ItemName, StringComparison.OrdinalIgnoreCase);
-                });
+                menuItems = menuItems
+                    .OrderBy(m => m.Category)
+                    .ThenBy(m => m.Subcategory ?? "")
+                    .ThenBy(m => m.ItemName)
+                    .ToList();
 
                 // Check for existing receipt
-                var existingReceipt = await _context.Receipts
-                    .Include(r => r.ReceiptItems)
-                    .ThenInclude(ri => ri.MenuItem)
-                    .Where(r => r.ReservationId == reservationId)
-                    .FirstOrDefaultAsync();
+                string receiptSql = @"SELECT * FROM [receipts] WHERE [reservation_id] = {0}";
+                var existingReceipts = await _context.Receipts
+                    .FromSqlRaw(receiptSql, reservationId)
+                    .ToListAsync();
+
+                var existingReceipt = existingReceipts.FirstOrDefault();
+
+                // Load receipt items if receipt exists
+                if (existingReceipt != null)
+                {
+                    string receiptItemsSql = @"SELECT * FROM [receipt_items] WHERE [receipt_id] = {0}";
+                    var receiptItems = await _context.ReceiptItems
+                        .FromSqlRaw(receiptItemsSql, existingReceipt.ReceiptId)
+                        .ToListAsync();
+
+                    // Load menu items for each receipt item
+                    foreach (var item in receiptItems)
+                    {
+                        string menuItemSql = @"SELECT * FROM [menu_items] WHERE [item_id] = {0}";
+                        var menuItemList = await _context.MenuItems
+                            .FromSqlRaw(menuItemSql, item.ItemId)
+                            .ToListAsync();
+                        item.MenuItem = menuItemList.FirstOrDefault();
+                    }
+
+                    existingReceipt.ReceiptItems = receiptItems;
+                }
 
                 var viewModel = new OrderManagementViewModel
                 {
@@ -308,70 +484,70 @@ namespace Restaurant.Controllers
                     return Json(new { success = false, message = "No items in order" });
                 }
 
-                // Check if receipt already exists
-                var existingReceipt = await _context.Receipts
-                    .Where(r => r.ReservationId == orderData.ReservationId)
-                    .FirstOrDefaultAsync();
+                // Check if receipt already exists using raw SQL
+                string checkReceiptSql = @"SELECT * FROM [receipts] WHERE [reservation_id] = {0}";
+                var existingReceipts = await _context.Receipts
+                    .FromSqlRaw(checkReceiptSql, orderData.ReservationId)
+                    .ToListAsync();
+
+                var existingReceipt = existingReceipts.FirstOrDefault();
 
                 if (existingReceipt != null)
                 {
                     // Update existing receipt
-                    existingReceipt.TotalAmount = orderData.TotalAmount;
+                    string updateReceiptSql = @"UPDATE [receipts] SET [total_amount] = {0} WHERE [receipt_id] = {1}";
+                    await _context.Database.ExecuteSqlRawAsync(updateReceiptSql, orderData.TotalAmount, existingReceipt.ReceiptId);
                     
                     // Delete existing receipt items
-                    var existingItems = await _context.ReceiptItems
-                        .Where(ri => ri.ReceiptId == existingReceipt.ReceiptId)
-                        .ToListAsync();
-                    
-                    _context.ReceiptItems.RemoveRange(existingItems);
-                    await _context.SaveChangesAsync();
+                    string deleteItemsSql = @"DELETE FROM [receipt_items] WHERE [receipt_id] = {0}";
+                    await _context.Database.ExecuteSqlRawAsync(deleteItemsSql, existingReceipt.ReceiptId);
 
                     // Add new receipt items
                     foreach (var item in orderData.Items)
                     {
-                        var receiptItem = new ReceiptItem
-                        {
-                            ReceiptId = existingReceipt.ReceiptId,
-                            ItemId = item.ItemId,
-                            Quantity = item.Quantity,
-                            UnitPrice = item.UnitPrice,
-                            SpecialNotes = orderData.SpecialNotes ?? ""
-                        };
-                        _context.ReceiptItems.Add(receiptItem);
+                        string insertItemSql = @"
+                            INSERT INTO [receipt_items] ([receipt_id], [item_id], [quantity], [unit_price], [special_notes])
+                            VALUES ({0}, {1}, {2}, {3}, {4})";
+                        
+                        await _context.Database.ExecuteSqlRawAsync(insertItemSql, 
+                            existingReceipt.ReceiptId, 
+                            item.ItemId, 
+                            item.Quantity, 
+                            item.UnitPrice, 
+                            orderData.SpecialNotes ?? "");
                     }
 
-                    await _context.SaveChangesAsync();
                     TempData["Success"] = "Order updated successfully!";
                 }
                 else
                 {
-                    // Create new receipt
-                    var receipt = new Receipt
-                    {
-                        ReservationId = orderData.ReservationId,
-                        StaffId = orderData.StaffId,
-                        TotalAmount = orderData.TotalAmount,
-                        CreatedAt = DateTime.Now
-                    };
+                    // Create new receipt using INSERT with OUTPUT
+                    string insertReceiptSql = @"
+                        INSERT INTO [receipts] ([reservation_id], [staff_id], [total_amount], [created_at])
+                        OUTPUT INSERTED.receipt_id
+                        VALUES ({0}, {1}, {2}, {3})";
 
-                    _context.Receipts.Add(receipt);
-                    await _context.SaveChangesAsync();
+                    var receiptIds = await _context.Database
+                        .SqlQueryRaw<int>(insertReceiptSql, orderData.ReservationId, orderData.StaffId, orderData.TotalAmount, DateTime.Now)
+                        .ToListAsync();
+
+                    var newReceiptId = receiptIds.First();
 
                     // Add receipt items
                     foreach (var item in orderData.Items)
                     {
-                        var receiptItem = new ReceiptItem
-                        {
-                            ReceiptId = receipt.ReceiptId,
-                            ItemId = item.ItemId,
-                            Quantity = item.Quantity,
-                            UnitPrice = item.UnitPrice,
-                            SpecialNotes = orderData.SpecialNotes ?? ""
-                        };
-                        _context.ReceiptItems.Add(receiptItem);
+                        string insertItemSql = @"
+                            INSERT INTO [receipt_items] ([receipt_id], [item_id], [quantity], [unit_price], [special_notes])
+                            VALUES ({0}, {1}, {2}, {3}, {4})";
+                        
+                        await _context.Database.ExecuteSqlRawAsync(insertItemSql, 
+                            newReceiptId, 
+                            item.ItemId, 
+                            item.Quantity, 
+                            item.UnitPrice, 
+                            orderData.SpecialNotes ?? "");
                     }
 
-                    await _context.SaveChangesAsync();
                     TempData["Success"] = "Order created successfully!";
                 }
 
@@ -389,7 +565,10 @@ namespace Restaurant.Controllers
         {
             try
             {
-                var tables = await _context.RestaurantTables.ToListAsync();
+                string sql = @"SELECT * FROM [restaurant_tables]";
+                var tables = await _context.RestaurantTables
+                    .FromSqlRaw(sql)
+                    .ToListAsync();
                 
                 var tableCapacities = new List<object>();
                 foreach (var table in tables)
@@ -407,27 +586,60 @@ namespace Restaurant.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error getting table capacities");
                 return Json(new { success = false, message = ex.Message });
             }
         } 
         
-        [HttpGet]
+[HttpGet]
 public async Task<IActionResult> Edit(int id)
 {
     try
     {
-        // Use Entity Framework instead of raw SQL
-        var reservation = await _context.Reservations
-            .Include(r => r.Table)
-            .ThenInclude(t => t.ServedBy)
-            .Include(r => r.Customer)
-            .Include(r => r.ReservationDetail)
-            .FirstOrDefaultAsync(r => r.ReservationId == id);
+        // Load reservation using separate queries
+        string reservationSql = @"SELECT * FROM [reservations] WHERE [reservation_id] = {0}";
+        var reservations = await _context.Reservations
+            .FromSqlRaw(reservationSql, id)
+            .ToListAsync();
+
+        var reservation = reservations.FirstOrDefault();
 
         if (reservation == null)
         {
             TempData["Error"] = "Reservation not found.";
             return GoBackToPanel();
+        }
+
+        // Load related data separately
+        // Load customer
+        string customerSql = @"SELECT * FROM [customers] WHERE [customer_id] = {0}";
+        var customers = await _context.Customers
+            .FromSqlRaw(customerSql, reservation.CustomerId)
+            .ToListAsync();
+        reservation.Customer = customers.FirstOrDefault();
+
+        // Load reservation details
+        string detailsSql = @"SELECT * FROM [reservation_details] WHERE [res_details_id] = {0}";
+        var details = await _context.ReservationDetails
+            .FromSqlRaw(detailsSql, reservation.ResDetailsId)
+            .ToListAsync();
+        reservation.ReservationDetail = details.FirstOrDefault();
+
+        // Load table
+        string tableSql = @"SELECT * FROM [restaurant_tables] WHERE [table_id] = {0}";
+        var tables = await _context.RestaurantTables
+            .FromSqlRaw(tableSql, reservation.TableId)
+            .ToListAsync();
+        reservation.Table = tables.FirstOrDefault();
+
+        // Load server
+        if (reservation.Table != null)
+        {
+            string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+            var staff = await _context.Staff
+                .FromSqlRaw(staffSql, reservation.Table.ServedById)
+                .ToListAsync();
+            reservation.Table.ServedBy = staff.FirstOrDefault();
         }
 
         return View(reservation);
@@ -451,17 +663,26 @@ public async Task<IActionResult> Edit(Reservation model)
 
     try
     {
-        // Load the existing reservation using Entity Framework
-        var reservation = await _context.Reservations
-            .Include(r => r.Customer)
-            .Include(r => r.ReservationDetail)
-            .FirstOrDefaultAsync(r => r.ReservationId == model.ReservationId);
+        // Load the existing reservation using separate queries
+        string loadReservationSql = @"SELECT * FROM [reservations] WHERE [reservation_id] = {0}";
+        var reservations = await _context.Reservations
+            .FromSqlRaw(loadReservationSql, model.ReservationId)
+            .ToListAsync();
+
+        var reservation = reservations.FirstOrDefault();
 
         if (reservation == null)
         {
             TempData["Error"] = "Reservation not found.";
             return GoBackToPanel();
         }
+
+        // Load reservation details
+        string detailsSql = @"SELECT * FROM [reservation_details] WHERE [res_details_id] = {0}";
+        var details = await _context.ReservationDetails
+            .FromSqlRaw(detailsSql, reservation.ResDetailsId)
+            .ToListAsync();
+        reservation.ReservationDetail = details.FirstOrDefault();
 
         // Get form values with null checks and trimming
         var customerName = Request.Form["Customer.Name"].ToString()?.Trim() ?? "";
@@ -494,132 +715,145 @@ public async Task<IActionResult> Edit(Reservation model)
             return View(reservation);
         }
 
-        // Update customer information
-        if (reservation.Customer != null)
+        // Update customer information using raw SQL
+        string updateCustomerSql = @"
+            UPDATE [customers] 
+            SET [name] = {0}, [surname] = {1}, [tel_no] = {2}, [email] = {3}
+            WHERE [customer_id] = {4}";
+
+        await _context.Database.ExecuteSqlRawAsync(updateCustomerSql, 
+            customerName, customerSurname, customerTelNo, customerEmail, reservation.CustomerId);
+
+        // Update special requests
+        var specialRequests = Request.Form["ReservationDetail.SpecialRequests"].ToString()?.Trim();
+        if (string.IsNullOrWhiteSpace(specialRequests))
         {
-            reservation.Customer.Name = customerName;
-            reservation.Customer.Surname = customerSurname;
-            reservation.Customer.TelNo = customerTelNo;
-            reservation.Customer.Email = customerEmail;
+            specialRequests = null;
         }
 
-        // Update reservation details
-        if (reservation.ReservationDetail != null)
+        string updateSpecialRequestsSql = @"
+            UPDATE [reservation_details] 
+            SET [special_requests] = {0}
+            WHERE [res_details_id] = {1}";
+
+        await _context.Database.ExecuteSqlRawAsync(updateSpecialRequestsSql, specialRequests, reservation.ResDetailsId);
+
+        // Only update other reservation details if status is active
+        if (reservation.ReservationDetail?.ReservationStatus == "active")
         {
-            var specialRequests = Request.Form["ReservationDetail.SpecialRequests"].ToString()?.Trim();
-            if (string.IsNullOrWhiteSpace(specialRequests))
+            // Parse and validate form values
+            var guestNumberStr = Request.Form["ReservationDetail.GuestNumber"].ToString()?.Trim() ?? "";
+            if (!int.TryParse(guestNumberStr, out int guestNumber) || guestNumber < 1)
             {
-                specialRequests = null;
+                TempData["Error"] = $"Invalid guest number format. Received: '{guestNumberStr}'";
+                return View(reservation);
             }
 
-            // Always update special requests
-            reservation.ReservationDetail.SpecialRequests = specialRequests;
-
-            // Only update other reservation details if status is active
-            if (reservation.ReservationDetail.ReservationStatus == "active")
+            // Get table ID with better error handling
+            int tableId = reservation.TableId; // Default to current table
+            var tableIdFormValue = Request.Form["TableId"].ToString()?.Trim() ?? "";
+            
+            if (string.IsNullOrEmpty(tableIdFormValue))
             {
-                // Parse and validate form values
-                var guestNumberStr = Request.Form["ReservationDetail.GuestNumber"].ToString()?.Trim() ?? "";
-                if (!int.TryParse(guestNumberStr, out int guestNumber) || guestNumber < 1)
+                var currentTableIdValue = Request.Form["CurrentTableId"].ToString()?.Trim() ?? "";
+                if (!string.IsNullOrEmpty(currentTableIdValue))
                 {
-                    TempData["Error"] = $"Invalid guest number format. Received: '{guestNumberStr}'";
-                    return View(reservation);
-                }
-
-                // Get table ID with better error handling
-                int tableId = reservation.TableId; // Default to current table
-                var tableIdFormValue = Request.Form["TableId"].ToString()?.Trim() ?? "";
-                
-                if (string.IsNullOrEmpty(tableIdFormValue))
-                {
-                    var currentTableIdValue = Request.Form["CurrentTableId"].ToString()?.Trim() ?? "";
-                    if (!string.IsNullOrEmpty(currentTableIdValue))
+                    if (!int.TryParse(currentTableIdValue, out tableId))
                     {
-                        if (!int.TryParse(currentTableIdValue, out tableId))
-                        {
-                            TempData["Error"] = $"Invalid current table ID format. Received: '{currentTableIdValue}'";
-                            return View(reservation);
-                        }
-                    }
-                }
-                else
-                {
-                    if (!int.TryParse(tableIdFormValue, out tableId))
-                    {
-                        TempData["Error"] = $"Invalid table ID format. Received: '{tableIdFormValue}'";
+                        TempData["Error"] = $"Invalid current table ID format. Received: '{currentTableIdValue}'";
                         return View(reservation);
                     }
                 }
-
-                var reservationDateStr = Request.Form["ReservationDetail.ReservationDate"].ToString()?.Trim() ?? "";
-                if (!DateTime.TryParse(reservationDateStr, out DateTime reservationDate))
+            }
+            else
+            {
+                if (!int.TryParse(tableIdFormValue, out tableId))
                 {
-                    TempData["Error"] = $"Invalid reservation date format. Received: '{reservationDateStr}'";
+                    TempData["Error"] = $"Invalid table ID format. Received: '{tableIdFormValue}'";
                     return View(reservation);
-                }
-
-                var reservationHour = Request.Form["ReservationDetail.ReservationHour"].ToString()?.Trim() ?? "";
-                if (string.IsNullOrWhiteSpace(reservationHour))
-                {
-                    TempData["Error"] = "Reservation hour is required.";
-                    return View(reservation);
-                }
-
-                // Validate the selected table exists and can accommodate the guest count
-                var selectedTable = await _context.RestaurantTables
-                    .Include(t => t.ServedBy)
-                    .FirstOrDefaultAsync(t => t.TableId == tableId);
-
-                if (selectedTable == null)
-                {
-                    TempData["Error"] = $"Selected table {tableId} not found.";
-                    return View(reservation);
-                }
-
-                if (guestNumber < selectedTable.MinCapacity || guestNumber > selectedTable.MaxCapacity)
-                {
-                    TempData["Error"] = $"Table {tableId} capacity is {selectedTable.MinCapacity}-{selectedTable.MaxCapacity} people. You selected {guestNumber} guests.";
-                    return View(reservation);
-                }
-
-                // Check if the table is available for the selected date/time (excluding current reservation)
-                var conflictingReservation = await _context.Reservations
-                    .Include(r => r.ReservationDetail)
-                    .FirstOrDefaultAsync(r => 
-                        r.TableId == tableId &&
-                        r.ReservationDetail.ReservationDate.Date == reservationDate.Date &&
-                        r.ReservationDetail.ReservationHour == reservationHour &&
-                        r.ReservationDetail.ReservationStatus == "active" &&
-                        r.ReservationId != model.ReservationId);
-
-                if (conflictingReservation != null)
-                {
-                    TempData["Error"] = $"Table {tableId} is already reserved for {reservationDate.ToShortDateString()} at {reservationHour}.";
-                    return View(reservation);
-                }
-
-                // Check if date is not in the past
-                if (reservationDate.Date < DateTime.Today)
-                {
-                    TempData["Error"] = "Cannot set reservation date to a past date.";
-                    return View(reservation);
-                }
-
-                // Update reservation details
-                reservation.ReservationDetail.GuestNumber = guestNumber;
-                reservation.ReservationDetail.ReservationDate = reservationDate;
-                reservation.ReservationDetail.ReservationHour = reservationHour;
-
-                // Update table assignment if it changed
-                if (tableId != reservation.TableId)
-                {
-                    reservation.TableId = tableId;
                 }
             }
-        }
 
-        // Save all changes using Entity Framework
-        await _context.SaveChangesAsync();
+            var reservationDateStr = Request.Form["ReservationDetail.ReservationDate"].ToString()?.Trim() ?? "";
+            if (!DateTime.TryParse(reservationDateStr, out DateTime reservationDate))
+            {
+                TempData["Error"] = $"Invalid reservation date format. Received: '{reservationDateStr}'";
+                return View(reservation);
+            }
+
+            var reservationHour = Request.Form["ReservationDetail.ReservationHour"].ToString()?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(reservationHour))
+            {
+                TempData["Error"] = "Reservation hour is required.";
+                return View(reservation);
+            }
+
+            // Validate the selected table exists using raw SQL
+            string checkTableSql = @"SELECT * FROM [restaurant_tables] WHERE [table_id] = {0}";
+            var selectedTables = await _context.RestaurantTables
+                .FromSqlRaw(checkTableSql, tableId)
+                .ToListAsync();
+
+            var selectedTable = selectedTables.FirstOrDefault(); // FIXED: Added this missing line
+
+            if (selectedTable == null)
+            {
+                TempData["Error"] = $"Selected table {tableId} not found.";
+                return View(reservation);
+            }
+
+            if (guestNumber < selectedTable.MinCapacity || guestNumber > selectedTable.MaxCapacity)
+            {
+                TempData["Error"] = $"Table {tableId} capacity is {selectedTable.MinCapacity}-{selectedTable.MaxCapacity} people. You selected {guestNumber} guests.";
+                return View(reservation);
+            }
+
+            // Check if the table is available for the selected date/time (excluding current reservation) using raw SQL
+            string conflictCheckSql = @"
+                SELECT [reservation_id] FROM [reservations] r
+                WHERE r.table_id = {0} 
+                AND EXISTS (
+                    SELECT 1 FROM [reservation_details] rd 
+                    WHERE rd.res_details_id = r.res_details_id
+                    AND CAST(rd.reservation_date AS DATE) = CAST({1} AS DATE)
+                    AND rd.reservation_hour = {2}
+                    AND rd.reservation_status = 'active'
+                )
+                AND r.reservation_id != {3}";
+
+            var conflictingReservationIds = await _context.Database
+                .SqlQueryRaw<int>(conflictCheckSql, tableId, reservationDate, reservationHour, model.ReservationId)
+                .ToListAsync();
+
+            if (conflictingReservationIds.Any())
+            {
+                TempData["Error"] = $"Table {tableId} is already reserved for {reservationDate.ToShortDateString()} at {reservationHour}.";
+                return View(reservation);
+            }
+
+            // Check if date is not in the past
+            if (reservationDate.Date < DateTime.Today)
+            {
+                TempData["Error"] = "Cannot set reservation date to a past date.";
+                return View(reservation);
+            }
+
+            // Update reservation details using raw SQL
+            string updateReservationDetailsSql = @"
+                UPDATE [reservation_details] 
+                SET [guest_number] = {0}, [reservation_date] = {1}, [reservation_hour] = {2}
+                WHERE [res_details_id] = {3}";
+
+            await _context.Database.ExecuteSqlRawAsync(updateReservationDetailsSql, 
+                guestNumber, reservationDate, reservationHour, reservation.ResDetailsId);
+
+            // Update table assignment if it changed
+            if (tableId != reservation.TableId)
+            {
+                string updateTableSql = @"UPDATE [reservations] SET [table_id] = {0} WHERE [reservation_id] = {1}";
+                await _context.Database.ExecuteSqlRawAsync(updateTableSql, tableId, model.ReservationId);
+            }
+        }
 
         TempData["Success"] = $"Reservation #{model.ReservationId} has been updated successfully.";
         return GoBackToPanel();
@@ -630,281 +864,354 @@ public async Task<IActionResult> Edit(Reservation model)
         Console.WriteLine($"Stack trace: {ex.StackTrace}");
         TempData["Error"] = $"An error occurred while updating the reservation: {ex.Message}";
         
-        // Reload the reservation for the view
+        // Reload the reservation for the view using separate queries
+        string reloadSql = @"SELECT * FROM [reservations] WHERE [reservation_id] = {0}";
         var reservationForView = await _context.Reservations
-            .Include(r => r.Table)
-            .ThenInclude(t => t.ServedBy)
-            .Include(r => r.Customer)
-            .Include(r => r.ReservationDetail)
-            .FirstOrDefaultAsync(r => r.ReservationId == model.ReservationId);
+            .FromSqlRaw(reloadSql, model.ReservationId)
+            .FirstOrDefaultAsync();
+
+        if (reservationForView != null)
+        {
+            // Load related data
+            string customerSql = @"SELECT * FROM [customers] WHERE [customer_id] = {0}";
+            var customers = await _context.Customers
+                .FromSqlRaw(customerSql, reservationForView.CustomerId)
+                .ToListAsync();
+            reservationForView.Customer = customers.FirstOrDefault();
+
+            string detailsSql = @"SELECT * FROM [reservation_details] WHERE [res_details_id] = {0}";
+            var details = await _context.ReservationDetails
+                .FromSqlRaw(detailsSql, reservationForView.ResDetailsId)
+                .ToListAsync();
+            reservationForView.ReservationDetail = details.FirstOrDefault();
+
+            string tableSql = @"SELECT * FROM [restaurant_tables] WHERE [table_id] = {0}";
+            var tables = await _context.RestaurantTables
+                .FromSqlRaw(tableSql, reservationForView.TableId)
+                .ToListAsync();
+            reservationForView.Table = tables.FirstOrDefault();
+
+            if (reservationForView.Table != null)
+            {
+                string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                var staff = await _context.Staff
+                    .FromSqlRaw(staffSql, reservationForView.Table.ServedById)
+                    .ToListAsync();
+                reservationForView.Table.ServedBy = staff.FirstOrDefault();
+            }
+        }
             
         return View(reservationForView ?? new Reservation());
     }
 }
 
-// Also update the Delete method to use Entity Framework
-[HttpGet]
-public async Task<IActionResult> Delete(int id)
-{
-    if (!CheckUserLoggedIn())
-    {
-        return RedirectToAction("Login");
-    }
-
-    try
-    {
-        // Use Entity Framework instead of raw SQL
-        var reservation = await _context.Reservations
-            .Include(r => r.ReservationDetail)
-            .FirstOrDefaultAsync(r => r.ReservationId == id);
-
-        if (reservation == null)
+        // Delete method using raw SQL
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
         {
-            TempData["Error"] = "Reservation not found.";
+            if (!CheckUserLoggedIn())
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                // Load reservation using separate queries
+                string reservationSql = @"SELECT * FROM [reservations] WHERE [reservation_id] = {0}";
+                var reservations = await _context.Reservations
+                    .FromSqlRaw(reservationSql, id)
+                    .ToListAsync();
+
+                var reservation = reservations.FirstOrDefault();
+
+                if (reservation == null)
+                {
+                    TempData["Error"] = "Reservation not found.";
+                    return GoBackToPanel();
+                }
+
+                // Load reservation details
+                string detailsSql = @"SELECT * FROM [reservation_details] WHERE [res_details_id] = {0}";
+                var details = await _context.ReservationDetails
+                    .FromSqlRaw(detailsSql, reservation.ResDetailsId)
+                    .ToListAsync();
+                reservation.ReservationDetail = details.FirstOrDefault();
+
+                if (reservation.ReservationDetail?.ReservationStatus != "active")
+                {
+                    TempData["Error"] = "Only active reservations can be deleted.";
+                    return RedirectToAction("Edit", new { id = id });
+                }
+
+                // Delete reservation and its details using raw SQL
+                string deleteReservationSql = @"DELETE FROM [reservations] WHERE [reservation_id] = {0}";
+                await _context.Database.ExecuteSqlRawAsync(deleteReservationSql, id);
+
+                string deleteDetailsSql = @"DELETE FROM [reservation_details] WHERE [res_details_id] = {0}";
+                await _context.Database.ExecuteSqlRawAsync(deleteDetailsSql, reservation.ResDetailsId);
+
+                TempData["Success"] = $"Reservation #{id} has been permanently deleted.";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting reservation: {ex.Message}");
+                TempData["Error"] = "An error occurred while deleting the reservation. Please try again.";
+            }
+
             return GoBackToPanel();
         }
 
-        if (reservation.ReservationDetail?.ReservationStatus != "active")
+        // Update EditStaff methods to use raw SQL
+        [HttpGet]
+        public async Task<IActionResult> EditStaff(int id)
         {
-            TempData["Error"] = "Only active reservations can be deleted.";
-            return RedirectToAction("Edit", new { id = id });
+            if (HttpContext.Session.GetString("admin") != "true")
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                string sql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                var staffList = await _context.Staff
+                    .FromSqlRaw(sql, id)
+                    .ToListAsync();
+
+                var staff = staffList.FirstOrDefault();
+
+                if (staff == null)
+                {
+                    TempData["Error"] = "Staff member not found.";
+                    return RedirectToAction("Admin");
+                }
+                
+                return View(staff);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading staff: {ex.Message}");
+                TempData["Error"] = "An error occurred while loading the staff member.";
+                return RedirectToAction("Admin");
+            }
         }
 
-        // Delete reservation and its details using Entity Framework
-        if (reservation.ReservationDetail != null)
+        [HttpPost]
+        public async Task<IActionResult> EditStaff(Staff staff)
         {
-            _context.ReservationDetails.Remove(reservation.ReservationDetail);
+            if (HttpContext.Session.GetString("admin") != "true")
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(staff);
+            }
+
+            try
+            {
+                // Check if phone number exists for another staff member using raw SQL
+                string checkPhoneSql = @"SELECT * FROM [staff] WHERE [tel_no] = {0} AND [staff_id] != {1}";
+                var existingStaffList = await _context.Staff
+                    .FromSqlRaw(checkPhoneSql, staff.TelNo, staff.StaffId)
+                    .ToListAsync();
+
+                if (existingStaffList.Any())
+                {
+                    ModelState.AddModelError("TelNo", "Another staff member with this phone number already exists.");
+                    return View(staff);
+                }
+
+                // Check if job is valid
+                var validJobs = new[] { "waiter", "chef", "manager", "cashier", "dishwasher", "cleaner" };
+                if (!validJobs.Contains(staff.Job.ToLower()))
+                {
+                    ModelState.AddModelError("Job", "Please select a valid job position.");
+                    return View(staff);
+                }
+
+                // Update staff member using raw SQL
+                string updateSql = @"
+                    UPDATE [staff] 
+                    SET [name] = {0}, [surname] = {1}, [job] = {2}, [tel_no] = {3}
+                    WHERE [staff_id] = {4}";
+
+                await _context.Database.ExecuteSqlRawAsync(updateSql, 
+                    staff.Name, staff.Surname, staff.Job, staff.TelNo, staff.StaffId);
+
+                TempData["Success"] = $"Staff member {staff.Name} {staff.Surname} has been successfully updated.";
+                return RedirectToAction("Admin");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating staff: {ex.Message}");
+                TempData["Error"] = "An error occurred while updating the staff member.";
+                return View(staff);
+            }
         }
-        _context.Reservations.Remove(reservation);
+
+        [HttpGet]
+        public async Task<IActionResult> DeleteStaff(int id)
+        {
+            if (HttpContext.Session.GetString("admin") != "true")
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                var staffList = await _context.Staff
+                    .FromSqlRaw(staffSql, id)
+                    .ToListAsync();
+
+                var staff = staffList.FirstOrDefault();
+
+                if (staff == null)
+                {
+                    TempData["Error"] = "Staff member not found.";
+                    return RedirectToAction("Admin");
+                }
+
+                // Check if staff has active reservations using raw SQL - avoid COUNT
+                string activeReservationsSql = @"
+                    SELECT [reservation_id] FROM [reservations] r
+                    WHERE EXISTS (
+                        SELECT 1 FROM [restaurant_tables] rt 
+                        WHERE rt.table_id = r.table_id AND rt.served_by_id = {0}
+                    )
+                    AND EXISTS (
+                        SELECT 1 FROM [reservation_details] rd 
+                        WHERE rd.res_details_id = r.res_details_id AND rd.reservation_status = 'active'
+                    )";
+
+                var activeReservationIds = await _context.Database
+                    .SqlQueryRaw<int>(activeReservationsSql, id)
+                    .ToListAsync();
+
+                ViewBag.ActiveReservations = activeReservationIds.Count;
+                return View(staff);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading staff for deletion: {ex.Message}");
+                TempData["Error"] = "An error occurred while loading the staff member.";
+                return RedirectToAction("Admin");
+            }
+        }
+
+        [HttpPost, ActionName("DeleteStaff")]
+        public async Task<IActionResult> DeleteStaffConfirmed(int id)
+        {
+            if (HttpContext.Session.GetString("admin") != "true")
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                var staffList = await _context.Staff
+                    .FromSqlRaw(staffSql, id)
+                    .ToListAsync();
+
+                var staff = staffList.FirstOrDefault();
+
+                if (staff == null)
+                {
+                    TempData["Error"] = "Staff member not found.";
+                    return RedirectToAction("Admin");
+                }
+
+                // Check if staff has active reservations using raw SQL - avoid COUNT
+                string activeReservationsSql = @"
+                    SELECT [reservation_id] FROM [reservations] r
+                    WHERE EXISTS (
+                        SELECT 1 FROM [restaurant_tables] rt 
+                        WHERE rt.table_id = r.table_id AND rt.served_by_id = {0}
+                    )
+                    AND EXISTS (
+                        SELECT 1 FROM [reservation_details] rd 
+                        WHERE rd.res_details_id = r.res_details_id AND rd.reservation_status = 'active'
+                    )";
+
+                var activeReservationIds = await _context.Database
+                    .SqlQueryRaw<int>(activeReservationsSql, id)
+                    .ToListAsync();
+
+                if (activeReservationIds.Count > 0)
+                {
+                    TempData["Error"] = $"Cannot delete staff member. They have {activeReservationIds.Count} active reservation(s). Please reassign or complete these reservations first.";
+                    return RedirectToAction("Admin");
+                }
+
+                // Delete staff member using raw SQL
+                string deleteSql = @"DELETE FROM [staff] WHERE [staff_id] = {0}";
+                await _context.Database.ExecuteSqlRawAsync(deleteSql, id);
+
+                TempData["Success"] = $"Staff member {staff.Name} {staff.Surname} has been successfully deleted.";
+                return RedirectToAction("Admin");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting staff: {ex.Message}");
+                TempData["Error"] = "An error occurred while deleting the staff member.";
+                return RedirectToAction("Admin");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateUser()
+        {
+            if (HttpContext.Session.GetString("admin") != "true")
+            {
+                return RedirectToAction("Login");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(string username, string password, string type)
+        {
+            if (HttpContext.Session.GetString("admin") != "true")
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                // Check if user already exists using raw SQL
+                string checkUserSql = @"SELECT * FROM [user_credentials] WHERE [username] = {0}";
+                var existingUsers = await _context.UserCredentials
+                    .FromSqlRaw(checkUserSql, username)
+                    .ToListAsync();
+
+                if (existingUsers.Any())
+                {
+                    TempData["UserExists"] = "User already exists.";
+                    return RedirectToAction("CreateUser");
+                }
+
+                // Create new user using raw SQL
+                string insertUserSql = @"
+                    INSERT INTO [user_credentials] ([username], [password], [user_type])
+                    VALUES ({0}, {1}, {2})";
+
+                await _context.Database.ExecuteSqlRawAsync(insertUserSql, username, password, type);
+
+                TempData["Success"] = $"User {username} has been successfully created.";
+                return RedirectToAction("Admin");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating user: {ex.Message}");
+                TempData["Error"] = "An error occurred while creating the user.";
+                return RedirectToAction("Admin");
+            }
+        }
         
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = $"Reservation #{id} has been permanently deleted.";
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error deleting reservation: {ex.Message}");
-        TempData["Error"] = "An error occurred while deleting the reservation. Please try again.";
-    }
-
-    return GoBackToPanel();
-}
-
-// Update EditStaff methods to use Entity Framework
-[HttpGet]
-public async Task<IActionResult> EditStaff(int id)
-{
-    if (HttpContext.Session.GetString("admin") != "true")
-    {
-        return RedirectToAction("Login");
-    }
-
-    try
-    {
-        var staff = await _context.Staff.FirstOrDefaultAsync(s => s.StaffId == id);
-
-        if (staff == null)
-        {
-            TempData["Error"] = "Staff member not found.";
-            return RedirectToAction("Admin");
-        }
-        
-        return View(staff);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error loading staff: {ex.Message}");
-        TempData["Error"] = "An error occurred while loading the staff member.";
-        return RedirectToAction("Admin");
-    }
-}
-
-[HttpPost]
-public async Task<IActionResult> EditStaff(Staff staff)
-{
-    if (HttpContext.Session.GetString("admin") != "true")
-    {
-        return RedirectToAction("Login");
-    }
-
-    if (!ModelState.IsValid)
-    {
-        return View(staff);
-    }
-
-    try
-    {
-        // Check if phone number exists for another staff member
-        var existingStaff = await _context.Staff
-            .FirstOrDefaultAsync(s => s.TelNo == staff.TelNo && s.StaffId != staff.StaffId);
-
-        if (existingStaff != null)
-        {
-            ModelState.AddModelError("TelNo", "Another staff member with this phone number already exists.");
-            return View(staff);
-        }
-
-        // Check if job is valid
-        var validJobs = new[] { "waiter", "chef", "manager", "cashier", "dishwasher", "cleaner" };
-        if (!validJobs.Contains(staff.Job.ToLower()))
-        {
-            ModelState.AddModelError("Job", "Please select a valid job position.");
-            return View(staff);
-        }
-
-        // Update staff member using Entity Framework
-        _context.Staff.Update(staff);
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = $"Staff member {staff.Name} {staff.Surname} has been successfully updated.";
-        return RedirectToAction("Admin");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error updating staff: {ex.Message}");
-        TempData["Error"] = "An error occurred while updating the staff member.";
-        return View(staff);
-    }
-}
-
-[HttpGet]
-public async Task<IActionResult> DeleteStaff(int id)
-{
-    if (HttpContext.Session.GetString("admin") != "true")
-    {
-        return RedirectToAction("Login");
-    }
-
-    try
-    {
-        var staff = await _context.Staff.FirstOrDefaultAsync(s => s.StaffId == id);
-
-        if (staff == null)
-        {
-            TempData["Error"] = "Staff member not found.";
-            return RedirectToAction("Admin");
-        }
-
-        // Check if staff has active reservations using Entity Framework
-        var activeReservations = await _context.Reservations
-            .Include(r => r.Table)
-            .Include(r => r.ReservationDetail)
-            .CountAsync(r => 
-                r.Table.ServedById == id && 
-                r.ReservationDetail.ReservationStatus == "active");
-
-        ViewBag.ActiveReservations = activeReservations;
-        return View(staff);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error loading staff for deletion: {ex.Message}");
-        TempData["Error"] = "An error occurred while loading the staff member.";
-        return RedirectToAction("Admin");
-    }
-}
-
-[HttpPost, ActionName("DeleteStaff")]
-public async Task<IActionResult> DeleteStaffConfirmed(int id)
-{
-    if (HttpContext.Session.GetString("admin") != "true")
-    {
-        return RedirectToAction("Login");
-    }
-
-    try
-    {
-        var staff = await _context.Staff.FirstOrDefaultAsync(s => s.StaffId == id);
-
-        if (staff == null)
-        {
-            TempData["Error"] = "Staff member not found.";
-            return RedirectToAction("Admin");
-        }
-
-        // Check if staff has active reservations
-        var activeReservations = await _context.Reservations
-            .Include(r => r.Table)
-            .Include(r => r.ReservationDetail)
-            .CountAsync(r => 
-                r.Table.ServedById == id && 
-                r.ReservationDetail.ReservationStatus == "active");
-
-        if (activeReservations > 0)
-        {
-            TempData["Error"] = $"Cannot delete staff member. They have {activeReservations} active reservation(s). Please reassign or complete these reservations first.";
-            return RedirectToAction("Admin");
-        }
-
-        // Delete staff member using Entity Framework
-        _context.Staff.Remove(staff);
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = $"Staff member {staff.Name} {staff.Surname} has been successfully deleted.";
-        return RedirectToAction("Admin");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error deleting staff: {ex.Message}");
-        TempData["Error"] = "An error occurred while deleting the staff member.";
-        return RedirectToAction("Admin");
-    }
-}
-
-[HttpGet]
-public async Task<IActionResult> CreateUser()
-{
-    if (HttpContext.Session.GetString("admin") != "true")
-    {
-        return RedirectToAction("Login");
-    }
-    return View();
-}
-
-[HttpPost]
-public async Task<IActionResult> CreateUser(string username, string password, string type)
-{
-    if (HttpContext.Session.GetString("admin") != "true")
-    {
-        return RedirectToAction("Login");
-    }
-
-    try
-    {
-        // Check if user already exists using Entity Framework
-        var existingUser = await _context.UserCredentials
-            .FirstOrDefaultAsync(u => u.Username == username);
-
-        if (existingUser != null)
-        {
-            TempData["UserExists"] = "User already exists.";
-            return RedirectToAction("CreateUser");
-        }
-
-        // Create new user using Entity Framework
-        var newUser = new UserCredential
-        {
-            Username = username,
-            Password = password,
-            UserType = type
-        };
-
-        _context.UserCredentials.Add(newUser);
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = $"User {username} has been successfully created.";
-        return RedirectToAction("Admin");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error creating user: {ex.Message}");
-        TempData["Error"] = "An error occurred while creating the user.";
-        return RedirectToAction("Admin");
-    }
-}
-        
-        
-        // Search for reservations
+        // Fixed Receipt method - proper error handling and raw SQL that works
+        [HttpGet] // Changed from POST to GET to match the form
         public async Task<IActionResult> Receipt(string receiptSearch)
         {
             if (string.IsNullOrWhiteSpace(receiptSearch))
@@ -913,19 +1220,30 @@ public async Task<IActionResult> CreateUser(string username, string password, st
                 return RedirectToAction("Index");
             }
 
-            if (int.TryParse(receiptSearch.Trim(), out int reservationId))
+            if (!int.TryParse(receiptSearch.Trim(), out int reservationId))
             {
-                var reservation = await _context.Reservations
-                    .Include(r => r.Table)
-                    .ThenInclude(t => t.ServedBy)
-                    .Include(r => r.Customer)
-                    .Include(r => r.ReservationDetail)
-                    .FirstOrDefaultAsync(r => r.ReservationId == reservationId);
+                TempData["Error"] = "Please enter a valid reservation ID (numbers only).";
+                return RedirectToAction("Index");
+            }
 
-                if (reservation != null)
+            try
+            {
+                // Use FromSqlRaw instead of SqlQueryRaw to avoid column naming issues
+                string sql = @"SELECT * FROM [reservations] WHERE [reservation_id] = {0}";
+                var reservations = await _context.Reservations
+                    .FromSqlRaw(sql, reservationId)
+                    .ToListAsync();
+
+                if (reservations.Any())
                 {
                     return RedirectToAction("Confirmation", "Reservation", new { id = reservationId });
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching for reservation {ReservationId}", reservationId);
+                TempData["Error"] = "An error occurred while searching for the reservation. Please try again.";
+                return RedirectToAction("Index");
             }
 
             TempData["Error"] = $"No reservation found with ID: {receiptSearch}";
@@ -951,11 +1269,13 @@ public async Task<IActionResult> CreateUser(string username, string password, st
                 return View(staff);
             }
 
-            // Check if phone number already exists
-            var existingStaff = await _context.Staff
-                .FirstOrDefaultAsync(s => s.TelNo == staff.TelNo);
+            // Check if phone number already exists using raw SQL
+            string checkPhoneSql = @"SELECT * FROM [staff] WHERE [tel_no] = {0}";
+            var existingStaffList = await _context.Staff
+                .FromSqlRaw(checkPhoneSql, staff.TelNo)
+                .ToListAsync();
 
-            if (existingStaff != null)
+            if (existingStaffList.Any())
             {
                 ModelState.AddModelError("TelNo", "A staff member with this phone number already exists.");
                 return View(staff);
@@ -969,8 +1289,12 @@ public async Task<IActionResult> CreateUser(string username, string password, st
                 return View(staff);
             }
 
-            _context.Staff.Add(staff);
-            await _context.SaveChangesAsync();
+            // Insert staff using raw SQL
+            string insertSql = @"
+                INSERT INTO [staff] ([name], [surname], [job], [tel_no])
+                VALUES ({0}, {1}, {2}, {3})";
+
+            await _context.Database.ExecuteSqlRawAsync(insertSql, staff.Name, staff.Surname, staff.Job, staff.TelNo);
 
             TempData["Success"] = $"Staff member {staff.Name} {staff.Surname} has been successfully added.";
             return RedirectToAction("Admin");
@@ -987,13 +1311,21 @@ public async Task<IActionResult> CreateUser(string username, string password, st
                 }
 
                 var reservationDate = DateTime.Parse(date);
-                var occupiedTables = await _context.Reservations
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.ReservationDetail.ReservationDate.Date == reservationDate.Date)
-                    .Where(r => r.ReservationDetail.ReservationHour == time)
-                    .Where(r => r.ReservationDetail.ReservationStatus == "active")
-                    .Select(r => r.TableId)
-                    .Distinct()
+                
+                // Get occupied tables using raw SQL - avoid COUNT
+                string sql = @"
+                    SELECT DISTINCT r.table_id
+                    FROM [reservations] r
+                    WHERE EXISTS (
+                        SELECT 1 FROM [reservation_details] rd 
+                        WHERE rd.res_details_id = r.res_details_id
+                        AND CAST(rd.reservation_date AS DATE) = CAST({0} AS DATE)
+                        AND rd.reservation_hour = {1}
+                        AND rd.reservation_status = 'active'
+                    )";
+
+                var occupiedTables = await _context.Database
+                    .SqlQueryRaw<int>(sql, reservationDate, time)
                     .ToListAsync();
 
                 return Json(new { success = true, occupiedTables = occupiedTables });
@@ -1009,7 +1341,10 @@ public async Task<IActionResult> CreateUser(string username, string password, st
         {
             try
             {
-                var staff = await _context.Staff.ToListAsync();
+                string sql = @"SELECT * FROM [staff]";
+                var staff = await _context.Staff
+                    .FromSqlRaw(sql)
+                    .ToListAsync();
                 
                 var staffList = new List<object>();
                 foreach (var member in staff)
@@ -1025,6 +1360,7 @@ public async Task<IActionResult> CreateUser(string username, string password, st
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error getting staff members");
                 return Json(new { success = false, message = ex.Message });
             }
         }
@@ -1041,42 +1377,70 @@ public async Task<IActionResult> CreateUser(string username, string password, st
 
                 var reservationDate = DateTime.Parse(date);
 
-                // Get all tables
+                // Get all tables first
+                string allTablesSql = @"SELECT * FROM [restaurant_tables]";
                 var allTables = await _context.RestaurantTables
-                    .Include(t => t.ServedBy)
-                    .Select(t => new
-                    {
-                        tableId = t.TableId,
-                        minCapacity = t.MinCapacity,
-                        maxCapacity = t.MaxCapacity,
-                        serverName = t.ServedBy != null ? t.ServedBy.Name + " " + t.ServedBy.Surname : "No Server"
-                    })
+                    .FromSqlRaw(allTablesSql)
                     .ToListAsync();
 
-                // Get occupied table IDs for the specific date/time
-                var occupiedQuery = _context.Reservations
-                    .Include(r => r.ReservationDetail)
-                    .Where(r => r.ReservationDetail.ReservationDate.Date == reservationDate.Date)
-                    .Where(r => r.ReservationDetail.ReservationHour == time)
-                    .Where(r => r.ReservationDetail.ReservationStatus == "active");
-
-                // Add condition to exclude current reservation if editing
-                if (currentReservationId.HasValue)
+                // Load staff for each table
+                var allTablesWithStaff = new List<object>();
+                foreach (var table in allTables)
                 {
-                    occupiedQuery = occupiedQuery.Where(r => r.ReservationId != currentReservationId.Value);
+                    string staffSql = @"SELECT * FROM [staff] WHERE [staff_id] = {0}";
+                    var staffList = await _context.Staff
+                        .FromSqlRaw(staffSql, table.ServedById)
+                        .ToListAsync();
+                    
+                    var staff = staffList.FirstOrDefault();
+                    
+                    allTablesWithStaff.Add(new
+                    {
+                        tableId = table.TableId,
+                        minCapacity = table.MinCapacity,
+                        maxCapacity = table.MaxCapacity,
+                        serverName = staff != null ? $"{staff.Name} {staff.Surname}" : "No Server"
+                    });
                 }
 
-                var occupiedTableIds = await occupiedQuery
-                    .Select(r => r.TableId)
-                    .ToListAsync();
+                // Get occupied table IDs for the specific date/time using raw SQL - avoid COUNT
+                string occupiedTablesSql = @"
+                    SELECT DISTINCT r.table_id
+                    FROM [reservations] r
+                    WHERE EXISTS (
+                        SELECT 1 FROM [reservation_details] rd 
+                        WHERE rd.res_details_id = r.res_details_id
+                        AND CAST(rd.reservation_date AS DATE) = CAST({0} AS DATE)
+                        AND rd.reservation_hour = {1}
+                        AND rd.reservation_status = 'active'
+                    )";
+
+                List<int> occupiedTableIds;
+
+                if (currentReservationId.HasValue)
+                {
+                    occupiedTablesSql += " AND r.reservation_id != {2}";
+                    occupiedTableIds = await _context.Database
+                        .SqlQueryRaw<int>(occupiedTablesSql, reservationDate, time, currentReservationId.Value)
+                        .ToListAsync();
+                }
+                else
+                {
+                    occupiedTableIds = await _context.Database
+                        .SqlQueryRaw<int>(occupiedTablesSql, reservationDate, time)
+                        .ToListAsync();
+                }
 
                 // Filter out occupied tables
-                var availableTables = allTables.Where(t => !occupiedTableIds.Contains(t.tableId)).ToList();
+                var availableTables = allTablesWithStaff
+                    .Where(t => !occupiedTableIds.Contains((int)t.GetType().GetProperty("tableId").GetValue(t)))
+                    .ToList();
 
                 return Json(new { success = true, tables = availableTables });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error getting available tables");
                 return Json(new { success = false, message = ex.Message });
             }
         }
@@ -1108,5 +1472,4 @@ public async Task<IActionResult> CreateUser(string username, string password, st
             return View();
         }
     }
-
 }

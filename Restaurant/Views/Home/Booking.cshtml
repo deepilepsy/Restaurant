@@ -242,24 +242,49 @@
     </div>
 </div>
 
-<!-- Pass model data to JavaScript -->
+<!-- Replace the script section at the bottom of your Booking.cshtml with this -->
 <script>
     // Initialize with server-side data
     window.bookingData = {
         selectedTableId: @(Model.SelectedTableId ?? 0),
-        selectedDate: '@(Model.SelectedDate ?? "")',
-        selectedTime: '@(Model.SelectedTime ?? "")',
+        selectedDate: '@Html.Raw(Model.SelectedDate ?? "")',
+        selectedTime: '@Html.Raw(Model.SelectedTime ?? "")',
         selectedGuests: @(Model.SelectedGuests ?? 0),
-        tables: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Tables.Select(t => new {
-                    tableId = t.TableId,
-                    minCapacity = t.MinCapacity,
-                    maxCapacity = t.MaxCapacity,
-                    servedBy = new {
-                        name = t.ServedBy?.Name ?? "",
-                        surname = t.ServedBy?.Surname ?? ""
+        tables: [
+            @for (int i = 0; i < Model.Tables.Count; i++)
+            {
+                var table = Model.Tables[i];
+                <text>,{
+                    tableId: @table.TableId,
+                    minCapacity: @table.MinCapacity,
+                    maxCapacity: @table.MaxCapacity,
+                    servedBy: {
+                        name: '@Html.Raw(table.ServedBy?.Name?.Replace("'", "\\'") ?? "")',
+                        surname: '@Html.Raw(table.ServedBy?.Surname?.Replace("'", "\\'") ?? "")'
                     }
-                })))
+                }@(i < Model.Tables.Count - 1 ? "," : "")</text>
+            }
+        ]
     };
+
+    // Debug: Log the data to check if it's loading correctly
+    console.log('Booking data loaded:', window.bookingData);
+
+    // Verify tables data
+    if (!window.bookingData.tables || window.bookingData.tables.length === 0) {
+        console.error('No table data loaded!');
+
+        // Show an error message to the user
+        document.addEventListener('DOMContentLoaded', function() {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = 'Error: Table data could not be loaded. Please refresh the page.';
+                errorDiv.style.display = 'block';
+            }
+        });
+    } else {
+        console.log(`Loaded ${window.bookingData.tables.length} tables`);
+    }
 </script>
 <script src="~/js/booking.js?v=1.0.2"></script>
 </body>
