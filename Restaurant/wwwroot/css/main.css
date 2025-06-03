@@ -296,3 +296,13 @@ header {
 #adminsvg:hover {
     fill: white;
 }
+
+.fa-house {
+    color: #ffffff;
+    font-size: x-large;
+    margin: 1rem 0.3rem;
+    transition: all 0.3s ease-in-out;
+}
+.fa-house:hover {
+    color: #d99a4e;
+}
