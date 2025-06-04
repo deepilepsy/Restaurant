@@ -3,7 +3,7 @@
     ViewData["Title"] = "Order Management";
     Layout = null;
 
-    // Group menu items manually without LINQ
+    // Group menu items manually
     var categorizedMenuItems = new Dictionary<string, List<Restaurant.Models.MenuItem>>();
     foreach (var item in Model.MenuItems)
     {
@@ -115,7 +115,7 @@
                 <h3>@category</h3>
 
                 @{
-                    // Group items by subcategory manually without LINQ
+                    // Group items by subcategory manually
                     var subcategorizedItems = new Dictionary<string, List<Restaurant.Models.MenuItem>>();
                     foreach (var item in categoryItems)
                     {
@@ -203,7 +203,7 @@
         <div class="special-notes">
             <label for="specialNotes">Special Notes:</label>
             <textarea id="specialNotes" placeholder="Any special requests or modifications...">@{
-                    // Get special notes without LINQ
+                    // Get special notes
                     string specialNotes = "";
                     if (Model.ExistingReceipt?.ReceiptItems != null)
                     {

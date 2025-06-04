@@ -282,7 +282,7 @@ namespace Restaurant.Controllers
                 return RedirectToAction("Staff");
             }
 
-            // Get all menu items with SQL sorting instead of LINQ
+            // Get all menu items with SQL sorting
             string menuSql = @"
         SELECT * FROM [menu_items] 
         ORDER BY [category], 
@@ -298,7 +298,7 @@ namespace Restaurant.Controllers
             // Load receipt items if receipt exists
             if (existingReceipt != null)
             {
-                // Get receipt items using separate SQL queries (no reader needed)
+                // Get receipt items using separate SQL queries
                 string receiptItemsSql = "SELECT * FROM [receipt_items] WHERE [receipt_id] = {0}";
                 var receiptItems = await _context.ReceiptItems.FromSqlRaw(receiptItemsSql, existingReceipt.ReceiptId).ToListAsync();
 
